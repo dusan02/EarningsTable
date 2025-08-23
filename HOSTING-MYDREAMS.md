@@ -86,32 +86,70 @@ php_value memory_limit 256M
 
 ## ⏰ Nastavenie Cron Jobs
 
-### Cez mydreams.cz admin panel:
+### Pre earningstable.com na mydreams.cz:
+
+**Dôležité**: Nahraďte `/cesta/k/vašej/doméne/` skutočnou cestou na mydreams.cz. Typicky to bude:
+- `/home/username/public_html/` alebo
+- `/var/www/earningstable.com/` alebo
+- `/home/earningstable/public_html/`
+
+#### **Správne nastavenie pre earningstable.com:**
 
 1. **Daily cleanup** (02:00 NY time = 08:00 CET):
    ```
-   0 8 * * * /usr/bin/php /cesta/k/vašej/doméne/cron/clear_old_data.php
+   0 8 * * * /usr/bin/php /home/username/public_html/cron/clear_old_data.php
    ```
 
 2. **Fetch earnings** (02:30 NY time = 08:30 CET):
    ```
-   30 8 * * * /usr/bin/php /cesta/k/vašej/doméne/cron/fetch_finnhub_earnings_today_tickers.php
+   30 8 * * * /usr/bin/php /home/username/public_html/cron/fetch_finnhub_earnings_today_tickers.php
    ```
 
 3. **Fetch missing tickers** (02:40 NY time = 08:40 CET):
    ```
-   40 8 * * * /usr/bin/php /cesta/k/vašej/doméne/cron/fetch_missing_tickers_yahoo.php
+   40 8 * * * /usr/bin/php /home/username/public_html/cron/fetch_missing_tickers_yahoo.php
    ```
 
 4. **Fetch market data** (03:00 NY time = 09:00 CET):
    ```
-   0 9 * * * /usr/bin/php /cesta/k/vašej/doméne/cron/fetch_market_data_complete.php
+   0 9 * * * /usr/bin/php /home/username/public_html/cron/fetch_market_data_complete.php
    ```
 
 5. **5-min updates** (každých 5 minút):
    ```
-   */5 * * * * /usr/bin/php /cesta/k/vašej/doméne/cron/run_5min_updates.php
+   */5 * * * * /usr/bin/php /home/username/public_html/cron/run_5min_updates.php
    ```
+
+#### **Ako zistiť správnu cestu:**
+
+1. **Cez FTP**: Pripojte sa cez FTP a pozrite si cestu k súborom
+2. **Cez SSH**: Ak máte SSH prístup, použite `pwd` príkaz
+3. **Cez admin panel**: mydreams.cz admin panel zobrazuje cestu k súborom
+4. **Test súbor**: Vytvorte test súbor a pozrite si jeho cestu
+
+#### **Test správnej cesty:**
+
+Vytvorte súbor `test-path.php` v root adresári:
+```php
+<?php
+echo "Current path: " . __DIR__ . "\n";
+echo "Document root: " . $_SERVER['DOCUMENT_ROOT'] . "\n";
+?>
+```
+
+Potom spustite: `php test-path.php` cez SSH alebo cez cron test.
+
+#### **Alternatívne riešenie - relatívne cesty:**
+
+Ak absolútne cesty nefungujú, použite relatívne cesty z root adresára:
+
+```
+0 8 * * * cd /home/username/public_html && /usr/bin/php cron/clear_old_data.php
+30 8 * * * cd /home/username/public_html && /usr/bin/php cron/fetch_finnhub_earnings_today_tickers.php
+40 8 * * * cd /home/username/public_html && /usr/bin/php cron/fetch_missing_tickers_yahoo.php
+0 9 * * * cd /home/username/public_html && /usr/bin/php cron/fetch_market_data_complete.php
+*/5 * * * * cd /home/username/public_html && /usr/bin/php cron/run_5min_updates.php
+```
 
 ## 🔍 Testovanie
 
