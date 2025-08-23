@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Cap Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .debug-title { font-weight: bold; margin-bottom: 10px; }
+        .debug-data { font-family: monospace; white-space: pre-wrap; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Market Cap Debug</h1>
+    
+    <div class="debug-section">
+        <div class="debug-title">1. API Response</div>
+        <div id="apiResponse" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">2. HYPR Data</div>
+        <div id="hyprData" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">3. BABA Data</div>
+        <div id="babaData" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">4. CalculateMetrics Function</div>
+        <div id="calculateMetricsDebug" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">5. UpdateWinners Function</div>
+        <div id="updateWinnersDebug" class="debug-data">Loading...</div>
+    </div>
+
+    <script>
+        function num(v) {
+            if (v == null) return 0;
+            if (typeof v === 'number' && isFinite(v)) return v;
+            const s = String(v).replace(/[$,%\s,]/g, '').trim();
+            const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+            if (!m) return parseFloat(s) || 0;
+            const base = parseFloat(m[1]);
+            const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+            return base * mult;
+        }
+
+        function fmtUSDshort(value) {
+            if (value == null || value === 0) return '-';
+            const absValue = Math.abs(value);
+            if (absValue >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
+            if (absValue >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+            if (absValue >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+            if (absValue >= 1e3) return `$${(value / 1e3).toFixed(1)}K`;
+            return `$${value.toFixed(0)}`;
+        }
+
+        function calculateMetrics(rows) {
+            console.log('🔍 DEBUG: Starting calculateMetrics with', rows.length, 'rows');
+            let debugLog = `Starting calculateMetrics with ${rows.length} rows\n\n`;
+            
+            const data = Array.isArray(rows) ? rows : [];
+
+            // vezmi diff; podpora aj pre market_cap_diff_billions
+            const diffVal = (r) => {
+                if (!r) return 0;
+                if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                return 0;
+            };
+
+            let mcGainer = null, mcLoser = null;
+            debugLog += 'Checking each row for market cap diff:\n';
+            
+            for (const r of data) {
+                const d = diffVal(r);
+                debugLog += `${r.ticker}: market_cap=${r.market_cap}, market_cap_diff=${r.market_cap_diff}, diffVal=${d}\n`;
+                
+                if (d > 0 && (mcGainer === null || d > diffVal(mcGainer))) {
+                    mcGainer = r;
+                    debugLog += `  -> New mcGainer: ${r.ticker} with diff=${d}\n`;
+                }
+                if (d < 0 && (mcLoser === null || d < diffVal(mcLoser))) {
+                    mcLoser = r;
+                    debugLog += `  -> New mcLoser: ${r.ticker} with diff=${d}\n`;
+                }
+            }
+
+            debugLog += `\nFinal results:\n`;
+            debugLog += `mcGainer: ${mcGainer?.ticker || 'null'} (diff: ${diffVal(mcGainer)})\n`;
+            debugLog += `mcLoser: ${mcLoser?.ticker || 'null'} (diff: ${diffVal(mcLoser)})\n`;
+            
+            document.getElementById('calculateMetricsDebug').textContent = debugLog;
+            
+            return { mcGainer, mcLoser, priceGainer: null, priceLoser: null };
+        }
+
+        function updateWinners(w) {
+            console.log('🎯 DEBUG: updateWinners called with:', w);
+            let debugLog = `updateWinners called with:\n`;
+            debugLog += `mcGainer: ${w.mcGainer?.ticker || 'null'}\n`;
+            debugLog += `mcLoser: ${w.mcLoser?.ticker || 'null'}\n\n`;
+            
+            const gainDiff = w.mcGainer
+                ? (w.mcGainer.market_cap_diff ?? (num(w.mcGainer.market_cap_diff_billions) * 1e9))
+                : null;
+            const loseDiff = w.mcLoser
+                ? (w.mcLoser.market_cap_diff ?? (num(w.mcLoser.market_cap_diff_billions) * 1e9))
+                : null;
+
+            debugLog += `Calculated values:\n`;
+            debugLog += `gainDiff: ${gainDiff} (formatted: ${fmtUSDshort(gainDiff)})\n`;
+            debugLog += `loseDiff: ${loseDiff} (formatted: ${fmtUSDshort(loseDiff)})\n\n`;
+            
+            debugLog += `What would be displayed:\n`;
+            debugLog += `Market Cap Gainer: ${w.mcGainer?.ticker || '-'} - ${fmtUSDshort(gainDiff)}\n`;
+            debugLog += `Market Cap Loser: ${w.mcLoser?.ticker || '-'} - ${fmtUSDshort(loseDiff)}\n`;
+            
+            document.getElementById('updateWinnersDebug').textContent = debugLog;
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('api/earnings-tickers-today-fixed.php');
+                const data = await response.json();
+                
+                // 1. API Response
+                document.getElementById('apiResponse').textContent = 
+                    `Total records: ${data.data?.length || 0}\n` +
+                    `First 3 records:\n${JSON.stringify(data.data?.slice(0, 3), null, 2)}`;
+                
+                // 2. HYPR Data
+                const hypr = data.data?.find(item => item.ticker === 'HYPR');
+                if (hypr) {
+                    document.getElementById('hyprData').textContent = 
+                        `HYPR found:\n` +
+                        `market_cap: ${hypr.market_cap}\n` +
+                        `market_cap_diff: ${hypr.market_cap_diff}\n` +
+                        `market_cap_diff_billions: ${hypr.market_cap_diff_billions}\n` +
+                        `Formatted market_cap: ${fmtUSDshort(hypr.market_cap)}\n` +
+                        `Formatted market_cap_diff: ${fmtUSDshort(hypr.market_cap_diff)}`;
+                } else {
+                    document.getElementById('hyprData').textContent = 'HYPR NOT FOUND in data';
+                }
+                
+                // 3. BABA Data
+                const baba = data.data?.find(item => item.ticker === 'BABA');
+                if (baba) {
+                    document.getElementById('babaData').textContent = 
+                        `BABA found:\n` +
+                        `market_cap: ${baba.market_cap}\n` +
+                        `market_cap_diff: ${baba.market_cap_diff}\n` +
+                        `market_cap_diff_billions: ${baba.market_cap_diff_billions}\n` +
+                        `Formatted market_cap: ${fmtUSDshort(baba.market_cap)}\n` +
+                        `Formatted market_cap_diff: ${fmtUSDshort(baba.market_cap_diff)}`;
+                } else {
+                    document.getElementById('babaData').textContent = 'BABA NOT FOUND in data';
+                }
+                
+                // 4. CalculateMetrics
+                const winners = calculateMetrics(data.data || []);
+                
+                // 5. UpdateWinners
+                updateWinners(winners);
+                
+            } catch (error) {
+                document.getElementById('apiResponse').textContent = `Error: ${error.message}`;
+                document.getElementById('apiResponse').className = 'debug-data error';
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>

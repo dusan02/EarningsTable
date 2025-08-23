@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings Dashboard - Refactored</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Summary Statistics */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-ticker {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Controls */
+        .controls {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--primary-color);
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Status Classes */
+        .status-bmo { color: var(--success-color); font-weight: 600; }
+        .status-amc { color: var(--danger-color); font-weight: 600; }
+        .status-tns { color: var(--warning-color); font-weight: 600; }
+
+        .size-large { color: var(--success-color); font-weight: 600; }
+        .size-mid { color: var(--warning-color); font-weight: 600; }
+        .size-small { color: var(--danger-color); font-weight: 600; }
+
+        .price-up { color: var(--success-color); }
+        .price-down { color: var(--danger-color); }
+        .price-neutral { color: var(--text-secondary); }
+
+        .diff-positive { color: var(--success-color); font-weight: 600; }
+        .diff-negative { color: var(--danger-color); font-weight: 600; }
+        .diff-neutral { color: var(--text-secondary); }
+
+        /* Loading & Error States */
+        .loading, .error {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background: #fef2f2;
+            color: var(--danger-color);
+            border-radius: var(--radius-md);
+            margin: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Earnings Dashboard</h1>
+            <p>Real-time market cap analysis and earnings data</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">-</div>
+                <div class="stat-label">Total Companies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="largeCount">-</div>
+                <div class="stat-label">Large Cap</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="midCount">-</div>
+                <div class="stat-label">Mid Cap</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="smallCount">-</div>
+                <div class="stat-label">Small Cap</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalMarketCap">-</div>
+                <div class="stat-label">Total Market Cap</div>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title">Price Gainer</div>
+                <div class="metric-value" id="priceGainerValue">-</div>
+                <div class="metric-ticker" id="priceGainerTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Market Cap Gainer</div>
+                <div class="metric-value" id="mcGainerValue">-</div>
+                <div class="metric-ticker" id="mcGainerTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">EPS Beat</div>
+                <div class="metric-value" id="epsBeatValue">-</div>
+                <div class="metric-ticker" id="epsBeatTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Revenue Beat</div>
+                <div class="metric-value" id="revenueBeatValue">-</div>
+                <div class="metric-ticker" id="revenueBeatTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Price Loser</div>
+                <div class="metric-value" id="priceLoserValue">-</div>
+                <div class="metric-ticker" id="priceLoserTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Market Cap Loser</div>
+                <div class="metric-value" id="mcLoserValue">-</div>
+                <div class="metric-ticker" id="mcLoserTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">EPS Miss</div>
+                <div class="metric-value" id="epsMissValue">-</div>
+                <div class="metric-ticker" id="epsMissTicker">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Revenue Miss</div>
+                <div class="metric-value" id="revenueMissValue">-</div>
+                <div class="metric-ticker" id="revenueMissTicker">-</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by ticker or company name...">
+            <div class="checkbox-container">
+                <input type="checkbox" id="reportedOnly">
+                <label for="reportedOnly">Show reported earnings only</label>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Earnings Data</h2>
+            </div>
+            <div class="table-wrapper">
+                <table id="earningsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ticker</th>
+                            <th>Company</th>
+                            <th>Time</th>
+                            <th>Market Cap</th>
+                            <th>Diff</th>
+                            <th>Size</th>
+                            <th>Current Price</th>
+                            <th>Change %</th>
+                            <th>EPS</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="11" class="loading">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // CORE UTILITIES
+        // ============================================================================
+
+        class NumberUtils {
+            /**
+             * Converts various number formats to numeric value
+             * @param {any} value - Input value to convert
+             * @returns {number} - Numeric value
+             */
+            static parse(value) {
+                if (value == null) return 0;
+                if (typeof value === 'number' && isFinite(value)) return value;
+                
+                const str = String(value).replace(/[$,%\s,]/g, '').trim();
+                const match = str.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+                
+                if (!match) return parseFloat(str) || 0;
+                
+                const base = parseFloat(match[1]);
+                const multiplier = { K: 1e3, M: 1e6, B: 1e9, T: 1e12 }[(match[3] || '').toUpperCase()] || 1;
+                return base * multiplier;
+            }
+
+            /**
+             * Formats number to short USD format
+             * @param {number} value - Number to format
+             * @returns {string} - Formatted string
+             */
+            static formatUSD(value) {
+                const num = Math.abs(this.parse(value));
+                const sign = this.parse(value) < 0 ? '-' : '';
+                
+                if (num >= 1e12) return `${sign}$${(num/1e12).toFixed(1)}T`;
+                if (num >= 1e9) return `${sign}$${(num/1e9).toFixed(1)}B`;
+                if (num >= 1e6) return `${sign}$${(num/1e6).toFixed(1)}M`;
+                if (num >= 1e3) return `${sign}$${(num/1e3).toFixed(1)}K`;
+                return `${sign}$${num.toFixed(0)}`;
+            }
+
+            /**
+             * Formats price with 2 decimal places
+             * @param {number} value - Price to format
+             * @returns {string} - Formatted price
+             */
+            static formatPrice(value) {
+                const num = this.parse(value);
+                return isNaN(num) ? '-' : `$${num.toFixed(2)}`;
+            }
+
+            /**
+             * Formats percentage change
+             * @param {number} value - Percentage to format
+             * @returns {string} - Formatted percentage
+             */
+            static formatPercentage(value) {
+                const num = this.parse(value);
+                return isNaN(num) ? '-' : `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+            }
+        }
+
+        // ============================================================================
+        // DATA PROCESSING
+        // ============================================================================
+
+        class DataProcessor {
+            /**
+             * Calculates all metrics from earnings data
+             * @param {Array} data - Raw earnings data
+             * @returns {Object} - Calculated metrics
+             */
+            static calculateMetrics(data) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    return this.getEmptyMetrics();
+                }
+
+                console.log('🔍 Calculating metrics from', data.length, 'rows');
+
+                const metrics = {
+                    marketCap: this.findMarketCapExtremes(data),
+                    price: this.findPriceExtremes(data),
+                    eps: this.findEPSExtremes(data),
+                    revenue: this.findRevenueExtremes(data)
+                };
+
+                console.log('✅ Metrics calculated:', metrics);
+                return metrics;
+            }
+
+            /**
+             * Finds market cap gainer and loser
+             * @param {Array} data - Earnings data
+             * @returns {Object} - Market cap extremes
+             */
+            static findMarketCapExtremes(data) {
+                let maxDiff = -Infinity;
+                let minDiff = Infinity;
+                let gainer = null;
+                let loser = null;
+
+                data.forEach(row => {
+                    const diff = NumberUtils.parse(row.market_cap_diff);
+                    
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        gainer = row;
+                    }
+                    
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        loser = row;
+                    }
+                });
+
+                return { gainer, loser, maxDiff, minDiff };
+            }
+
+            /**
+             * Finds price gainer and loser
+             * @param {Array} data - Earnings data
+             * @returns {Object} - Price extremes
+             */
+            static findPriceExtremes(data) {
+                let maxChange = -Infinity;
+                let minChange = Infinity;
+                let gainer = null;
+                let loser = null;
+
+                data.forEach(row => {
+                    const change = NumberUtils.parse(row.price_change_percent);
+                    
+                    if (change > maxChange) {
+                        maxChange = change;
+                        gainer = row;
+                    }
+                    
+                    if (change < minChange) {
+                        minChange = change;
+                        loser = row;
+                    }
+                });
+
+                return { gainer, loser, maxChange, minChange };
+            }
+
+            /**
+             * Finds EPS beat and miss
+             * @param {Array} data - Earnings data
+             * @returns {Object} - EPS extremes
+             */
+            static findEPSExtremes(data) {
+                const validData = data.filter(row => 
+                    row.eps_actual != null && row.eps_estimate != null
+                );
+
+                if (validData.length === 0) return { beat: null, miss: null };
+
+                const withSurprise = validData.map(row => ({
+                    ...row,
+                    surprise: ((NumberUtils.parse(row.eps_actual) / NumberUtils.parse(row.eps_estimate)) - 1) * 100
+                }));
+
+                const beat = withSurprise.reduce((max, row) => 
+                    row.surprise > max.surprise ? row : max
+                );
+
+                const miss = withSurprise.reduce((min, row) => 
+                    row.surprise < min.surprise ? row : min
+                );
+
+                return { beat, miss };
+            }
+
+            /**
+             * Finds revenue beat and miss
+             * @param {Array} data - Earnings data
+             * @returns {Object} - Revenue extremes
+             */
+            static findRevenueExtremes(data) {
+                const validData = data.filter(row => 
+                    row.revenue_actual != null && row.revenue_estimate != null
+                );
+
+                if (validData.length === 0) return { beat: null, miss: null };
+
+                const withSurprise = validData.map(row => ({
+                    ...row,
+                    surprise: ((NumberUtils.parse(row.revenue_actual) / NumberUtils.parse(row.revenue_estimate)) - 1) * 100
+                }));
+
+                const beat = withSurprise.reduce((max, row) => 
+                    row.surprise > max.surprise ? row : max
+                );
+
+                const miss = withSurprise.reduce((min, row) => 
+                    row.surprise < min.surprise ? row : min
+                );
+
+                return { beat, miss };
+            }
+
+            /**
+             * Returns empty metrics structure
+             * @returns {Object} - Empty metrics
+             */
+            static getEmptyMetrics() {
+                return {
+                    marketCap: { gainer: null, loser: null, maxDiff: 0, minDiff: 0 },
+                    price: { gainer: null, loser: null, maxChange: 0, minChange: 0 },
+                    eps: { beat: null, miss: null },
+                    revenue: { beat: null, miss: null }
+                };
+            }
+
+            /**
+             * Filters data based on search term and reported only flag
+             * @param {Array} data - Raw data
+             * @param {string} searchTerm - Search term
+             * @param {boolean} reportedOnly - Show only reported earnings
+             * @returns {Array} - Filtered data
+             */
+            static filterData(data, searchTerm = '', reportedOnly = false) {
+                return data.filter(row => {
+                    const matchesSearch = !searchTerm || 
+                        row.ticker?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        row.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
+                    
+                    const matchesReported = !reportedOnly || 
+                        (row.eps_actual != null && row.revenue_actual != null);
+                    
+                    return matchesSearch && matchesReported;
+                });
+            }
+
+            /**
+             * Calculates summary statistics
+             * @param {Array} data - Earnings data
+             * @returns {Object} - Summary stats
+             */
+            static calculateSummaryStats(data) {
+                const total = data.length;
+                const large = data.filter(row => row.size === 'Large').length;
+                const mid = data.filter(row => row.size === 'Mid').length;
+                const small = data.filter(row => row.size === 'Small').length;
+                
+                const totalMarketCap = data.reduce((sum, row) => 
+                    sum + NumberUtils.parse(row.market_cap), 0
+                );
+
+                return { total, large, mid, small, totalMarketCap };
+            }
+        }
+
+        // ============================================================================
+        // UI UPDATES
+        // ============================================================================
+
+        class UIUpdater {
+            /**
+             * Updates all metric cards
+             * @param {Object} metrics - Calculated metrics
+             */
+            static updateMetrics(metrics) {
+                console.log('🎯 Updating metrics UI:', metrics);
+
+                // Market Cap
+                this.updateMetricCard('mcGainer', metrics.marketCap.gainer, metrics.marketCap.gainer?.market_cap_diff);
+                this.updateMetricCard('mcLoser', metrics.marketCap.loser, metrics.marketCap.loser?.market_cap_diff);
+
+                // Price
+                this.updateMetricCard('priceGainer', metrics.price.gainer, metrics.price.gainer?.price_change_percent, '%');
+                this.updateMetricCard('priceLoser', metrics.price.loser, metrics.price.loser?.price_change_percent, '%');
+
+                // EPS
+                this.updateMetricCard('epsBeat', metrics.eps.beat, this.calculateSurprise(metrics.eps.beat));
+                this.updateMetricCard('epsMiss', metrics.eps.miss, this.calculateSurprise(metrics.eps.miss));
+
+                // Revenue
+                this.updateMetricCard('revenueBeat', metrics.revenue.beat, this.calculateSurprise(metrics.revenue.beat));
+                this.updateMetricCard('revenueMiss', metrics.revenue.miss, this.calculateSurprise(metrics.revenue.miss));
+            }
+
+            /**
+             * Updates a single metric card
+             * @param {string} prefix - Element ID prefix
+             * @param {Object} row - Data row
+             * @param {any} value - Value to display
+             * @param {string} suffix - Optional suffix
+             */
+            static updateMetricCard(prefix, row, value, suffix = '') {
+                const tickerEl = document.getElementById(`${prefix}Ticker`);
+                const valueEl = document.getElementById(`${prefix}Value`);
+
+                if (!tickerEl || !valueEl) {
+                    console.error(`Element not found: ${prefix}Ticker or ${prefix}Value`);
+                    return;
+                }
+
+                tickerEl.textContent = row?.ticker || '-';
+                
+                if (value == null || value === 0) {
+                    valueEl.textContent = '-';
+                } else {
+                    const formattedValue = typeof value === 'number' ? 
+                        NumberUtils.formatUSD(value) : 
+                        String(value);
+                    valueEl.textContent = `${formattedValue}${suffix}`;
+                }
+
+                valueEl.title = value != null ? String(value) : '-';
+            }
+
+            /**
+             * Calculates surprise percentage
+             * @param {Object} row - Data row
+             * @returns {string} - Formatted surprise
+             */
+            static calculateSurprise(row) {
+                if (!row || !row.eps_actual || !row.eps_estimate) return null;
+                
+                const surprise = ((NumberUtils.parse(row.eps_actual) / NumberUtils.parse(row.eps_estimate)) - 1) * 100;
+                return `${surprise >= 0 ? '+' : ''}${surprise.toFixed(2)}%`;
+            }
+
+            /**
+             * Updates summary statistics
+             * @param {Object} stats - Summary statistics
+             */
+            static updateSummaryStats(stats) {
+                document.getElementById('totalCount').textContent = stats.total;
+                document.getElementById('largeCount').textContent = stats.large;
+                document.getElementById('midCount').textContent = stats.mid;
+                document.getElementById('smallCount').textContent = stats.small;
+                document.getElementById('totalMarketCap').textContent = NumberUtils.formatUSD(stats.totalMarketCap);
+            }
+
+            /**
+             * Renders the data table
+             * @param {Array} data - Earnings data
+             */
+            static renderTable(data) {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                data.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = this.createTableRow(row, index + 1);
+                    tbody.appendChild(tr);
+                });
+            }
+
+            /**
+             * Creates a table row HTML
+             * @param {Object} row - Data row
+             * @param {number} index - Row index
+             * @returns {string} - HTML string
+             */
+            static createTableRow(row, index) {
+                return `
+                    <td>${index}</td>
+                    <td><strong>${row.ticker}</strong></td>
+                    <td>${row.company_name || '-'}</td>
+                    <td class="status-${row.report_time?.toLowerCase()}">${row.report_time || '-'}</td>
+                    <td>${NumberUtils.formatUSD(row.market_cap)}</td>
+                    <td class="diff-${this.getDiffClass(row.market_cap_diff)}">${NumberUtils.formatUSD(row.market_cap_diff)}</td>
+                    <td class="size-${row.size?.toLowerCase()}">${row.size || '-'}</td>
+                    <td>${NumberUtils.formatPrice(row.current_price)}</td>
+                    <td class="price-${this.getPriceClass(row.price_change_percent)}">${NumberUtils.formatPercentage(row.price_change_percent)}</td>
+                    <td>${this.formatEPS(row)}</td>
+                    <td>${this.formatRevenue(row)}</td>
+                `;
+            }
+
+            /**
+             * Gets CSS class for diff value
+             * @param {any} value - Diff value
+             * @returns {string} - CSS class
+             */
+            static getDiffClass(value) {
+                const num = NumberUtils.parse(value);
+                return num > 0 ? 'positive' : num < 0 ? 'negative' : 'neutral';
+            }
+
+            /**
+             * Gets CSS class for price change
+             * @param {any} value - Price change value
+             * @returns {string} - CSS class
+             */
+            static getPriceClass(value) {
+                const num = NumberUtils.parse(value);
+                return num > 0 ? 'up' : num < 0 ? 'down' : 'neutral';
+            }
+
+            /**
+             * Formats EPS data
+             * @param {Object} row - Data row
+             * @returns {string} - Formatted EPS
+             */
+            static formatEPS(row) {
+                if (!row.eps_estimate) return '-';
+                return `$${NumberUtils.parse(row.eps_estimate).toFixed(2)}`;
+            }
+
+            /**
+             * Formats revenue data
+             * @param {Object} row - Data row
+             * @returns {string} - Formatted revenue
+             */
+            static formatRevenue(row) {
+                if (!row.revenue_estimate) return '-';
+                return NumberUtils.formatUSD(row.revenue_estimate);
+            }
+
+            /**
+             * Shows loading state
+             */
+            static showLoading() {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '<tr><td colspan="11" class="loading">Loading data...</td></tr>';
+            }
+
+            /**
+             * Shows error state
+             * @param {string} message - Error message
+             */
+            static showError(message) {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = `<tr><td colspan="11" class="error">Error: ${message}</td></tr>`;
+            }
+        }
+
+        // ============================================================================
+        // DATA SERVICE
+        // ============================================================================
+
+        class DataService {
+            /**
+             * Fetches earnings data from API
+             * @returns {Promise<Object>} - API response
+             */
+            static async fetchEarningsData() {
+                try {
+                    console.log('📡 Fetching earnings data...');
+                    const response = await fetch('api/earnings-tickers-today.php');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('✅ Data fetched successfully:', data);
+                    
+                    return data;
+                } catch (error) {
+                    console.error('❌ Error fetching data:', error);
+                    throw error;
+                }
+            }
+        }
+
+        // ============================================================================
+        // MAIN APPLICATION
+        // ============================================================================
+
+        class EarningsDashboard {
+            constructor() {
+                this.data = [];
+                this.filteredData = [];
+                this.metrics = null;
+                this.isLoading = false;
+                
+                this.initializeEventListeners();
+                this.loadData();
+            }
+
+            /**
+             * Initializes event listeners
+             */
+            initializeEventListeners() {
+                const searchInput = document.getElementById('searchInput');
+                const reportedOnlyCheckbox = document.getElementById('reportedOnly');
+
+                searchInput.addEventListener('input', () => this.handleFilterChange());
+                reportedOnlyCheckbox.addEventListener('change', () => this.handleFilterChange());
+            }
+
+            /**
+             * Handles filter changes
+             */
+            handleFilterChange() {
+                const searchTerm = document.getElementById('searchInput').value;
+                const reportedOnly = document.getElementById('reportedOnly').checked;
+
+                this.filteredData = DataProcessor.filterData(this.data, searchTerm, reportedOnly);
+                this.updateUI();
+            }
+
+            /**
+             * Loads data from API
+             */
+            async loadData() {
+                try {
+                    this.isLoading = true;
+                    UIUpdater.showLoading();
+
+                    const response = await DataService.fetchEarningsData();
+                    
+                    if (response.error) {
+                        throw new Error(response.message || 'Error loading data');
+                    }
+
+                    this.data = response.data || [];
+                    this.filteredData = [...this.data];
+                    
+                    this.updateUI();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading data:', error);
+                    UIUpdater.showError(error.message);
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+            /**
+             * Updates the entire UI
+             */
+            updateUI() {
+                if (this.isLoading) return;
+
+                try {
+                    // Calculate metrics
+                    this.metrics = DataProcessor.calculateMetrics(this.filteredData);
+                    
+                    // Calculate summary stats
+                    const summaryStats = DataProcessor.calculateSummaryStats(this.filteredData);
+                    
+                    // Update UI components
+                    UIUpdater.updateMetrics(this.metrics);
+                    UIUpdater.updateSummaryStats(summaryStats);
+                    UIUpdater.renderTable(this.filteredData);
+                    
+                    console.log('✅ UI updated successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error updating UI:', error);
+                    UIUpdater.showError('Error updating display');
+                }
+            }
+
+            /**
+             * Refreshes data
+             */
+            refresh() {
+                this.loadData();
+            }
+        }
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing Earnings Dashboard...');
+            window.dashboard = new EarningsDashboard();
+        });
+
+        // Export for debugging
+        window.EarningsDashboard = EarningsDashboard;
+        window.DataProcessor = DataProcessor;
+        window.NumberUtils = NumberUtils;
+        window.UIUpdater = UIUpdater;
+    </script>
+</body>
+</html>

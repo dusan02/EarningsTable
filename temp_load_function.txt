@@ -1,0 +1,161 @@
+// Load earnings data and populate table
+async function loadEarningsData() {
+    const loading = document.getElementById('loading');
+    const tableElement = document.getElementById('earningsTable');
+    const tableBody = document.getElementById('tableBody');
+
+    try {
+        loading.style.display = 'block';
+        tableElement.style.display = 'none';
+
+        const response = await fetch('api/earnings-tickers-today.php');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load data');
+        }
+
+        const earnings = data.data || [];
+
+        // Filter out items with NULL market_cap
+        const filteredEarnings = earnings.filter(item => item.market_cap && item.market_cap > 0);
+
+        // Update basic stats - use filtered data (what's actually displayed)
+        document.getElementById('totalCount').textContent = filteredEarnings.length;
+
+        const bmoCount = filteredEarnings.filter(e => e.report_time === 'BMO').length;
+        const amcCount = filteredEarnings.filter(e => e.report_time === 'AMC').length;
+        const tnsCount = filteredEarnings.filter(e => e.report_time === 'TNS').length;
+
+        document.getElementById('bmoCount').textContent = bmoCount;
+        document.getElementById('amcCount').textContent = amcCount;
+        document.getElementById('tnsCount').textContent = tnsCount;
+
+        // Calculate company size counts and total market cap
+        let largeCount = 0;
+        let mediumCount = 0;
+        let smallCount = 0;
+        let totalMarketCap = 0;
+
+        filteredEarnings.forEach(item => {
+            if (item.market_cap && item.market_cap > 0) {
+                const marketCapValue = parseFloat(item.market_cap) || 0;
+                const marketCapBillions = marketCapValue / 1000000000;
+                totalMarketCap += marketCapValue;
+
+                if (marketCapBillions >= 100) {
+                    largeCount++;
+                } else if (marketCapBillions >= 10) {
+                    mediumCount++;
+                } else {
+                    smallCount++;
+                }
+            }
+        });
+
+        document.getElementById('largeCount').textContent = largeCount;
+        document.getElementById('mediumCount').textContent = mediumCount;
+        document.getElementById('smallCount').textContent = smallCount;
+        document.getElementById('totalMarketCap').textContent = (totalMarketCap / 1000000000).toFixed(2);
+
+        // Calculate Winners and Losers
+        updateWinnersLosers(filteredEarnings);
+
+        // Populate table with filtered data
+        tableBody.innerHTML = '';
+        filteredEarnings.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${item.ticker}</strong></td>
+                <td>${getShortCompanyName(item.company_name)}<span style="display:none;">${item.company_name || ''}</span></td>
+                <td>${item.report_time || '-'}</td>
+                <td data-order="${item.market_cap || 0}">${item.market_cap ? (item.market_cap / 1000000000).toFixed(2) : '-'}</td>
+                <td data-order="${item.market_cap_diff_billions || 0}">${formatMarketCapDiff(item.market_cap_diff_billions)}</td>
+                <td data-order="${item.market_cap || 0}">${getCompanySize(item.market_cap)}</td>
+                <td data-order="${item.current_price || 0}">${item.current_price ? parseFloat(item.current_price).toFixed(2) : '-'}</td>
+                <td data-order="${item.price_change_percent || 0}">${formatPriceChange(item.price_change_percent)}</td>
+                <td data-order="${item.eps_estimate || 0}">${item.eps_estimate ? parseFloat(item.eps_estimate).toFixed(2) : '-'}</td>
+                <td data-order="${item.eps_actual || 0}">${item.eps_actual ? parseFloat(item.eps_actual).toFixed(2) : '-'}</td>
+                <td data-order="${calculateEPSSurprise(item)}">${formatEPSSurprise(item)}</td>
+                <td data-order="${item.revenue_estimate || 0}">${item.revenue_estimate ? (item.revenue_estimate / 1000000000).toFixed(2) : '-'}</td>
+                <td data-order="${item.revenue_actual || 0}">${item.revenue_actual ? (item.revenue_actual / 1000000000).toFixed(2) : '-'}</td>
+                <td data-order="${calculateRevenueSurprise(item)}">${formatRevenueSurprise(item)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        loading.style.display = 'none';
+        tableElement.style.display = 'table';
+
+        // Initialize DataTable with CSS Grid
+        if ($.fn.DataTable.isDataTable('#earningsTable')) {
+            $('#earningsTable').DataTable().destroy();
+        }
+
+        dataTable = $('#earningsTable').DataTable({
+            responsive: {
+                details: { 
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            pageLength: 25,
+            order: [[3, 'desc']], // Market Cap DESC
+            scrollX: false,
+            scrollCollapse: false,
+            autoWidth: false,
+            stateSave: true,
+            deferRender: true,
+            processing: true,
+            
+            // Modern DOM structure
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            
+            // Optimized column definitions
+            columnDefs: [
+                // Numeric columns - right aligned with monospace font
+                { 
+                    targets: [3,4,6,7,8,9,10,11,12,13], 
+                    className: 'numeric'
+                },
+                
+                // Responsive priorities
+                { targets: 0, responsivePriority: 1 }, // Ticker
+                { targets: 1, responsivePriority: 2 }, // Company  
+                { targets: 2, responsivePriority: 3 }, // Report Time
+                { targets: 3, responsivePriority: 4 }, // Market Cap
+                { targets: 6, responsivePriority: 5 }, // Current Price
+                { targets: [4,5,7,8,9,10,11,12,13], responsivePriority: 100 }
+            ],
+            
+            // Enhanced language
+            language: {
+                processing: '<i class="fas fa-spinner fa-spin"></i> Loading...',
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "Showing 0 to 0 of 0 entries",
+                infoFiltered: "(filtered from _MAX_ total entries)",
+                emptyTable: "No data available in table",
+                zeroRecords: "No matching records found",
+                paginate: {
+                    first: "First",
+                    last: "Last", 
+                    next: "Next",
+                    previous: "Previous"
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+        loading.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error loading data: ${error.message}`;
+        loading.style.color = '#dc3545';
+    }
+}

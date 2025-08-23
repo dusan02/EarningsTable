@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings Table v4 - CACHE BUST</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&family=Montserrat:wght@800;900&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 28px;
+            font-family: 'Poppins', 'Inter', 'SF Pro Display', sans-serif;
+            letter-spacing: -0.5px;
+            color: rgb(17, 24, 39);
+            position: relative;
+        }
+        
+        h1 .brand--accent {
+            color: #28a745;
+            font-weight: 700;
+        }
+        
+        h1 .brand--bold {
+            font-weight: 700;
+        }
+        
+        @keyframes titleGlow {
+            0% {
+                filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.3));
+            }
+            100% {
+                filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6));
+            }
+        }
+        
+        h1::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 50%, transparent 100%);
+            border-radius: 2px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #60a5fa 50%, transparent 100%);
+            border-radius: 1px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        /* Winners & Losers Cards */
+        .metrics-section {
+            margin-bottom: 30px;
+        }
+        .metrics-title {
+            text-align: center;
+            font-size: 1.4em;
+            color: #495057;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .metric-header {
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: white;
+        }
+        .metric-header.green {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .metric-header.red {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+        }
+        .metric-ticker {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        .metric-value.positive {
+            color: #28a745;
+        }
+        .metric-value.negative {
+            color: #dc3545;
+        }
+        .metric-value.neutral {
+            color: #6c757d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #1a252f;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .time-bmo {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .time-amc {
+            background: #fff3cd;
+            color: #856404;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .time-tns {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .price-up {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .price-down {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .size-large {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        .size-mid {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        .size-small {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #6c757d;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            font-size: 1.1em;
+        }
+        .refresh-btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+        .refresh-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="font-size: 24px; font-weight: bold;">Earnings Table - DEBUG VERSION</h1>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button onclick="debugNow()" style="background-color: #dc2626; color: white; font-weight: bold; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer;">
+                    🔍 DEBUG NOW
+                </button>
+                <button id="darkModeToggle" style="background: none; border: none; cursor: pointer;">
+                    🌙
+                </button>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="totalCount">-</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="bmoCount">-</div>
+                <div class="stat-label">BMO</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="amcCount">-</div>
+                <div class="stat-label">AMC</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="tnsCount">-</div>
+                <div class="stat-label">TNS</div>
+            </div>
+        </div>
+        
+        <!-- Winners & Losers Cards -->
+        <div class="metrics-section">
+            <div class="metrics-title">🏆 Winners & Losers</div>
+            <div class="metrics-grid">
+                <!-- Winners -->
+                <div class="metric-card">
+                    <div class="metric-header green">Price Gainer</div>
+                    <div class="metric-ticker" id="priceGainerTicker">-</div>
+                    <div class="metric-value positive" id="priceGainerValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header green">Market Cap Gainer</div>
+                    <div class="metric-ticker" id="mcGainerTicker">-</div>
+                    <div class="metric-value positive" id="mcGainerValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header green">EPS Beat</div>
+                    <div class="metric-ticker" id="epsBeatTicker">-</div>
+                    <div class="metric-value positive" id="epsBeatValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header green">Revenue Beat</div>
+                    <div class="metric-ticker" id="revenueBeatTicker">-</div>
+                    <div class="metric-value positive" id="revenueBeatValue">-</div>
+                </div>
+                
+                <!-- Losers -->
+                <div class="metric-card">
+                    <div class="metric-header red">Price Loser</div>
+                    <div class="metric-ticker" id="priceLoserTicker">-</div>
+                    <div class="metric-value negative" id="priceLoserValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header red">Market Cap Loser</div>
+                    <div class="metric-ticker" id="mcLoserTicker">-</div>
+                    <div class="metric-value negative" id="mcLoserValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header red">EPS Miss</div>
+                    <div class="metric-ticker" id="epsMissTicker">-</div>
+                    <div class="metric-value negative" id="epsMissValue">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header red">Revenue Miss</div>
+                    <div class="metric-ticker" id="revenueMissTicker">-</div>
+                    <div class="metric-value negative" id="revenueMissValue">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">Loading data...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <table id="earningsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Ticker</th>
+                    <th>Time</th>
+                    <th>Market Cap</th>
+                    <th>Diff</th>
+                    <th>Size</th>
+                    <th>Current Price</th>
+                    <th>Price Change %</th>
+                    <th>EPS Estimate</th>
+                    <th>EPS Actual</th>
+                    <th>EPS Surprise</th>
+                    <th>Revenue Estimate</th>
+                    <th>Revenue Actual</th>
+                    <th>Revenue Surprise</th>
+                </tr>
+            </thead>
+            <tbody id="earningsTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Debug function - spusti sa priamo cez onclick
+        function debugNow() {
+            console.log('🔍 DEBUG: Starting debug...');
+            console.log('🔍 DEBUG: window.__lastData:', window.__lastData);
+            console.log('🔍 DEBUG: window.__lastData length:', window.__lastData?.length);
+            
+            if (!window.__lastData || !window.__lastData.length) {
+                console.log('🔍 DEBUG: No data loaded yet');
+                alert('No data loaded yet. Please wait for data to load first.');
+                return;
+            }
+            
+            const rows = window.__lastData;
+            console.log('🔍 DEBUG: Total rows:', rows.length);
+            
+            // Helper function
+            function num(v) {
+                if (v == null) return 0;
+                if (typeof v === 'number' && isFinite(v)) return v;
+                const s = String(v).replace(/[$,%\s,]/g, '').trim();
+                const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+                if (!m) return parseFloat(s) || 0;
+                const base = parseFloat(m[1]);
+                const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+                return base * mult;
+            }
+            
+            // Top 10 market_cap_diff values
+            const diffValues = rows
+                .map(row => ({ ticker: row.ticker, diff: row.market_cap_diff, parsed: num(row.market_cap_diff) }))
+                .filter(row => row.parsed !== 0)
+                .sort((a, b) => b.parsed - a.parsed)
+                .slice(0, 10);
+            
+            console.log('🔍 DEBUG: Top 10 market_cap_diff values:');
+            diffValues.forEach((row, i) => {
+                console.log(`${i+1}. ${row.ticker}: ${row.diff} (parsed: ${row.parsed})`);
+            });
+            
+            // HYPR data
+            const hypr = rows.find(row => row.ticker === 'HYPR');
+            console.log('🔍 DEBUG: HYPR data:', hypr);
+            
+            // BABA data
+            const baba = rows.find(row => row.ticker === 'BABA');
+            console.log('🔍 DEBUG: BABA data:', baba);
+            
+            // Simulate calculateMetrics
+            const diffVal = (r) => {
+                if (!r) return 0;
+                if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                return 0;
+            };
+            
+            let mcGainer = null, mcLoser = null;
+            let maxDiff = -Infinity;
+            let minDiff = Infinity;
+            
+            for (const r of rows) {
+                const d = diffVal(r);
+                if (d > maxDiff) {
+                    maxDiff = d;
+                    mcGainer = r;
+                    console.log(`🔍 DEBUG: New mcGainer: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})`);
+                }
+                if (d < minDiff) {
+                    minDiff = d;
+                    mcLoser = r;
+                    console.log(`🔍 DEBUG: New mcLoser: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})`);
+                }
+            }
+            
+            console.log('🔍 DEBUG: Final results:');
+            console.log(`  mcGainer: ${mcGainer?.ticker} (diff: ${diffVal(mcGainer)})`);
+            console.log(`  mcLoser: ${mcLoser?.ticker} (diff: ${diffVal(mcLoser)})`);
+            
+            alert(`DEBUG COMPLETE!\n\nCheck console for details.\n\nFinal results:\nmcGainer: ${mcGainer?.ticker} (diff: ${diffVal(mcGainer)})\nmcLoser: ${mcLoser?.ticker} (diff: ${diffVal(mcLoser)})`);
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === 0) return '-';
+            if (value >= 1000000000) {
+                return '$' + (value / 1000000000).toFixed(1) + 'B';
+            } else if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(1) + 'M';
+            } else if (value >= 1000) {
+                return '$' + (value / 1000).toFixed(1) + 'K';
+            }
+            return '$' + value.toLocaleString();
+        }
+
+        function formatPrice(value) {
+            if (value === null || value === undefined || value === 0) return '-';
+            return '$' + parseFloat(value).toFixed(2);
+        }
+
+        function formatPriceChange(value) {
+            if (value === null || value === undefined) return '-';
+            const num = parseFloat(value);
+            const sign = num >= 0 ? '+' : '';
+            return sign + num.toFixed(2) + '%';
+        }
+
+        // --- Helpers ---
+        function num(v) {
+            if (v == null) return 0;
+            if (typeof v === 'number' && isFinite(v)) return v;
+            const s = String(v).replace(/[$,%\s,]/g, '').trim(); // odstráň $, %, čiarky, medzery
+            const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+            if (!m) return parseFloat(s) || 0;
+            const base = parseFloat(m[1]);
+            const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+            return base * mult;
+        }
+
+        function fmtUSDshort(x) {
+            const n = Math.abs(num(x));
+            const sign = num(x) < 0 ? '-' : '';
+            if (n >= 1e12) return `${sign}$${(n/1e12).toFixed(1)}T`;
+            if (n >= 1e9)  return `${sign}$${(n/1e9).toFixed(1)}B`;
+            if (n >= 1e6)  return `${sign}$${(n/1e6).toFixed(1)}M`;
+            if (n >= 1e3)  return `${sign}$${(n/1e3).toFixed(1)}K`;
+            return `${sign}$${n.toFixed(0)}`;
+        }
+
+        function formatMarketCapDiff(value) {
+            if (value === null || value === undefined || value === 0) return '-';
+            return fmtUSDshort(value);
+        }
+
+        function formatSurprise(actual, estimate) {
+            if (!actual || !estimate || estimate === 0) return '-';
+            const actualNum = parseFloat(actual);
+            const estimateNum = parseFloat(estimate);
+            if (estimateNum === 0) return '-';
+            
+            const surprise = ((actualNum - estimateNum) / Math.abs(estimateNum)) * 100;
+            const sign = surprise >= 0 ? '+' : '';
+            return sign + surprise.toFixed(2) + '%';
+        }
+
+        function getSurpriseClass(actual, estimate) {
+            if (!actual || !estimate || estimate === 0) return '';
+            const actualNum = parseFloat(actual);
+            const estimateNum = parseFloat(estimate);
+            if (estimateNum === 0) return '';
+            
+            const surprise = ((actualNum - estimateNum) / Math.abs(estimateNum)) * 100;
+            if (surprise > 0) return 'price-up';
+            if (surprise < 0) return 'price-down';
+            return '';
+        }
+
+        function getPriceChangeClass(value) {
+            if (value === null || value === undefined) return '';
+            const num = parseFloat(value);
+            if (num > 0) return 'price-up';
+            if (num < 0) return 'price-down';
+            return '';
+        }
+
+        function getSizeClass(size) {
+            if (!size) return '';
+            return `size-${size.toLowerCase()}`;
+        }
+
+        function getDiffClass(value) {
+            if (value === null || value === undefined || value === 0) return '';
+            const n = num(value);
+            if (n > 0) return 'price-up';
+            if (n < 0) return 'price-down';
+            return '';
+        }
+
+        function calculateMetrics(rows) {
+            console.log('🔍 GPT PATCH: Calculating metrics from', rows.length, 'rows');
+            const data = Array.isArray(rows) ? rows : [];
+
+            // vezmi diff; podpora aj pre market_cap_diff_billions
+            const diffVal = (r) => {
+                if (!r) return 0;
+                if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                return 0;
+            };
+
+            let mcGainer = null, mcLoser = null;
+            for (const r of data) {
+                const d = diffVal(r);
+                console.log(`GPT PATCH: ${r.ticker} diff=${d} (raw: ${r.market_cap_diff})`);
+                if (d > 0 && (mcGainer === null || d > diffVal(mcGainer))) {
+                    mcGainer = r;
+                    console.log(`GPT PATCH: New mcGainer: ${r.ticker} with diff=${d}`);
+                }
+                if (d < 0 && (mcLoser === null || d < diffVal(mcLoser))) {
+                    mcLoser = r;
+                    console.log(`GPT PATCH: New mcLoser: ${r.ticker} with diff=${d}`);
+                }
+            }
+
+            // price karty (ak ich používaš)
+            let priceGainer = null, priceLoser = null;
+            for (const r of data) {
+                const p = num(r.price_change_percent);
+                if (priceGainer == null || p > num(priceGainer?.price_change_percent)) priceGainer = r;
+                if (priceLoser == null || p < num(priceLoser?.price_change_percent)) priceLoser = r;
+            }
+
+            console.log('GPT PATCH: Final mcGainer:', mcGainer?.ticker, 'diff:', diffVal(mcGainer));
+            console.log('GPT PATCH: Final mcLoser:', mcLoser?.ticker, 'diff:', diffVal(mcLoser));
+            
+            return { mcGainer, mcLoser, priceGainer, priceLoser };
+        }
+
+        function updateWinners(w) {
+            console.log('🎯 GPT PATCH: updateWinners called with:', w);
+            
+            const put = (idTicker, idValue, row, value, suffix='') => {
+                const t = document.getElementById(idTicker);
+                const v = document.getElementById(idValue);
+                if (!t || !v) {
+                    console.error(`GPT PATCH: Element not found: ${idTicker} or ${idValue}`);
+                    return;
+                }
+                t.textContent = row?.ticker || '-';
+                v.textContent = (value == null) ? '-' : `${fmtUSDshort(value)}${suffix}`;
+                v.title = (value == null) ? '-' : String(value);
+                console.log(`GPT PATCH: Updated ${idTicker}: ${row?.ticker || '-'}`);
+                console.log(`GPT PATCH: Updated ${idValue}: ${(value == null) ? '-' : fmtUSDshort(value) + suffix}`);
+            };
+
+            const gainDiff = w.mcGainer
+                ? (w.mcGainer.market_cap_diff ?? (num(w.mcGainer.market_cap_diff_billions) * 1e9))
+                : null;
+            const loseDiff = w.mcLoser
+                ? (w.mcLoser.market_cap_diff ?? (num(w.mcLoser.market_cap_diff_billions) * 1e9))
+                : null;
+
+            console.log('GPT PATCH: gainDiff:', gainDiff, 'loseDiff:', loseDiff);
+
+            // Market Cap Gainer / Loser – správne pole: market_cap_diff
+            put('mcGainerTicker', 'mcGainerValue', w.mcGainer, gainDiff);
+            put('mcLoserTicker', 'mcLoserValue', w.mcLoser, loseDiff);
+
+            // (voliteľné) price cards:
+            if (document.getElementById('priceGainerTicker'))
+                put('priceGainerTicker','priceGainerValue', w.priceGainer, num(w.priceGainer?.price_change_percent), '%');
+            if (document.getElementById('priceLoserTicker'))
+                put('priceLoserTicker', 'priceLoserValue', w.priceLoser, num(w.priceLoser?.price_change_percent), '%');
+        }
+
+        async function loadEarnings() {
+            console.log('🚀 loadEarnings() funkcia sa spúšťa!');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const table = document.getElementById('earningsTable');
+            const tableBody = document.getElementById('earningsTableBody');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            table.style.display = 'none';
+            
+            try {
+                console.log('Loading earnings data...');
+                const response = await fetch('api/earnings-tickers-today.php');
+                const data = await response.json();
+                
+                console.log('Data received:', data);
+                
+                if (data.error) {
+                    throw new Error(data.message || 'Error loading data');
+                }
+                
+                // Update stats
+                document.getElementById('totalCount').textContent = data.total || 0;
+                
+                // Count by time
+                const bmoCount = data.data.filter(item => item.report_time === 'BMO').length;
+                const amcCount = data.data.filter(item => item.report_time === 'AMC').length;
+                const tnsCount = data.data.filter(item => item.report_time === 'TNS').length;
+                
+                document.getElementById('bmoCount').textContent = bmoCount;
+                document.getElementById('amcCount').textContent = amcCount;
+                document.getElementById('tnsCount').textContent = tnsCount;
+                
+                // po fetchnutí a aplikovaní filtrov:
+                const filtered = data.data;      // reported only / search
+                window.__lastData = filtered;    // ulož pre debug
+                console.log('Filtered data (first 5):', filtered.slice(0, 5));
+                
+                const winners  = calculateMetrics(filtered);   // <— z tohto istého výrezu
+                console.log('Winners calculated:', winners);
+                
+                updateWinners(winners);
+                
+                // Sort data by market cap DESC
+                const sortedData = data.data.sort((a, b) => {
+                    const marketCapA = parseFloat(a.market_cap) || 0;
+                    const marketCapB = parseFloat(b.market_cap) || 0;
+                    if (marketCapB !== marketCapA) return marketCapB - marketCapA; // DESC
+                    return String(a.ticker || '').localeCompare(String(b.ticker || '')); // sekundárne podľa ticker
+                });
+                
+                console.log('Sorted data (first 5):', sortedData.slice(0, 5));
+                
+                // Populate table
+                tableBody.innerHTML = '';
+                sortedData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    const timeClass = `time-${item.report_time.toLowerCase()}`;
+                    const priceChangeClass = getPriceChangeClass(item.price_change_percent);
+                    const sizeClass = getSizeClass(item.size);
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><strong>${item.ticker}</strong></td>
+                        <td><span class="${timeClass}">${item.report_time}</span></td>
+                        <td>${formatCurrency(item.market_cap)}</td>
+                        <td class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
+                        <td><span class="${sizeClass}">${item.size || '-'}</span></td>
+                        <td>${formatPrice(item.current_price)}</td>
+                        <td class="${priceChangeClass}">${formatPriceChange(item.price_change_percent)}</td>
+                        <td>${item.eps_estimate ? '$' + parseFloat(item.eps_estimate).toFixed(2) : '-'}</td>
+                        <td>${item.eps_actual ? '$' + parseFloat(item.eps_actual).toFixed(2) : '-'}</td>
+                        <td class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
+                        <td>${formatCurrency(item.revenue_estimate)}</td>
+                        <td>${formatCurrency(item.revenue_actual)}</td>
+                        <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                loading.style.display = 'none';
+                table.style.display = 'table';
+                
+                console.log('Table displayed successfully');
+                console.log('Total rows:', tableBody.querySelectorAll('tr').length);
+                
+            } catch (err) {
+                console.error('Error loading data:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = `Error: ${err.message}`;
+            }
+        }
+
+        // Load data on page load
+        console.log('🔄 Page loaded - calling loadEarnings()');
+        console.log('📅 Version: v4 - CACHE BUST');
+        loadEarnings();
+        
+        // Force refresh kariet po 1 sekunde (pre istotu)
+        setTimeout(() => {
+            console.log('🔄 Force refreshing cards...');
+            const winners = calculateMetrics(window.__lastData || []);
+            console.log('🔄 Force winners:', winners);
+            updateWinners(winners);
+        }, 1000);
+
+        // Debug function
+        function debugData() {
+            console.log('🔍 DEBUG: Starting debug...');
+            
+            if (!window.__lastData || !window.__lastData.length) {
+                console.log('🔍 DEBUG: No data loaded yet');
+                alert('No data loaded yet. Please wait for data to load first.');
+                return;
+            }
+            
+            const rows = window.__lastData;
+            console.log('🔍 DEBUG: Total rows:', rows.length);
+            
+            // Helper function
+            function num(v) {
+                if (v == null) return 0;
+                if (typeof v === 'number' && isFinite(v)) return v;
+                const s = String(v).replace(/[$,%\s,]/g, '').trim();
+                const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+                if (!m) return parseFloat(s) || 0;
+                const base = parseFloat(m[1]);
+                const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+                return base * mult;
+            }
+            
+            // Top 10 market_cap_diff values
+            const diffValues = rows
+                .map(row => ({ ticker: row.ticker, diff: row.market_cap_diff, parsed: num(row.market_cap_diff) }))
+                .filter(row => row.parsed !== 0)
+                .sort((a, b) => b.parsed - a.parsed)
+                .slice(0, 10);
+            
+            console.log('🔍 DEBUG: Top 10 market_cap_diff values:');
+            diffValues.forEach((row, i) => {
+                console.log(`${i+1}. ${row.ticker}: ${row.diff} (parsed: ${row.parsed})`);
+            });
+            
+            // Top 10 market_cap values
+            const marketCapValues = rows
+                .map(row => ({ ticker: row.ticker, cap: row.market_cap, parsed: num(row.market_cap) }))
+                .filter(row => row.parsed !== 0)
+                .sort((a, b) => b.parsed - a.parsed)
+                .slice(0, 10);
+            
+            console.log('🔍 DEBUG: Top 10 market_cap values:');
+            marketCapValues.forEach((row, i) => {
+                console.log(`${i+1}. ${row.ticker}: ${row.cap} (parsed: ${row.parsed})`);
+            });
+            
+            // HYPR data
+            const hypr = rows.find(row => row.ticker === 'HYPR');
+            console.log('🔍 DEBUG: HYPR data:', hypr);
+            
+            // BABA data
+            const baba = rows.find(row => row.ticker === 'BABA');
+            console.log('🔍 DEBUG: BABA data:', baba);
+            
+            // Simulate calculateMetrics
+            const diffVal = (r) => {
+                if (!r) return 0;
+                if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                return 0;
+            };
+            
+            let mcGainer = null, mcLoser = null;
+            let maxDiff = -Infinity;
+            let minDiff = Infinity;
+            
+            for (const r of rows) {
+                const d = diffVal(r);
+                if (d > maxDiff) {
+                    maxDiff = d;
+                    mcGainer = r;
+                    console.log(`🔍 DEBUG: New mcGainer: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})`);
+                }
+                if (d < minDiff) {
+                    minDiff = d;
+                    mcLoser = r;
+                    console.log(`🔍 DEBUG: New mcLoser: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})`);
+                }
+            }
+            
+            console.log('🔍 DEBUG: Final results:');
+            console.log(`  mcGainer: ${mcGainer?.ticker} (diff: ${diffVal(mcGainer)})`);
+            console.log(`  mcLoser: ${mcLoser?.ticker} (diff: ${diffVal(mcLoser)})`);
+            
+            alert(`DEBUG COMPLETE!\n\nCheck console for details.\n\nFinal results:\nmcGainer: ${mcGainer?.ticker} (diff: ${diffVal(mcGainer)})\nmcLoser: ${mcLoser?.ticker} (diff: ${diffVal(mcLoser)})`);
+        }
+
+        // Add debug button listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugBtn = document.getElementById('debugBtn');
+            if (debugBtn) {
+                debugBtn.addEventListener('click', debugData);
+            }
+        });
+
+        // Simple debug command - spusti toto v konzole
+        window.debugEarnings = function() {
+            console.log('🔍 DEBUG: window.__lastData:', window.__lastData);
+            console.log('🔍 DEBUG: window.__lastData length:', window.__lastData?.length);
+            
+            if (window.__lastData && window.__lastData.length > 0) {
+                console.log('🔍 DEBUG: First row:', window.__lastData[0]);
+                console.log('🔍 DEBUG: BABA:', window.__lastData.find(r => r.ticker === 'BABA'));
+                console.log('🔍 DEBUG: HYPR:', window.__lastData.find(r => r.ticker === 'HYPR'));
+                
+                // Top 5 market_cap_diff
+                const topDiff = window.__lastData
+                    .map(r => ({ ticker: r.ticker, diff: r.market_cap_diff }))
+                    .sort((a, b) => {
+                        const aVal = parseFloat(a.diff) || 0;
+                        const bVal = parseFloat(b.diff) || 0;
+                        return bVal - aVal;
+                    })
+                    .slice(0, 5);
+                console.log('🔍 DEBUG: Top 5 market_cap_diff:', topDiff);
+            } else {
+                console.log('🔍 DEBUG: No data available');
+            }
+        };
+    </script>
+</body>
+</html>

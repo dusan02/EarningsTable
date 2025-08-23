@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Table Header</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.85em;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        thead {
+            display: table-header-group;
+        }
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 6px;
+            text-align: left;
+            white-space: nowrap;
+            font-weight: bold;
+            border-bottom: 2px solid #1a252f;
+        }
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Table Header</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Ticker</th>
+                <th>Čas reportovania</th>
+                <th>Market Cap</th>
+                <th>Size</th>
+                <th>Current Price</th>
+                <th>Price Change %</th>
+                <th>EPS Estimate</th>
+                <th>EPS Actual</th>
+                <th>Revenue Estimate</th>
+                <th>Revenue Actual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td><strong>SE</strong></td>
+                <td><span style="background: #e8f5e8; color: #2d5a2d; padding: 4px 8px; border-radius: 4px; font-weight: bold;">BMO</span></td>
+                <td>$87.4B</td>
+                <td><span style="background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.8em;">Large</span></td>
+                <td>$159.00</td>
+                <td style="color: #28a745;">+8.73%</td>
+                <td style="color: #6c757d; font-style: italic;">$0.75</td>
+                <td style="color: #6c757d; font-style: italic;">-</td>
+                <td style="color: #6c757d; font-style: italic;">$5,137.8M</td>
+                <td style="color: #6c757d; font-style: italic;">-</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td><strong>CRWV</strong></td>
+                <td><span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-weight: bold;">AMC</span></td>
+                <td>$62.4B</td>
+                <td><span style="background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.8em;">Large</span></td>
+                <td>$135.60</td>
+                <td style="color: #dc3545;">-2.99%</td>
+                <td style="color: #6c757d; font-style: italic;">$-0.21</td>
+                <td style="color: #6c757d; font-style: italic;">-</td>
+                <td style="color: #6c757d; font-style: italic;">$1,102.6M</td>
+                <td style="color: #6c757d; font-style: italic;">-</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <p>If you can see the table header row with dark background, the CSS is working correctly.</p>
+</body>
+</html>

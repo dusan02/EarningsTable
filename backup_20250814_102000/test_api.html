@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Loading...';
+            
+            fetch('public/api/today-earnings-movements.php')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Response:', data);
+                    
+                    let html = '<div class="result success">';
+                    html += '<h3>API Response:</h3>';
+                    html += '<p><strong>Status:</strong> ' + data.status + '</p>';
+                    html += '<p><strong>Count:</strong> ' + data.count + '</p>';
+                    html += '<p><strong>Date:</strong> ' + data.date + '</p>';
+                    html += '<p><strong>Timestamp:</strong> ' + data.timestamp + '</p>';
+                    
+                    if (data.data && data.data.length > 0) {
+                        html += '<h4>Sample Data (first 5 records):</h4>';
+                        html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
+                        html += '<tr><th>Ticker</th><th>Company</th><th>Current Price</th><th>Previous Close</th><th>Market Cap</th><th>Size</th><th>Change %</th></tr>';
+                        
+                        data.data.slice(0, 5).forEach(item => {
+                            const currentPrice = item.current_price > 0 ? '$' + parseFloat(item.current_price).toFixed(2) : 'N/A';
+                            const previousClose = item.previous_close > 0 ? '$' + parseFloat(item.previous_close).toFixed(2) : 'N/A';
+                            const marketCap = item.market_cap > 0 ? '$' + (parseInt(item.market_cap) / 1e9).toFixed(2) + 'B' : 'N/A';
+                            const changePercent = item.price_change_percent != 0 ? parseFloat(item.price_change_percent).toFixed(2) + '%' : 'N/A';
+                            
+                            html += '<tr>';
+                            html += '<td>' + item.ticker + '</td>';
+                            html += '<td>' + item.company_name + '</td>';
+                            html += '<td>' + currentPrice + '</td>';
+                            html += '<td>' + previousClose + '</td>';
+                            html += '<td>' + marketCap + '</td>';
+                            html += '<td>' + item.size + '</td>';
+                            html += '<td>' + changePercent + '</td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</table>';
+                    }
+                    
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                    resultDiv.innerHTML = '<div class="result error">Error: ' + error.message + '</div>';
+                });
+        }
+    </script>
+</body>
+</html>

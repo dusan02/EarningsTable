@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Earnings</title>
+</head>
+<body>
+    <h1>Test Earnings</h1>
+    <div id="test">Loading...</div>
+    
+    <script>
+        console.log('🚀 Test script sa spúšťa!');
+        
+        async function testLoad() {
+            try {
+                console.log('Testujem API...');
+                const response = await fetch('api/earnings-tickers-today.php');
+                const data = await response.json();
+                console.log('API data:', data);
+                
+                // Test calculateMetrics
+                const winners = calculateMetrics(data.data);
+                console.log('Winners:', winners);
+                
+                document.getElementById('test').innerHTML = `
+                    <h2>Test Results:</h2>
+                    <p>Total records: ${data.total}</p>
+                    <p>MC Gainer: ${winners.mcGainer?.ticker || 'None'} ${winners.mcGainer?.market_cap_diff || 'N/A'}</p>
+                    <p>MC Loser: ${winners.mcLoser?.ticker || 'None'} ${winners.mcLoser?.market_cap_diff || 'N/A'}</p>
+                `;
+                
+            } catch (err) {
+                console.error('Test error:', err);
+                document.getElementById('test').innerHTML = `Error: ${err.message}`;
+            }
+        }
+        
+        // Helper funkcie
+        function num(v) {
+            if (v == null) return 0;
+            if (typeof v === 'number' && isFinite(v)) return v;
+            const s = String(v).replace(/[$,%\s,]/g, '').trim();
+            const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+            if (!m) return parseFloat(s) || 0;
+            const base = parseFloat(m[1]);
+            const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+            return base * mult;
+        }
+        
+        function calculateMetrics(rows) {
+            const data = Array.isArray(rows) ? rows : [];
+            
+            const diffVal = r => {
+                if (r == null) return 0;
+                const raw = (r.market_cap_diff != null) ? r.market_cap_diff
+                          : (r.market_cap_diff_billions != null ? r.market_cap_diff_billions * 1e9 : 0);
+                return num(raw);
+            };
+            
+            let mcGainer = null, mcLoser = null;
+            for (const r of data) {
+                const d = diffVal(r);
+                if (d > 0 && (mcGainer == null || d > diffVal(mcGainer))) mcGainer = r;
+                if (d < 0 && (mcLoser  == null || d < diffVal(mcLoser)))  mcLoser  = r;
+            }
+            
+            return { mcGainer, mcLoser };
+        }
+        
+        // Spusti test
+        testLoad();
+    </script>
+</body>
+</html>

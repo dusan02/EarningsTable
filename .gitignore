@@ -1,0 +1,52 @@
+# Configuration files with sensitive data
+config.php
+.env
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.sql
+*.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup directories
+backup_*/
+
+# Storage files
+storage/daily_cleanup_last_run.txt
+storage/*.log
+
+# Test files
+check_tickers.php
+status_check.php
+
+# Node modules (if any)
+node_modules/
+
+# Composer
+vendor/
+composer.lock
+
+# Cache
+cache/
+*.cache 

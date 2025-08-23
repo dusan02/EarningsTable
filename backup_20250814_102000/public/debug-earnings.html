@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEBUG - Earnings Data Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .debug-title { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .debug-data { background: #f5f5f5; padding: 10px; margin: 5px 0; font-family: monospace; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG - Earnings Data Flow</h1>
+    
+    <div class="debug-section">
+        <div class="debug-title">1. Raw API Data</div>
+        <div id="rawData" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">2. Market Cap Diff Values (Top 10)</div>
+        <div id="diffValues" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">3. Market Cap Values (Top 10)</div>
+        <div id="marketCapValues" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">4. HYPR Data</div>
+        <div id="hyprData" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">5. BABA Data</div>
+        <div id="babaData" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">6. CalculateMetrics Function Debug</div>
+        <div id="calculateMetricsDebug" class="debug-data">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">7. Final Results</div>
+        <div id="finalResults" class="debug-data">Loading...</div>
+    </div>
+
+    <script>
+        // Helper functions
+        function num(v) {
+            if (v == null) return 0;
+            if (typeof v === 'number' && isFinite(v)) return v;
+            const s = String(v).replace(/[$,%\s,]/g, '').trim();
+            const m = s.match(/^(-?\d+(\.\d+)?)([KMBT])?$/i);
+            if (!m) return parseFloat(s) || 0;
+            const base = parseFloat(m[1]);
+            const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[(m[3] || '').toUpperCase()] || 1;
+            return base * mult;
+        }
+
+        function fmtUSDshort(x) {
+            const n = Math.abs(num(x));
+            const sign = num(x) < 0 ? '-' : '';
+            if (n >= 1e12) return `${sign}$${(n/1e12).toFixed(1)}T`;
+            if (n >= 1e9) return `${sign}$${(n/1e9).toFixed(1)}B`;
+            if (n >= 1e6) return `${sign}$${(n/1e6).toFixed(1)}M`;
+            if (n >= 1e3) return `${sign}$${(n/1e3).toFixed(1)}K`;
+            return `${sign}$${n.toFixed(0)}`;
+        }
+
+        // Debug function
+        function debugCalculateMetrics(rows) {
+            console.log('🔍 DEBUG: Starting calculateMetrics with', rows.length, 'rows');
+            
+            const data = Array.isArray(rows) ? rows : [];
+            let debugLog = '';
+
+            // 1. Show raw data structure
+            debugLog += `Total rows: ${data.length}\n`;
+            debugLog += `First row keys: ${Object.keys(data[0] || {}).join(', ')}\n\n`;
+
+            // 2. Check market_cap_diff values
+            const diffValues = data
+                .map(row => ({
+                    ticker: row.ticker,
+                    market_cap_diff: row.market_cap_diff,
+                    market_cap_diff_parsed: num(row.market_cap_diff),
+                    market_cap: row.market_cap,
+                    market_cap_parsed: num(row.market_cap)
+                }))
+                .filter(row => row.market_cap_diff_parsed !== 0)
+                .sort((a, b) => b.market_cap_diff_parsed - a.market_cap_diff_parsed)
+                .slice(0, 10);
+
+            debugLog += 'Top 10 market_cap_diff values:\n';
+            diffValues.forEach((row, index) => {
+                debugLog += `${index + 1}. ${row.ticker}: ${row.market_cap_diff} (parsed: ${row.market_cap_diff_parsed})\n`;
+            });
+            debugLog += '\n';
+
+            // 3. Check market_cap values
+            const marketCapValues = data
+                .map(row => ({
+                    ticker: row.ticker,
+                    market_cap: row.market_cap,
+                    market_cap_parsed: num(row.market_cap)
+                }))
+                .filter(row => row.market_cap_parsed !== 0)
+                .sort((a, b) => b.market_cap_parsed - a.market_cap_parsed)
+                .slice(0, 10);
+
+            debugLog += 'Top 10 market_cap values:\n';
+            marketCapValues.forEach((row, index) => {
+                debugLog += `${index + 1}. ${row.ticker}: ${row.market_cap} (parsed: ${row.market_cap_parsed})\n`;
+            });
+            debugLog += '\n';
+
+            // 4. Find HYPR
+            const hypr = data.find(row => row.ticker === 'HYPR');
+            if (hypr) {
+                debugLog += 'HYPR data:\n';
+                debugLog += `  market_cap_diff: ${hypr.market_cap_diff} (parsed: ${num(hypr.market_cap_diff)})\n`;
+                debugLog += `  market_cap: ${hypr.market_cap} (parsed: ${num(hypr.market_cap)})\n`;
+                debugLog += `  All fields: ${JSON.stringify(hypr, null, 2)}\n\n`;
+            }
+
+            // 5. Find BABA
+            const baba = data.find(row => row.ticker === 'BABA');
+            if (baba) {
+                debugLog += 'BABA data:\n';
+                debugLog += `  market_cap_diff: ${baba.market_cap_diff} (parsed: ${num(baba.market_cap_diff)})\n`;
+                debugLog += `  market_cap: ${baba.market_cap} (parsed: ${num(baba.market_cap)})\n`;
+                debugLog += `  All fields: ${JSON.stringify(baba, null, 2)}\n\n`;
+            }
+
+            // 6. Simulate calculateMetrics logic
+            debugLog += 'Simulating calculateMetrics logic:\n';
+            
+            const diffVal = (r) => {
+                if (!r) return 0;
+                if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                return 0;
+            };
+
+            let mcGainer = null, mcLoser = null;
+            let maxDiff = -Infinity;
+            let minDiff = Infinity;
+
+            for (const r of data) {
+                const d = diffVal(r);
+                if (d > maxDiff) {
+                    maxDiff = d;
+                    mcGainer = r;
+                    debugLog += `  New mcGainer: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})\n`;
+                }
+                if (d < minDiff) {
+                    minDiff = d;
+                    mcLoser = r;
+                    debugLog += `  New mcLoser: ${r.ticker} with diff=${d} (raw: ${r.market_cap_diff})\n`;
+                }
+            }
+
+            debugLog += `\nFinal results:\n`;
+            debugLog += `  mcGainer: ${mcGainer?.ticker} (diff: ${diffVal(mcGainer)})\n`;
+            debugLog += `  mcLoser: ${mcLoser?.ticker} (diff: ${diffVal(mcLoser)})\n`;
+
+            return debugLog;
+        }
+
+        // Load and debug data
+        async function loadAndDebug() {
+            try {
+                console.log('🔍 DEBUG: Loading data...');
+                const response = await fetch('api/earnings-tickers-today.php');
+                const data = await response.json();
+                
+                console.log('🔍 DEBUG: Data received:', data);
+                
+                if (data.error) {
+                    throw new Error(data.message || 'Error loading data');
+                }
+                
+                const rows = data.data || [];
+                
+                // Update debug sections
+                document.getElementById('rawData').textContent = 
+                    `Total rows: ${rows.length}\nFirst row: ${JSON.stringify(rows[0], null, 2)}`;
+                
+                // Market cap diff values
+                const diffValues = rows
+                    .map(row => ({ ticker: row.ticker, diff: row.market_cap_diff, parsed: num(row.market_cap_diff) }))
+                    .filter(row => row.parsed !== 0)
+                    .sort((a, b) => b.parsed - a.parsed)
+                    .slice(0, 10);
+                
+                document.getElementById('diffValues').textContent = 
+                    diffValues.map((row, i) => `${i+1}. ${row.ticker}: ${row.diff} (parsed: ${row.parsed})`).join('\n');
+                
+                // Market cap values
+                const marketCapValues = rows
+                    .map(row => ({ ticker: row.ticker, cap: row.market_cap, parsed: num(row.market_cap) }))
+                    .filter(row => row.parsed !== 0)
+                    .sort((a, b) => b.parsed - a.parsed)
+                    .slice(0, 10);
+                
+                document.getElementById('marketCapValues').textContent = 
+                    marketCapValues.map((row, i) => `${i+1}. ${row.ticker}: ${row.cap} (parsed: ${row.parsed})`).join('\n');
+                
+                // HYPR data
+                const hypr = rows.find(row => row.ticker === 'HYPR');
+                document.getElementById('hyprData').textContent = 
+                    hypr ? JSON.stringify(hypr, null, 2) : 'HYPR not found';
+                
+                // BABA data
+                const baba = rows.find(row => row.ticker === 'BABA');
+                document.getElementById('babaData').textContent = 
+                    baba ? JSON.stringify(baba, null, 2) : 'BABA not found';
+                
+                // CalculateMetrics debug
+                const debugLog = debugCalculateMetrics(rows);
+                document.getElementById('calculateMetricsDebug').textContent = debugLog;
+                
+                // Final results
+                const diffVal = (r) => {
+                    if (!r) return 0;
+                    if (r.market_cap_diff != null) return num(r.market_cap_diff);
+                    if (r.market_cap_diff_billions != null) return num(r.market_cap_diff_billions) * 1e9;
+                    return 0;
+                };
+
+                let mcGainer = null, mcLoser = null;
+                let maxDiff = -Infinity;
+                let minDiff = Infinity;
+
+                for (const r of rows) {
+                    const d = diffVal(r);
+                    if (d > maxDiff) {
+                        maxDiff = d;
+                        mcGainer = r;
+                    }
+                    if (d < minDiff) {
+                        minDiff = d;
+                        mcLoser = r;
+                    }
+                }
+
+                document.getElementById('finalResults').textContent = 
+                    `mcGainer: ${mcGainer?.ticker} (diff: ${fmtUSDshort(diffVal(mcGainer))})\n` +
+                    `mcLoser: ${mcLoser?.ticker} (diff: ${fmtUSDshort(diffVal(mcLoser))})`;
+                
+            } catch (error) {
+                console.error('🔍 DEBUG: Error:', error);
+                document.getElementById('rawData').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadAndDebug);
+    </script>
+</body>
+</html>
