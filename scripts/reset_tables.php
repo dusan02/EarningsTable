@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "=== RESETTING TABLES ===\n";
 
@@ -36,7 +37,10 @@ try {
     }
     
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    logDatabaseError('reset_tables', 'TRUNCATE TABLE', [], $e->getMessage(), [
+        'operation' => 'reset_tables'
+    ]);
+    displayError("ERROR: " . $e->getMessage());
     exit(1);
 }
 ?>

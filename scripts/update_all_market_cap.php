@@ -5,6 +5,7 @@
  */
 
 require_once 'config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "=== UPDATE ALL MARKET CAP DATA ===\n\n";
 
@@ -105,7 +106,11 @@ foreach ($tickersToUpdate as $tickerData) {
             $failed++;
         }
     } else {
-        echo "❌ API error ({$httpCode}): {$ticker}\n";
+        logApiError('Polygon', $url, "HTTP {$httpCode} error", [
+            'ticker' => $ticker,
+            'http_code' => $httpCode
+        ]);
+        displayWarning("API error ({$httpCode}): {$ticker}");
         $failed++;
     }
     

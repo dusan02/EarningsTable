@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../common/Lock.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 // Usage: php cron/clear_old_data.php [--force]
 
 $lock = new Lock('daily_cleanup');
 if (!$lock->acquire()) {
-	echo "❌ Another cleanup process is running\n";
+	displayError("Another cleanup process is running");
 	exit(1);
 }
 register_shutdown_function(fn() => $lock->release());
@@ -19,8 +20,8 @@ try {
 	$nyDate = $nowNy->format('Y-m-d');
 	$nyHour = (int)$nowNy->format('G'); // 0-23
 
-	echo "🧹 DAILY CLEANUP INIT\n";
-	echo "📅 NY Date: {$nyDate}, Hour: {$nyHour}\n";
+	displayInfo("DAILY CLEANUP INIT");
+	displayInfo("NY Date: {$nyDate}, Hour: {$nyHour}");
 
 	// Last-run guard so we run once per NY date
 	$stateDir = __DIR__ . '/../storage';
@@ -32,16 +33,16 @@ try {
 
 	if (!$force) {
 		if ($nyHour !== 2) {
-			echo "⏭️  Skipping: not 02:00 NY time (run hour={$nyHour}). Use --force to override.\n";
+			displayInfo("Skipping: not 02:00 NY time (run hour={$nyHour}). Use --force to override.");
 			exit(0);
 		}
 		if ($lastRun === $nyDate) {
-			echo "⏭️  Skipping: already ran today ({$lastRun}). Use --force to override.\n";
+			displayInfo("Skipping: already ran today ({$lastRun}). Use --force to override.");
 			exit(0);
 		}
 	}
 
-	echo "🚀 START CLEANUP\n";
+	displayInfo("START CLEANUP");
 
 	// Counts before
 	$beforeMov = (int)$pdo->query("SELECT COUNT(*) FROM TodayEarningsMovements")->fetchColumn();
@@ -61,9 +62,13 @@ try {
 
 	// Persist last-run state
 	file_put_contents($stateFile, $nyDate);
-	echo "✅ Cleanup complete for NY date {$nyDate}\n";
+	displaySuccess("Cleanup complete for NY date {$nyDate}");
 
 } catch (Throwable $e) {
-	echo "❌ ERROR: {$e->getMessage()}\n";
+	logCronError('clear_old_data', $e->getMessage(), [
+		'file' => $e->getFile(),
+		'line' => $e->getLine()
+	]);
+	displayError($e->getMessage());
 	exit(1);
 }

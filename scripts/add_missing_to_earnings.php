@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "=== ADDING MISSING TICKERS TO EARNINGS TICKERS TODAY ===\n";
 
@@ -40,7 +41,11 @@ try {
     
 } catch (Exception $e) {
     $pdo->rollBack();
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    logDatabaseError('add_missing_earnings', 'INSERT INTO EarningsTickersToday', [], $e->getMessage(), [
+        'tickers' => $missingTickers,
+        'date' => $date
+    ]);
+    displayError("ERROR: " . $e->getMessage());
 }
 
 echo "\n=== COMPLETE ===\n";

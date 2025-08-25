@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "🚀 COMPLETE SETUP FOR EARNINGS TABLE MODULE\n";
 echo "==========================================\n\n";
@@ -17,7 +18,10 @@ try {
     $pdo->exec($sql);
     echo "✅ Both tables created successfully!\n\n";
 } catch (PDOException $e) {
-    echo "❌ Error creating tables: " . $e->getMessage() . "\n\n";
+    logDatabaseError('setup_tables', $sql, [], $e->getMessage(), [
+        'operation' => 'create_tables'
+    ]);
+    displayError("Error creating tables: " . $e->getMessage());
     exit(1);
 }
 

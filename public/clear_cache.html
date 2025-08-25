@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Clear Cache - EarningsTable</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #f5f5f5;
+        }
+        .cache-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="cache-box">
+        <h2>🧹 Clear Browser Cache</h2>
+        <p>Ak máte problémy s načítaním utilities.js, vyčistite cache:</p>
+        
+        <div id="status"></div>
+        
+        <h3>Metóda 1: Automatické presmerovanie</h3>
+        <a href="http://localhost:8080/dashboard-fixed.html" class="btn">🔄 Načítať Dashboard (Port 8080)</a>
+        
+        <h3>Metóda 2: Manuálne vyčistenie cache</h3>
+        <p><strong>Windows:</strong> Ctrl + Shift + R</p>
+        <p><strong>Mac:</strong> Cmd + Shift + R</p>
+        <p><strong>Alebo:</strong> F12 → Network → Disable cache</p>
+        
+        <h3>Metóda 3: Incognito/Private mode</h3>
+        <a href="http://localhost:8080/dashboard-fixed.html" class="btn">🌐 Otvoriť v incognito</a>
+        
+        <h3>Test utilities.js</h3>
+        <button onclick="testUtilities()" class="btn">🧪 Test utilities.js</button>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h3>Debug informácie:</h3>
+        <div id="debug"></div>
+    </div>
+
+    <script>
+        function testUtilities() {
+            const status = document.getElementById('status');
+            const debug = document.getElementById('debug');
+            
+            try {
+                // Test if utilities.js is loaded
+                if (typeof getSizeClass !== 'undefined') {
+                    status.innerHTML = '<div class="status success">✅ utilities.js je načítaný správne!</div>';
+                } else {
+                    status.innerHTML = '<div class="status error">❌ utilities.js nie je načítaný</div>';
+                }
+                
+                // Debug info
+                debug.innerHTML = `
+                    <p><strong>Current URL:</strong> ${window.location.href}</p>
+                    <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+                    <p><strong>Cache Status:</strong> ${navigator.onLine ? 'Online' : 'Offline'}</p>
+                `;
+                
+            } catch (e) {
+                status.innerHTML = '<div class="status error">❌ Chyba: ' + e.message + '</div>';
+            }
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            setTimeout(testUtilities, 1000);
+        };
+    </script>
+</body>
+</html>

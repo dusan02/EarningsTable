@@ -41,7 +41,7 @@ ini_set('max_execution_time', 300);
 // Development helpers
 function dev_log($message) {
     if (DEVELOPMENT_MODE) {
-        error_log("[DEV] " . $message);
+        logError("[DEV] " . $message);
     }
 }
 

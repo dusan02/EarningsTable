@@ -26,10 +26,10 @@ class EnvLoader {
             // Ak .env neexistuje, skús .env.example
             $examplePath = __DIR__ . '/../env.example';
             if (file_exists($examplePath)) {
-                error_log("⚠️ .env súbor neexistuje, používam env.example");
+                logConfigError('env_loader', '.env súbor neexistuje, používam env.example');
                 $envPath = $examplePath;
             } else {
-                error_log("❌ Žiadny .env súbor nenájdený!");
+                logConfigError('env_loader', 'Žiadny .env súbor nenájdený!');
                 return;
             }
         }

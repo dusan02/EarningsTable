@@ -1,7 +1,7 @@
 <?php
-require_once 'D:/xampp/htdocs/earnings-table/config.php';
-require_once 'D:/xampp/htdocs/earnings-table/common/Finnhub.php';
-require_once 'utils/polygon_api_optimized.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/Finnhub.php';
+require_once __DIR__ . '/../utils/polygon_api_optimized.php';
 
 echo "🔧 UPDATING PH AND GILD WITH ACCURATE DATA\n";
 echo "==========================================\n\n";

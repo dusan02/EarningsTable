@@ -3,6 +3,8 @@
  * Create Database Script
  */
 
+require_once __DIR__ . '/../common/error_handler.php';
+
 // Database Configuration (without database name)
 $host = 'localhost';
 $user = 'root';
@@ -29,7 +31,11 @@ try {
     echo "✅ Successfully connected to 'earnings_table' database\n";
     
 } catch (PDOException $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    logDatabaseError('create_database', 'CREATE DATABASE', [], $e->getMessage(), [
+        'host' => $host,
+        'database' => 'earnings_table'
+    ]);
+    displayError("Error: " . $e->getMessage());
     exit(1);
 }
 ?>

@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 require_once __DIR__ . '/../config/connection_pool.php';
 
 class SecurityTester {
@@ -317,6 +318,7 @@ class SecurityTester {
             'error' => $error
         ];
         
+        logSecurityIssue("Security test failed: {$test} - {$error}");
         echo "  ❌ $test: ERROR - $error\n";
     }
     

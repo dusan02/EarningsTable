@@ -1,5 +1,6 @@
 <?php
 require_once 'D:/xampp/htdocs/earnings-table/config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "🔧 RECALCULATING ALL SIZE CATEGORIES\n";
 echo "====================================\n\n";
@@ -41,10 +42,14 @@ foreach ($records as $record) {
 
 echo "\n📊 SUMMARY:\n";
 echo "  ✅ Updated: {$updatedCount} tickers\n";
-echo "  ❌ Errors: " . count($errors) . " tickers\n";
+displayWarning("Errors: " . count($errors) . " tickers");
 
 if (!empty($errors)) {
-    echo "  🚨 Failed tickers: " . implode(', ', $errors) . "\n";
+    logError("Failed to update size categories for tickers: " . implode(', ', $errors), [
+        'tickers' => $errors,
+        'operation' => 'recalculate_sizes'
+    ]);
+    displayWarning("Failed tickers: " . implode(', ', $errors));
 }
 
 // Show final distribution

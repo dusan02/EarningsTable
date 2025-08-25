@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 require_once __DIR__ . '/../utils/api.php';
 require_once __DIR__ . '/../utils/polygon_api.php';
 
@@ -18,8 +19,8 @@ try {
     $pdo->query("SELECT 1");
     echo "✅ Database connection: OK\n";
 } catch (PDOException $e) {
-    echo "❌ Database connection: FAILED\n";
-    echo "   Error: " . $e->getMessage() . "\n\n";
+    logDatabaseError('connection_test', 'SELECT 1', [], $e->getMessage());
+    displayError("Database connection: FAILED - " . $e->getMessage());
     exit(1);
 }
 
@@ -60,7 +61,8 @@ if ($response !== false) {
     if (isset($data['earningsCalendar'])) {
         echo "✅ Finnhub API: OK (" . count($data['earningsCalendar']) . " earnings today)\n";
     } else {
-        echo "⚠️  Finnhub API: RESPONSE ERROR\n";
+        logApiError('Finnhub', $finnhubUrl, 'Invalid response format', ['response' => $response]);
+        displayWarning("Finnhub API: RESPONSE ERROR");
     }
 } else {
     echo "❌ Finnhub API: CONNECTION FAILED\n";
@@ -76,7 +78,8 @@ if ($response !== false) {
     if (isset($data['ticker'])) {
         echo "✅ Polygon API: OK (AAPL price: $" . $data['ticker']['lastTrade']['p'] . ")\n";
     } else {
-        echo "⚠️  Polygon API: RESPONSE ERROR\n";
+        logApiError('Polygon', $polygonUrl, 'Invalid response format', ['response' => $response]);
+        displayWarning("Polygon API: RESPONSE ERROR");
     }
 } else {
     echo "❌ Polygon API: CONNECTION FAILED\n";

@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "=== APPLYING SQL FIXES ===\n\n";
 
@@ -52,6 +53,9 @@ try {
     echo "\n✅ ALL FIXES APPLIED SUCCESSFULLY!\n";
     
 } catch (Exception $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    logDatabaseError('apply_sql_fix', 'UPDATE statements', [], $e->getMessage(), [
+        'operation' => 'sql_fixes'
+    ]);
+    displayError("Error: " . $e->getMessage());
 }
 ?>

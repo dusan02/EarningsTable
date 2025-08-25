@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "🧹 Clearing all tables...\n";
 
@@ -24,7 +25,10 @@ try {
     echo "✅ All tables cleared successfully!\n\n";
     
 } catch (PDOException $e) {
-    echo "❌ Error clearing tables: " . $e->getMessage() . "\n";
+    logDatabaseError('clear_tables', 'DELETE FROM tables', [], $e->getMessage(), [
+        'tables' => $tables
+    ]);
+    displayError("Error clearing tables: " . $e->getMessage());
     exit(1);
 }
 

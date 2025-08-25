@@ -75,8 +75,8 @@
      <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap"></noscript>
      
      <!-- Modern Fonts (fallback) -->
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -158,7 +158,7 @@
         overflow-x: hidden;
     }
 
-                       /* CSS VARIABLES FOR STICKY HEIGHTS */
+    /* CSS VARIABLES FOR STICKY HEIGHTS */
     :root {
         --h-header: 0px;
         --h-kpis: 0px;
@@ -199,7 +199,7 @@
         text-align: center;
     }
 
-                                           /* WINNERS/LOSERS CARDS */
+    /* WINNERS/LOSERS CARDS */
     .winners-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -517,9 +517,9 @@
             padding: 16px 20px;
         }
         
-                 .earnings-table {
+        .earnings-table {
              min-width: 1560px;
-         }
+        }
 
         /* Responsívne – na mobiloch je menej miesta, zmenšíme spacing */
         .header { 
@@ -531,28 +531,28 @@
         }
     }
 
-                       /* SORTABLE HEADERS */
-       .sortable-header {
-           cursor: pointer;
-           user-select: none;
+    /* SORTABLE HEADERS */
+    .sortable-header {
+        cursor: pointer;
+        user-select: none;
            /* position: relative; <- odstránené, spôsobovalo konflikt so sticky */
-           padding: 12px 16px !important;
-           min-height: 50px;
-           background-color: #e3f2fd; /* jemne modrá farba pre všetky hlavičky */
-           transition: background-color 0.2s ease;
-           text-align: center !important; /* vycentrovaný text v hlavičke */
-       }
+        padding: 12px 16px !important;
+        min-height: 50px;
+        background-color: #e3f2fd; /* jemne modrá farba pre všetky hlavičky */
+        transition: background-color 0.2s ease;
+        text-align: center !important; /* vycentrovaný text v hlavičke */
+    }
 
-           .sortable-header:hover {
+    .sortable-header:hover {
           background-color: #e3f2fd !important; /* ešte jemnejšia modrá hover */
           color: #374151 !important; /* tmavý text pre lepší kontrast */
-      }
+    }
 
-      .sortable-header.active-sort {
+    .sortable-header.active-sort {
           background-color: #bbdefb !important; /* jemnejšia modrá pre aktívny sort */
           color: #374151 !important; /* tmavý text pre lepší kontrast */
           font-weight: 700;
-      }
+    }
 
     /* SEARCH BAR STYLES */
     .company-header-container {
@@ -582,10 +582,10 @@
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
     }
 
-         .company-search::placeholder {
-         color: #9ca3af;
-         font-size: 10px;
-     }
+    .company-search::placeholder {
+        color: #9ca3af;
+        font-size: 10px;
+    }
  
      /* FOOTER STYLES */
      .footer {
@@ -653,12 +653,12 @@
              font-size: 13px;
          }
      }
-     </style>
+    </style>
 </head>
 <body>
     <!-- Header -->
     <header id="pageHeader" class="header" role="banner">
-        <h1 class="earnings-title">Earnings table</h1>
+        <h1 class="earnings-title">EARNINGS TABLE</h1>
                  <p class="subtitle">Today's Earnings KPI Dashboard</p>
         <nav aria-label="Main navigation">
             <ul style="display: none;">
@@ -688,11 +688,11 @@
             <div class="winner-ticker" id="smallCount">-</div>
             <div class="winner-value neutral" id="smallValue">-</div>
         </div>
-                 <div class="winner-card blue">
+        <div class="winner-card blue">
              <div class="winner-label">Total Cap</div>
-             <div class="winner-ticker" id="totalMarketCap">-</div>
-             <div class="winner-value neutral" id="totalMarketCapValue">-</div>
-         </div>
+            <div class="winner-ticker" id="totalMarketCap">-</div>
+            <div class="winner-value neutral" id="totalMarketCapValue">-</div>
+        </div>
 
         <!-- 4x ZELENÉ KARTY -->
         <div class="winner-card green">
@@ -737,15 +737,15 @@
              <div class="winner-ticker" id="revenueMissTicker">-</div>
              <div class="winner-value negative" id="revenueMissValue">-</div>
          </div>
-                 </section>
- 
+        </section>
+
                                                                        <!-- Caption and table header in one div -->
           <div style="background: #fff; position: sticky; top: calc(var(--h-header) + var(--h-kpis)); z-index: 85;">
                             <!-- Caption -->
                <div style="color: #6b7280; font-size: 20px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 0 0;">
                    Today's Earnings Table
-               </div>
-               
+        </div>
+
                              <!-- Table header -->
                                  <div style="background: #e3f2fd; padding: 0 32px 0 32px; border-bottom: none;">
                                                                                                            <table style="width: 100%; min-width: 1560px; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 14px; table-layout: fixed;">
@@ -770,10 +770,10 @@
                                                             <th class="sortable-header" data-sort="rank" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">#</th>
                                                              <th class="sortable-header" data-sort="company" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; position: relative; cursor: pointer; transition: background-color 0.2s ease;">
                                     <div style="display: flex; align-items: center; justify-content: flex-start;">
-                                        <div style="margin-right: 15px; margin-left: -4px;">Company</div>
+                                        <div style="margin-right: 15px; margin-left: -8px;">Company</div>
                                         <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 150px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; font-weight: 600; background: #fff; color: #374151; outline: none;" />
-                                    </div>
-                                </th>
+                        </div>
+                    </th>
                                <th class="sortable-header" data-sort="time" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Time</th>
                                <th class="sortable-header" data-sort="market_cap" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Market Cap</th>
                                <th class="sortable-header" data-sort="market_cap_gain" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Cap Diff</th>
@@ -786,8 +786,8 @@
                                <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Est</th>
                                <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Act</th>
                                <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Surp</th>
-                          </tr>
-                      </thead>
+                 </tr>
+             </thead>
                   </table>
              </div>
          </div>
@@ -820,9 +820,9 @@
                                                     </colgroup>
 
                                                     <tbody id="tableBody"><!-- rows injected by JS --></tbody>
-                                                  </table>
-                                                </section>
-     </main>
+         </table>
+        </section>
+    </main>
  
            <!-- Footer -->
       <footer class="footer" role="contentinfo">
@@ -836,8 +836,8 @@
               <p>&copy; 2024 Earnings Table. All rights reserved. | Data for informational purposes only | Not financial advice</p>
           </div>
       </footer>
- 
-     <script>
+
+    <script>
     // Helper functions
 
 
@@ -1016,9 +1016,9 @@
                 <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
             `;
             
-                                                   tableBody.appendChild(row);
-          });
-      }
+            tableBody.appendChild(row);
+        });
+    }
 
     // Add click event listeners to headers
     function addSortListeners() {
@@ -1238,9 +1238,9 @@
             // Add sort listeners after table is rendered
             addSortListeners();
 
-                         loading.style.display = 'none';
-             tableContainer.style.display = 'block';
-             
+            loading.style.display = 'none';
+            tableContainer.style.display = 'block';
+
              // Aktualizuj sticky heights po zobrazení tabuľky
              updateStickyHeights();
  
@@ -1347,28 +1347,28 @@
             root.setProperty('--h-caption', hCaption + 'px');
             
             console.log('Sticky heights updated:', { hHeader, hKpis, hCaption });
-        }
+    }
 
-                       // Initialize when document is ready
-       $(document).ready(function() {
+    // Initialize when document is ready
+    $(document).ready(function() {
            // Test if utilities are loaded
            if (typeof getSizeClass === 'undefined') {
                console.error('Utilities not loaded! getSizeClass is undefined');
                return;
            }
            
-           loadEarningsData();
-           setupSearch();
+        loadEarningsData();
+        setupSearch();
            
            // Nastav sticky heights po načítaní
            window.addEventListener('load', updateStickyHeights);
            window.addEventListener('resize', updateStickyHeights);
            
            // Initialization complete
-       });
+    });
 
-         // Auto-refresh every 5 minutes
-     setInterval(loadEarningsData, 5 * 60 * 1000);
+    // Auto-refresh every 5 minutes
+    setInterval(loadEarningsData, 5 * 60 * 1000);
 
          // ResizeObserver pre KPI karty - drží sticky heights v sync
          new ResizeObserver(updateStickyHeights).observe(document.getElementById('market-stats'));
