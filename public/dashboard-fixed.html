@@ -38,7 +38,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
+    <!-- X-Frame-Options removed - must be set via HTTP header -->
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <!-- Canonical URL -->
@@ -659,7 +659,7 @@
     <!-- Header -->
     <header id="pageHeader" class="header" role="banner">
         <h1 class="earnings-title">Earnings table</h1>
-                 <p class="subtitle">Earnings dashboard</p>
+                 <p class="subtitle">Today's Earnings KPI Dashboard</p>
         <nav aria-label="Main navigation">
             <ul style="display: none;">
                 <li><a href="#earnings-data">Earnings Data</a></li>
@@ -743,7 +743,7 @@
           <div style="background: #fff; position: sticky; top: calc(var(--h-header) + var(--h-kpis)); z-index: 85;">
                             <!-- Caption -->
                <div style="color: #6b7280; font-size: 20px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 0 0;">
-                   Earnings table
+                   Today's Earnings Table
                </div>
                
                              <!-- Table header -->
@@ -769,9 +769,9 @@
                           <tr>
                                                             <th class="sortable-header" data-sort="rank" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">#</th>
                                                              <th class="sortable-header" data-sort="company" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; position: relative; cursor: pointer; transition: background-color 0.2s ease;">
-                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <div>Company</div>
-                                        <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 120px; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 10px; background: #fff; color: #374151; outline: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" />
+                                    <div style="display: flex; align-items: center; justify-content: flex-start;">
+                                        <div style="margin-right: 15px; margin-left: -4px;">Company</div>
+                                        <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 150px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; font-weight: 600; background: #fff; color: #374151; outline: none;" />
                                     </div>
                                 </th>
                                <th class="sortable-header" data-sort="time" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Time</th>
@@ -839,138 +839,21 @@
  
      <script>
     // Helper functions
-    function formatCurrency(value) {
-        if (value === null || value === undefined) return '-';
-        const num = parseFloat(value);
-        if (isNaN(num)) return '-';
-        
-        if (num >= 1e12) return `$${(num / 1e12).toFixed(1)}T`;
-        if (num >= 1e9) return `$${(num / 1e9).toFixed(1)}B`;
-        if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
-        if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
-        return `$${num.toFixed(0)}`;
-    }
 
-    function formatPrice(value) {
-        if (value === null || value === undefined) return '-';
-        const num = parseFloat(value);
-        if (isNaN(num)) return '-';
-        return `$${num.toFixed(2)}`;
-    }
 
-    function formatPriceChange(value) {
-        if (value === null || value === undefined) return '-';
-        const num = parseFloat(value);
-        if (isNaN(num)) return '-';
-        const sign = num >= 0 ? '+' : '';
-        return sign + num.toFixed(2) + '%';
-    }
 
-    function formatMarketCapDiff(value) {
-        if (value === null || value === undefined || value === 0) return '-';
-        const num = parseFloat(value);
-        if (isNaN(num)) return '-';
-        
-        // Use absolute value for formatting, then add sign back
-        const absNum = Math.abs(num);
-        let formatted;
-        
-        if (absNum >= 1e12) formatted = `$${(absNum / 1e12).toFixed(1)}T`;
-        else if (absNum >= 1e9) formatted = `$${(absNum / 1e9).toFixed(1)}B`;
-        else if (absNum >= 1e6) formatted = `$${(absNum / 1e6).toFixed(1)}M`;
-        else if (absNum >= 1e3) formatted = `$${(absNum / 1e3).toFixed(1)}K`;
-        else formatted = `$${absNum.toFixed(0)}`;
-        
-        // Add negative sign if original value was negative
-        return num < 0 ? `-${formatted}` : formatted;
-    }
 
-    function formatEPS(value) {
-        if (value === null || value === undefined) return '-';
-        const num = parseFloat(value);
-        if (isNaN(num)) return '-';
-        return num.toFixed(2);
-    }
 
-    function formatSurprise(actual, estimate) {
-        if (actual === null || estimate === null || actual === undefined || estimate === undefined) return '-';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum) || estimateNum === 0) return '-';
-        const surprise = ((actualNum - estimateNum) / Math.abs(estimateNum)) * 100;
-        const sign = surprise >= 0 ? '+' : '';
-        return sign + surprise.toFixed(2) + '%';
-    }
 
-    function getPriceChangeClass(value) {
-        if (value === null || value === undefined) return 'price-neutral';
-        const num = parseFloat(value);
-        if (isNaN(num)) return 'price-neutral';
-        if (num > 0) return 'price-up';
-        if (num < 0) return 'price-down';
-        return 'price-neutral';
-    }
 
-    function getSizeClass(size) {
-        if (!size) return '';
-        return `size-${size.toLowerCase()}`;
-    }
 
-    function getDiffClass(value) {
-        if (value === null || value === undefined) return 'price-neutral';
-        const num = parseFloat(value);
-        if (isNaN(num)) return 'price-neutral';
-        if (num > 0) return 'price-up';
-        if (num < 0) return 'price-down';
-        return 'price-neutral';
-    }
 
-    function getEPSClass(actual, estimate) {
-        if (actual === null || estimate === null) return 'price-neutral';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum)) return 'price-neutral';
-        if (actualNum > estimateNum) return 'price-up';
-        if (actualNum < estimateNum) return 'price-down';
-        return 'price-neutral';
-    }
 
-    function getRevenueClass(actual, estimate) {
-        if (actual === null || estimate === null) return 'price-neutral';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum)) return 'price-neutral';
-        if (actualNum > estimateNum) return 'price-up';
-        if (actualNum < estimateNum) return 'price-down';
-        return 'price-neutral';
-    }
 
-    function getSurpriseClass(actual, estimate) {
-        if (actual === null || estimate === null || actual === undefined || estimate === undefined) return 'price-neutral';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum) || estimateNum === 0) return 'price-neutral';
-        const surprise = ((actualNum - estimateNum) / Math.abs(estimateNum)) * 100;
-        if (surprise > 0) return 'price-up';
-        if (surprise < 0) return 'price-down';
-        return 'price-neutral';
-    }
 
-    function getShortCompanyName(companyName) {
-        if (!companyName) return '-';
-        
-        let shortName = companyName
-            .replace(/\s+(Inc\.?|Corp\.?|Corporation|Company|Co\.?|Ltd\.?|Limited|Group|Holdings?|International|Technologies|Technology|Tech|Systems|Solutions|Services|Enterprises|Industries|Partners|Management|Capital|Acquisition|American Depositary.*|Common Stock|Class [A-Z].*|each.*)/gi, '')
-            .replace(/\s*,.*$/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        
-        if (shortName.length > 20) {
-            shortName = shortName.substring(0, 20).trim() + '...';
-        }
-        
-        return shortName || companyName.substring(0, 20) + '...';
-    }
+
+
+
 
 
 
@@ -978,69 +861,51 @@
     let currentSort = { field: 'market_cap', direction: 'desc' };
     let earningsData = [];
 
-    // Robust numeric comparison function with null handling
-    function cmpNumericWithNullLast(a, b, direction, key) {
-        const va = a[key];
-        const vb = b[key];
 
-        // Convert to number, treating null/undefined/NaN as a special "non-numeric" value for sorting
-        const numA = (va === null || va === undefined || isNaN(va)) ? null : va;
-        const numB = (vb === null || vb === undefined || isNaN(vb)) ? null : vb;
-
-        if (numA === null && numB === null) return 0;
-        if (numA === null) return 1;      // null/NaN values go to end
-        if (numB === null) return -1;     // null/NaN values go to end
-
-        return direction === 'asc' ? numA - numB : numB - numA;
-    }
 
     // Sorting functions
     function sortData(field, direction) {
         earningsData.sort((a, b) => {
-            let aVal, bVal;
-            
             switch(field) {
                 case 'rank':
                     // For rank sorting, we need to sort by market cap (since rank is based on market cap position)
-                    aVal = parseFloat(a.market_cap) || 0;
-                    bVal = parseFloat(b.market_cap) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'market_cap');
                 case 'company':
-                    aVal = (a.company_name || '').toLowerCase();
-                    bVal = (b.company_name || '').toLowerCase();
-                    break;
+                    const aName = (a.company_name || '').toLowerCase();
+                    const bName = (b.company_name || '').toLowerCase();
+                    if (direction === 'asc') {
+                        return aName.localeCompare(bName);
+                    } else {
+                        return bName.localeCompare(aName);
+                    }
                 case 'time':
-                    aVal = a.report_time || '';
-                    bVal = b.report_time || '';
-                    break;
+                    const aTime = a.report_time || '';
+                    const bTime = b.report_time || '';
+                    if (direction === 'asc') {
+                        return aTime.localeCompare(bTime);
+                    } else {
+                        return bTime.localeCompare(aTime);
+                    }
                 case 'market_cap':
-                    aVal = parseFloat(a.market_cap) || 0;
-                    bVal = parseFloat(b.market_cap) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'market_cap');
                 case 'market_cap_gain':
-                    aVal = parseFloat(a.market_cap_diff) || 0;
-                    bVal = parseFloat(b.market_cap_diff) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'market_cap_diff');
                 case 'size':
-                    aVal = a.size || '';
-                    bVal = b.size || '';
-                    break;
+                    const aSize = a.size || '';
+                    const bSize = b.size || '';
+                    if (direction === 'asc') {
+                        return aSize.localeCompare(bSize);
+                    } else {
+                        return bSize.localeCompare(aSize);
+                    }
                 case 'price':
-                    aVal = parseFloat(a.current_price) || 0;
-                    bVal = parseFloat(b.current_price) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'current_price');
                 case 'today':
-                    aVal = parseFloat(a.price_change_percent) || 0;
-                    bVal = parseFloat(b.price_change_percent) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'price_change_percent');
                 case 'eps_est':
-                    aVal = parseFloat(a.eps_estimate) || 0;
-                    bVal = parseFloat(b.eps_estimate) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'eps_estimate');
                 case 'eps_act':
-                    aVal = parseFloat(a.eps_actual) || 0;
-                    bVal = parseFloat(b.eps_actual) || 0;
-                    break;
+                    return cmpNumericWithNullLast(a, b, direction, 'eps_actual');
                 case 'eps_surprise':
                     // Precalculate surprise values and use robust comparison
                     const epsASurprise = calculateSurprise(a.eps_actual, a.eps_estimate);
@@ -1056,10 +921,8 @@
                     
                     return direction === 'asc' ? epsNumA - epsNumB : epsNumB - epsNumA;
                 case 'revenue_est':
-                    // Use robust numeric comparison with null handling
                     return cmpNumericWithNullLast(a, b, direction, 'revenue_estimate');
                 case 'revenue_act':
-                    // Use robust numeric comparison with null handling
                     return cmpNumericWithNullLast(a, b, direction, 'revenue_actual');
                 case 'revenue_surprise':
                     // Precalculate surprise values and use robust comparison
@@ -1076,25 +939,12 @@
                     
                     return direction === 'asc' ? numA - numB : numB - numA;
                 default:
-                    aVal = 0;
-                    bVal = 0;
-            }
-            
-            if (direction === 'asc') {
-                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-            } else {
-                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                    return 0;
             }
         });
     }
 
-    function calculateSurprise(actual, estimate) {
-        if (actual === null || estimate === null || actual === undefined || estimate === undefined) return NaN;
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum) || estimateNum === 0) return NaN;
-        return ((actualNum - estimateNum) / Math.abs(estimateNum)) * 100;
-    }
+
 
     function updateSortIcons(field, direction) {
         // Remove active class from all headers
@@ -1182,15 +1032,6 @@
 
     // ---------- Pomocné funkcie ----------
     const fmt = new Intl.NumberFormat('en-US');
-    function formatCurrency(n) {
-        if (n == null || isNaN(n)) return '–';
-        const x = Math.abs(n);
-        const sign = n < 0 ? '-' : '';
-        if (x >= 1e12) return `${sign}$${(x/1e12).toFixed(1)}T`;
-        if (x >= 1e9)  return `${sign}$${(x/1e9).toFixed(1)}B`;
-        if (x >= 1e6)  return `${sign}$${(x/1e6).toFixed(1)}M`;
-        return `${sign}$${fmt.format(Math.round(x))}`;
-    }
     const toUpper = v => (typeof v === 'string' ? v.toUpperCase() : v);
 
     // ---------- 1) Veľkostné karty LARGE / MID / SMALL ----------
@@ -1285,9 +1126,9 @@
             return aDiff < bDiff ? a : b;
         }) : null;
         document.getElementById('marketCapGainerTicker').textContent = mcBest?.ticker ?? '—';
-        document.getElementById('marketCapGainerValue').textContent  = mcBest ? formatCurrency(parseFloat(mcBest.market_cap_diff)) : '—';
+        document.getElementById('marketCapGainerValue').textContent  = mcBest ? formatMarketCapDiff(mcBest.market_cap_diff) : '—';
         document.getElementById('marketCapLoserTicker').textContent = mcWorst?.ticker ?? '—';
-        document.getElementById('marketCapLoserValue').textContent  = mcWorst ? formatCurrency(parseFloat(mcWorst.market_cap_diff)) : '—';
+        document.getElementById('marketCapLoserValue').textContent  = mcWorst ? formatMarketCapDiff(mcWorst.market_cap_diff) : '—';
 
         // EPS beat / miss (%)
         const eps = data.filter(d => {
@@ -1510,6 +1351,12 @@
 
                        // Initialize when document is ready
        $(document).ready(function() {
+           // Test if utilities are loaded
+           if (typeof getSizeClass === 'undefined') {
+               console.error('Utilities not loaded! getSizeClass is undefined');
+               return;
+           }
+           
            loadEarningsData();
            setupSearch();
            
@@ -1530,5 +1377,8 @@
 
 
     </script>
+    
+    <!-- Utilities - Load after jQuery -->
+    <script src="js/utilities.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

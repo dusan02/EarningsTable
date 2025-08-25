@@ -10,8 +10,10 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 require_once __DIR__ . '/../common/Lock.php';
 require_once __DIR__ . '/../common/Finnhub.php';
+require_once __DIR__ . '/../common/api_functions.php';
 
 // Lock mechanism
 $lock = new Lock('optimized_earnings_fetch');
@@ -98,9 +100,8 @@ try {
         echo "Processing Polygon chunk " . ($index + 1) . "/" . count($chunks) . " (" . count($tickerChunk) . " tickers)...\n";
         
         $batchData = getPolygonBatchQuote($tickerChunk);
-        if ($batchData && isset($batchData['tickers'])) {
-            foreach ($batchData['tickers'] as $result) {
-                $ticker = $result['ticker'];
+        if ($batchData) {
+            foreach ($batchData as $ticker => $result) {
                 $polygonData[$ticker] = $result;
             }
         }
@@ -152,23 +153,25 @@ try {
         $polygonInfo = $polygonData[$ticker] ?? null;
         $marketCapInfo = $marketCapData[$ticker] ?? null;
         
+
+        
         // Get price data
-        $currentPrice = 0;
-        $previousClose = 0;
+        $currentPrice = null;
+        $previousClose = null;
         $priceChangePercent = null;
         
         if ($polygonInfo) {
             $currentPrice = getCurrentPrice($polygonInfo);
-            $previousClose = $polygonInfo['prevDay']['c'] ?? 0;
+            $previousClose = $polygonInfo['prevDay']['c'] ?? null;
             
-            if ($currentPrice > 0 && $previousClose > 0) {
+            if ($currentPrice && $previousClose && $currentPrice > 0 && $previousClose > 0) {
                 $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
             }
         }
         
         // Get market cap data
         $marketCap = null;
-        $size = 'Unknown';
+        $size = 'Small'; // Default to Small instead of Unknown
         
         if ($marketCapInfo && isset($marketCapInfo['results'])) {
             $marketCap = $marketCapInfo['results']['market_cap'] ?? null;
@@ -337,82 +340,13 @@ try {
     echo "✅ OPTIMIZED EARNINGS FETCH COMPLETED\n";
     
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    logError("Earnings fetch failed: " . $e->getMessage(), [
+        'file' => __FILE__,
+        'line' => __LINE__
+    ]);
+    displayError("Earnings fetch failed: " . $e->getMessage(), true);
     exit(1);
 }
 
-/**
- * Get current price from Polygon data with fallback logic
- */
-function getCurrentPrice($polygonData) {
-    // Priority: last trade > last price > previous close
-    if (isset($polygonData['lastTrade']['p']) && $polygonData['lastTrade']['p'] > 0) {
-        return $polygonData['lastTrade']['p'];
-    }
-    
-    if (isset($polygonData['last']['p']) && $polygonData['last']['p'] > 0) {
-        return $polygonData['last']['p'];
-    }
-    
-    if (isset($polygonData['prevDay']['c']) && $polygonData['prevDay']['c'] > 0) {
-        return $polygonData['prevDay']['c'];
-    }
-    
-    return 0;
-}
 
-/**
- * Get Polygon batch quote data
- */
-function getPolygonBatchQuote($tickers) {
-    $apiKey = POLYGON_API_KEY;
-    $tickerString = implode(',', $tickers);
-    $url = "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={$tickerString}&apikey={$apiKey}";
-    
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 30,
-            'header' => [
-                'User-Agent: EarningsTable/1.0',
-                'Accept: application/json'
-            ]
-        ]
-    ]);
-    
-    $json = file_get_contents($url, false, $context);
-    
-    if ($json === false) {
-        return null;
-    }
-    
-    return json_decode($json, true);
-}
-
-/**
- * Get Polygon ticker details for market cap
- */
-function getPolygonTickerDetails($ticker) {
-    $apiKey = POLYGON_API_KEY;
-    $url = "https://api.polygon.io/v3/reference/tickers/{$ticker}?apikey={$apiKey}";
-    
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 10,
-            'header' => [
-                'User-Agent: EarningsTable/1.0',
-                'Accept: application/json'
-            ]
-        ]
-    ]);
-    
-    $json = file_get_contents($url, false, $context);
-    
-    if ($json === false) {
-        return null;
-    }
-    
-    return json_decode($json, true);
-}
 ?>

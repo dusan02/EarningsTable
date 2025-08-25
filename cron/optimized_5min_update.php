@@ -10,7 +10,9 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 require_once __DIR__ . '/../common/Lock.php';
+require_once __DIR__ . '/../common/api_functions.php';
 require_once __DIR__ . '/../common/Finnhub.php';
 
 // Lock mechanism
@@ -246,55 +248,13 @@ try {
     echo "✅ OPTIMIZED 5-MINUTE UPDATE COMPLETED\n";
     
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    logError("5-minute update failed: " . $e->getMessage(), [
+        'file' => __FILE__,
+        'line' => __LINE__
+    ]);
+    displayError("5-minute update failed: " . $e->getMessage(), true);
     exit(1);
 }
 
-/**
- * Get current price from Polygon data with fallback logic
- */
-function getCurrentPrice($polygonData) {
-    // Priority: last trade > last price > previous close
-    if (isset($polygonData['lastTrade']['p']) && $polygonData['lastTrade']['p'] > 0) {
-        return $polygonData['lastTrade']['p'];
-    }
-    
-    if (isset($polygonData['last']['p']) && $polygonData['last']['p'] > 0) {
-        return $polygonData['last']['p'];
-    }
-    
-    if (isset($polygonData['prevDay']['c']) && $polygonData['prevDay']['c'] > 0) {
-        return $polygonData['prevDay']['c'];
-    }
-    
-    return 0;
-}
 
-/**
- * Get Polygon batch quote data
- */
-function getPolygonBatchQuote($tickers) {
-    $apiKey = POLYGON_API_KEY;
-    $tickerString = implode(',', $tickers);
-    $url = "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={$tickerString}&apikey={$apiKey}";
-    
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 30,
-            'header' => [
-                'User-Agent: EarningsTable/1.0',
-                'Accept: application/json'
-            ]
-        ]
-    ]);
-    
-    $json = file_get_contents($url, false, $context);
-    
-    if ($json === false) {
-        return null;
-    }
-    
-    return json_decode($json, true);
-}
 ?>

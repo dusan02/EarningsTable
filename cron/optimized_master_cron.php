@@ -11,17 +11,18 @@
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../common/Lock.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 // Lock mechanism
 $lock = new Lock('optimized_master_cron');
 if (!$lock->acquire()) {
-    echo "❌ Another process is running\n";
+    displayError("Another process is running");
     exit(1);
 }
 register_shutdown_function(fn() => $lock->release());
 
 $startTime = microtime(true);
-echo "🚀 OPTIMIZED MASTER CRON STARTED\n";
+displayInfo("OPTIMIZED MASTER CRON STARTED");
 
 try {
     // Get current time
@@ -48,7 +49,7 @@ try {
         echo "⏱️  Cleanup time: {$cleanupTime}s\n";
         $totalExecutionTime += $cleanupTime;
     } else {
-        echo "❌ Cleanup script not found\n";
+        displayWarning("Cleanup script not found");
     }
     
     echo "\n" . str_repeat("-", 50) . "\n\n";
@@ -76,7 +77,7 @@ try {
             'success' => strpos($output, 'COMPLETED') !== false
         ];
     } else {
-        echo "❌ Optimized earnings script not found\n";
+        displayWarning("Optimized earnings script not found");
         $results['earnings_fetch'] = ['time' => 0, 'success' => false];
     }
     
@@ -105,7 +106,7 @@ try {
             'success' => strpos($output, 'COMPLETED') !== false
         ];
     } else {
-        echo "❌ Optimized 5-minute update script not found\n";
+        displayWarning("Optimized 5-minute update script not found");
         $results['five_min_update'] = ['time' => 0, 'success' => false];
     }
     
@@ -193,7 +194,7 @@ try {
     
     $finalExecutionTime = round(microtime(true) - $startTime, 2);
     echo "\n⏱️  Total master cron time: {$finalExecutionTime}s\n";
-    echo "✅ OPTIMIZED MASTER CRON COMPLETED\n";
+    displaySuccess("OPTIMIZED MASTER CRON COMPLETED");
     
     // Log the execution
     $logFile = __DIR__ . '/../logs/master_cron.log';
@@ -207,7 +208,11 @@ try {
     file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
     
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    logCronError('optimized_master_cron', $e->getMessage(), [
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    displayError($e->getMessage());
     exit(1);
 }
 ?>
