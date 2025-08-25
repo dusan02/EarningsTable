@@ -1,6 +1,8 @@
 # Configuration files with sensitive data
-config.php
+config/config.php
 .env
+config/production.env
+*.env
 
 # Logs
 logs/
@@ -30,15 +32,15 @@ ehthumbs.db
 Thumbs.db
 
 # Backup directories
+archive/
 backup_*/
 
 # Storage files
 storage/daily_cleanup_last_run.txt
 storage/*.log
 
-# Test files
-check_tickers.php
-status_check.php
+# Test files (now in Tests/ directory)
+Tests/
 
 # Node modules (if any)
 node_modules/
@@ -49,4 +51,12 @@ composer.lock
 
 # Cache
 cache/
-*.cache 
+*.cache
+
+# Deployment files
+deploy/*.zip
+deploy/*.tar.gz
+
+# Development files
+temp_*
+debug_* 

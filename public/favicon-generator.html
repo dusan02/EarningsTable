@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator - Calendar Table Design</title>
+</head>
+<body>
+    <h1>Calendar Table Favicon Generator</h1>
+    <canvas id="faviconCanvas" width="32" height="32"></canvas>
+    <br>
+    <button onclick="generateFavicon()">Generate Favicon</button>
+    <br>
+    <a id="downloadLink" download="favicon.png">Download PNG</a>
+    
+    <script>
+        function generateFavicon() {
+            const canvas = document.getElementById('faviconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, 32, 32);
+            
+            // Background square with rounded corners
+            ctx.fillStyle = '#3b82f6';
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(2, 2, 28, 28, 4);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Calendar header
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.roundRect(4, 4, 24, 6, 2);
+            ctx.fill();
+            
+            // Calendar dots (representing days)
+            ctx.fillStyle = '#ffffff';
+            const dots = [8, 12, 16, 20, 24];
+            dots.forEach(x => {
+                ctx.beginPath();
+                ctx.arc(x, 7, 1, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Table grid lines - horizontal
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.8;
+            const hLines = [12, 16, 20, 24];
+            hLines.forEach(y => {
+                ctx.beginPath();
+                ctx.moveTo(6, y);
+                ctx.lineTo(26, y);
+                ctx.stroke();
+            });
+            
+            // Table grid lines - vertical
+            ctx.globalAlpha = 0.6;
+            const vLines = [10, 16, 22];
+            vLines.forEach(x => {
+                ctx.beginPath();
+                ctx.moveTo(x, 12);
+                ctx.lineTo(x, 26);
+                ctx.stroke();
+            });
+            
+            // Earnings data cells (filled rectangles)
+            ctx.globalAlpha = 0.9;
+            const cells = [
+                {x: 7, y: 13, color: '#10b981'}, {x: 11, y: 13, color: '#10b981'}, 
+                {x: 17, y: 13, color: '#ef4444'}, {x: 23, y: 13, color: '#10b981'},
+                {x: 7, y: 17, color: '#10b981'}, {x: 11, y: 17, color: '#ef4444'}, 
+                {x: 17, y: 17, color: '#10b981'}, {x: 23, y: 17, color: '#10b981'},
+                {x: 7, y: 21, color: '#ef4444'}, {x: 11, y: 21, color: '#10b981'}, 
+                {x: 17, y: 21, color: '#10b981'}, {x: 23, y: 21, color: '#ef4444'}
+            ];
+            
+            cells.forEach(cell => {
+                ctx.fillStyle = cell.color;
+                ctx.fillRect(cell.x, cell.y, 2, 2);
+            });
+            
+            // Dollar sign in top right
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 4px Arial';
+            ctx.textAlign = 'end';
+            ctx.fillText('$', 26, 8);
+            
+            // Alarm/notification dot
+            ctx.fillStyle = '#ef4444';
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(26, 6, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.arc(26, 6, 1, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Create download link
+            const dataURL = canvas.toDataURL('image/png');
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = dataURL;
+        }
+        
+        // Generate on load
+        window.onload = generateFavicon;
+    </script>
+</body>
+</html>

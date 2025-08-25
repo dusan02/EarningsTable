@@ -42,7 +42,7 @@
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://earnings-table.com/dashboard-fixed.html">
+    <link rel="canonical" href="https://earnings-table.com/dashboard-fixed-2.html">
     
     <!-- Additional SEO -->
     <meta name="theme-color" content="#3b82f6">
@@ -57,26 +57,25 @@
     <meta name="geo.region" content="US">
     <meta name="geo.placename" content="United States">
     <meta name="ICBM" content="40.7128, -74.0060">
-    <!-- marker: 9c1c-ET -->
     
-         <!-- Favicon -->
-     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
-     <link rel="icon" type="image/x-icon" href="favicon.ico">
-     <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
-     
-     <!-- DNS Prefetch for Performance -->
-     <link rel="dns-prefetch" href="//fonts.googleapis.com">
-     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-     <link rel="dns-prefetch" href="//code.jquery.com">
-     
-     <!-- Preload Critical Resources -->
-     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap"></noscript>
-     
-     <!-- Modern Fonts (fallback) -->
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//code.jquery.com">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap"></noscript>
+    
+    <!-- Modern Fonts (fallback) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -158,12 +157,11 @@
         overflow-x: hidden;
     }
 
-                       /* CSS VARIABLES FOR STICKY HEIGHTS */
+    /* CSS VARIABLES FOR STICKY HEIGHTS */
     :root {
         --h-header: 0px;
         --h-kpis: 0px;
         --h-caption: 0px;
-        --h-table-header: 0px;
     }
 
     /* FIXED HEADER */
@@ -199,7 +197,7 @@
         text-align: center;
     }
 
-                                           /* WINNERS/LOSERS CARDS */
+    /* WINNERS/LOSERS CARDS */
     .winners-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -304,80 +302,126 @@
         }
     }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           /* Wrapper – jeden horizontálny scroll */
-           .table-container{
-          padding: 0 32px 24px 32px;
-          background:#fff;
-          overflow-x:auto;           /* len horizontálny scroll */
-          overflow-y:visible;        /* vertikálny scroll nech sa rieši na body */
-          margin-top: 0;
-      }
+    /* TABLE CONTAINER - OPTIMIZED FOR STICKY HEADER */
+    .table-container {
+        padding: 0 32px 24px 32px;
+        background: #fff;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
 
-                 /* Jedna tabuľka = jeden layout */
-                   .earnings-table{
-            width:100%;
-            min-width:1560px;
-            border-collapse:collapse;
-            table-layout:fixed;        /* presné šírky z colgroup */
-            font-family:'Inter',sans-serif;
-            font-size:14px;
-            font-variant-numeric: tabular-nums; /* stabilné čísla */
-          }
+    /* SINGLE TABLE LAYOUT */
+    .earnings-table {
+        width: 100%;
+        min-width: 1560px;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+    }
 
-                 
+    /* CAPTION ROW - STICKY UNDER KPI CARDS */
+    .earnings-table thead tr:first-child th {
+        position: sticky;
+        top: 60px; /* OPTIMIZED: Lower value for better positioning */
+        z-index: 85;
+        background: #fff;
+        padding: 8px 0;
+        color: #6b7280;
+        font-size: 20px;
+        font-weight: 400;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        text-align: center;
+        box-shadow: 0 1px 0 rgba(15,23,42,.06);
+        border-bottom: 1px solid #e5e7eb;
+    }
 
-                                                             /* Table header is now in separate div above table */
+    /* TABLE HEADERS - STICKY UNDER CAPTION */
+    .earnings-table thead tr:not(:first-child) th.sortable-header {
+        position: sticky !important;
+        top: 96px !important; /* OPTIMIZED: 60px + 36px caption height */
+        z-index: 95;
+        background: #e3f2fd;
+        color: #374151;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(37,99,235,.1);
+    }
 
-                 /* ZJEDNOTENÉ metriky – žiadne rozdielne paddingy */
-         .earnings-table th,
-         .earnings-table td{
-           padding:12px 8px;
-           box-sizing:border-box;
-         }
+    /* UNIFIED METRICS */
+    .earnings-table th,
+    .earnings-table td {
+        padding: 12px 8px;
+        box-sizing: border-box;
+        border-right: 1px solid #e6eefc;
+    }
+    .earnings-table th:last-child,
+    .earnings-table td:last-child { 
+        border-right: none; 
+    }
 
-                 .earnings-table tbody td{
-           border-bottom:1px solid #f3f4f6;
-           vertical-align:middle;
-           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-         }
+    .earnings-table tbody td {
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        white-space: nowrap;
+    }
 
-         /* Prvý riadok tabuľky - bez horného border */
-         .earnings-table tbody tr:first-child td {
-           border-top: none;
-         }
+    /* ALIGNMENTS */
+    th:nth-child(2), td:nth-child(2) { 
+        text-align: left; 
+    }
+    td:not(:nth-child(2)), th:not(:nth-child(2)) { 
+        text-align: center; 
+    }
 
-        /* Zarovnania: čísla vpravo, Company vľavo */
-        th:nth-child(2), td:nth-child(2){ text-align:left; }
-        td:not(:nth-child(2)), th:not(:nth-child(2)){ text-align:center; }
+    /* SORTABLE HEADERS */
+    .sortable-header {
+        cursor: pointer; 
+        user-select: none;
+        padding: 12px 16px !important;
+        transition: background-color .2s ease;
+    }
+    .sortable-header:hover { 
+        background: #bbdefb !important; 
+    }
+    .sortable-header.active-sort { 
+        background: #bbdefb !important; 
+        font-weight: 700; 
+    }
 
-        /* Sortovateľné th – len vzhľad (bez position) */
-        .sortable-header{
-          cursor:pointer; user-select:none;
-          padding:12px 16px !important;
-          transition:background-color .2s ease;
-        }
-        .sortable-header:hover{ background:#bbdefb !important; }
-        .sortable-header.active-sort{ background:#bbdefb !important; font-weight:700; }
+    /* COMPANY HEADER CONTAINER */
+    .company-header-container {
+        display: flex; 
+        gap: 8px; 
+        align-items: center; 
+        justify-content: flex-start; 
+        width: 100%;
+    }
+    .company-search {
+        width: 160px; 
+        max-width: 180px;
+        padding: 6px 8px;
+        border: 1px solid #d1d5db; 
+        border-radius: 4px;
+        font-size: 11px; 
+        background: #fff; 
+        color: #374151; 
+        outline: none;
+    }
+    .company-search:focus { 
+        border-color: #3b82f6; 
+        box-shadow: 0 0 0 2px rgba(59,130,246,.1); 
+    }
 
-        /* Company header obsah nesmie nafukovať šírku */
-        .company-header-container{
-          display:flex; gap:8px; align-items:center; justify-content:flex-start; width:100%;
-        }
-        .company-search{
-          width:160px; max-width:180px;
-          padding:6px 8px;
-          border:1px solid #d1d5db; border-radius:4px;
-          font-size:11px; background:#fff; color:#374151; outline:none;
-        }
-        .company-search:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.1); }
-
-
-
+    /* TABLE ROW HOVER */
     .earnings-table tbody tr:hover {
         background-color: #f9fafb;
     }
-         
-
 
     /* COMPANY INFO */
     .company-info {
@@ -409,8 +453,8 @@
         color: #6b7280;
         font-weight: 500;
         flex-shrink: 0;
-        min-width: 50px; /* fixná šírka pre ticker */
-        margin-right: 16px; /* dve medzery medzi tickerom a názvom */
+        min-width: 50px;
+        margin-right: 16px;
     }
 
     /* STATUS BADGES */
@@ -506,7 +550,7 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* RESPONSIVE - NO MOVEMENT */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
         .stats-container {
             grid-template-columns: repeat(2, 1fr);
@@ -517,11 +561,10 @@
             padding: 16px 20px;
         }
         
-                 .earnings-table {
-             min-width: 1560px;
-         }
+        .earnings-table {
+            min-width: 1200px;
+        }
 
-        /* Responsívne – na mobiloch je menej miesta, zmenšíme spacing */
         .header { 
             padding-top: 10px; 
             padding-bottom: 8px; 
@@ -531,135 +574,79 @@
         }
     }
 
-                       /* SORTABLE HEADERS */
-       .sortable-header {
-           cursor: pointer;
-           user-select: none;
-           /* position: relative; <- odstránené, spôsobovalo konflikt so sticky */
-           padding: 12px 16px !important;
-           min-height: 50px;
-           background-color: #e3f2fd; /* jemne modrá farba pre všetky hlavičky */
-           transition: background-color 0.2s ease;
-           text-align: center !important; /* vycentrovaný text v hlavičke */
-       }
-
-           .sortable-header:hover {
-          background-color: #e3f2fd !important; /* ešte jemnejšia modrá hover */
-          color: #374151 !important; /* tmavý text pre lepší kontrast */
-      }
-
-      .sortable-header.active-sort {
-          background-color: #bbdefb !important; /* jemnejšia modrá pre aktívny sort */
-          color: #374151 !important; /* tmavý text pre lepší kontrast */
-          font-weight: 700;
-      }
-
-    /* SEARCH BAR STYLES */
-    .company-header-container {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .company-search {
-        width: 100%;
-        max-width: 180px;
-        padding: 6px 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        font-size: 11px;
+    /* FOOTER STYLES */
+    .footer {
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        padding: 40px 32px 20px 32px;
+        margin-top: 40px;
         font-family: 'Inter', sans-serif;
-        background: white;
-        color: #374151;
-        outline: none;
-        transition: border-color 0.2s ease;
     }
 
-    .company-search:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    .footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        max-width: 1400px;
+        margin: 0 auto;
     }
 
-         .company-search::placeholder {
-         color: #9ca3af;
-         font-size: 10px;
-     }
- 
-     /* FOOTER STYLES */
-     .footer {
-         background: #f8fafc;
-         border-top: 1px solid #e5e7eb;
-         padding: 40px 32px 20px 32px;
-         margin-top: 40px;
-         font-family: 'Inter', sans-serif;
-     }
- 
-           .footer-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          max-width: 1400px;
-          margin: 0 auto;
-      }
- 
-           .footer-section h3 {
-          color: #6b7280;
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-      }
- 
-     .footer-section p {
-         color: #6b7280;
-         font-size: 14px;
-         line-height: 1.6;
-         margin: 0;
-     }
- 
-     .footer-bottom {
-         border-top: 1px solid #e5e7eb;
-         margin-top: 32px;
-         padding-top: 20px;
-         text-align: center;
-     }
- 
-     .footer-bottom p {
-         color: #9ca3af;
-         font-size: 12px;
-         margin: 0;
-         font-weight: 500;
-     }
- 
-     /* RESPONSIVE FOOTER */
-     @media (max-width: 768px) {
-         .footer {
-             padding: 24px 20px 16px 20px;
-         }
-         
-         .footer-content {
-             text-align: center;
-         }
-         
-         .footer-section h3 {
-             font-size: 14px;
-         }
-         
-         .footer-section p {
-             font-size: 13px;
-         }
-     }
-     </style>
+    .footer-section h3 {
+        color: #6b7280;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .footer-section p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .footer-bottom {
+        border-top: 1px solid #e5e7eb;
+        margin-top: 32px;
+        padding-top: 20px;
+        text-align: center;
+    }
+
+    .footer-bottom p {
+        color: #9ca3af;
+        font-size: 12px;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* RESPONSIVE FOOTER */
+    @media (max-width: 768px) {
+        .footer {
+            padding: 24px 20px 16px 20px;
+        }
+        
+        .footer-content {
+            text-align: center;
+        }
+        
+        .footer-section h3 {
+            font-size: 14px;
+        }
+        
+        .footer-section p {
+            font-size: 13px;
+        }
+    }
+    </style>
 </head>
 <body>
     <!-- Header -->
     <header id="pageHeader" class="header" role="banner">
         <h1 class="earnings-title">Earnings table</h1>
-                 <p class="subtitle">Earnings dashboard</p>
+        <p class="subtitle">Earnings dashboard</p>
         <nav aria-label="Main navigation">
             <ul style="display: none;">
                 <li><a href="#earnings-data">Earnings Data</a></li>
@@ -672,172 +659,147 @@
     <main role="main">
         <!-- Winners/Losers Cards -->
         <section id="market-stats" class="winners-container" aria-label="Market Statistics">
-        <!-- 4x MODRÉ KARTY -->
-        <div class="winner-card blue">
-            <div class="winner-label">Large</div>
-            <div class="winner-ticker" id="largeCount">-</div>
-            <div class="winner-value neutral" id="largeValue">-</div>
-        </div>
-        <div class="winner-card blue">
-            <div class="winner-label">Mid</div>
-            <div class="winner-ticker" id="midCount">-</div>
-            <div class="winner-value neutral" id="midValue">-</div>
-        </div>
-        <div class="winner-card blue">
-            <div class="winner-label">Small</div>
-            <div class="winner-ticker" id="smallCount">-</div>
-            <div class="winner-value neutral" id="smallValue">-</div>
-        </div>
-                 <div class="winner-card blue">
-             <div class="winner-label">Total Cap</div>
-             <div class="winner-ticker" id="totalMarketCap">-</div>
-             <div class="winner-value neutral" id="totalMarketCapValue">-</div>
-         </div>
+            <!-- 4x MODRÉ KARTY -->
+            <div class="winner-card blue">
+                <div class="winner-label">Large</div>
+                <div class="winner-ticker" id="largeCount">-</div>
+                <div class="winner-value neutral" id="largeValue">-</div>
+            </div>
+            <div class="winner-card blue">
+                <div class="winner-label">Mid</div>
+                <div class="winner-ticker" id="midCount">-</div>
+                <div class="winner-value neutral" id="midValue">-</div>
+            </div>
+            <div class="winner-card blue">
+                <div class="winner-label">Small</div>
+                <div class="winner-ticker" id="smallCount">-</div>
+                <div class="winner-value neutral" id="smallValue">-</div>
+            </div>
+            <div class="winner-card blue">
+                <div class="winner-label">Total Cap</div>
+                <div class="winner-ticker" id="totalMarketCap">-</div>
+                <div class="winner-value neutral" id="totalMarketCapValue">-</div>
+            </div>
 
-        <!-- 4x ZELENÉ KARTY -->
-        <div class="winner-card green">
-            <div class="winner-label">Price Change %</div>
-            <div class="winner-ticker" id="priceGainerTicker">-</div>
-            <div class="winner-value positive" id="priceGainerValue">-</div>
-        </div>
-        <div class="winner-card green">
-            <div class="winner-label">Market Cap Diff</div>
-            <div class="winner-ticker" id="marketCapGainerTicker">-</div>
-            <div class="winner-value positive" id="marketCapGainerValue">-</div>
-        </div>
-        <div class="winner-card green">
-            <div class="winner-label">EPS Beat</div>
-            <div class="winner-ticker" id="epsBeatTicker">-</div>
-            <div class="winner-value positive" id="epsBeatValue">-</div>
-        </div>
-        <div class="winner-card green">
-            <div class="winner-label">Revenue Beat</div>
-            <div class="winner-ticker" id="revenueBeatTicker">-</div>
-            <div class="winner-value positive" id="revenueBeatValue">-</div>
+            <!-- 4x ZELENÉ KARTY -->
+            <div class="winner-card green">
+                <div class="winner-label">Price Change %</div>
+                <div class="winner-ticker" id="priceGainerTicker">-</div>
+                <div class="winner-value positive" id="priceGainerValue">-</div>
+            </div>
+            <div class="winner-card green">
+                <div class="winner-label">Market Cap Diff</div>
+                <div class="winner-ticker" id="marketCapGainerTicker">-</div>
+                <div class="winner-value positive" id="marketCapGainerValue">-</div>
+            </div>
+            <div class="winner-card green">
+                <div class="winner-label">EPS Beat</div>
+                <div class="winner-ticker" id="epsBeatTicker">-</div>
+                <div class="winner-value positive" id="epsBeatValue">-</div>
+            </div>
+            <div class="winner-card green">
+                <div class="winner-label">Revenue Beat</div>
+                <div class="winner-ticker" id="revenueBeatTicker">-</div>
+                <div class="winner-value positive" id="revenueBeatValue">-</div>
+            </div>
+
+            <!-- 4x ČERVENÉ KARTY -->
+            <div class="winner-card red">
+                <div class="winner-label">Price Change %</div>
+                <div class="winner-ticker" id="priceLoserTicker">-</div>
+                <div class="winner-value negative" id="priceLoserValue">-</div>
+            </div>
+            <div class="winner-card red">
+                <div class="winner-label">Market Cap Diff</div>
+                <div class="winner-ticker" id="marketCapLoserTicker">-</div>
+                <div class="winner-value negative" id="marketCapLoserValue">-</div>
+            </div>
+            <div class="winner-card red">
+                <div class="winner-label">EPS Miss</div>
+                <div class="winner-ticker" id="epsMissTicker">-</div>
+                <div class="winner-value negative" id="epsMissValue">-</div>
+            </div>
+            <div class="winner-card red">
+                <div class="winner-label">Revenue Miss</div>
+                <div class="winner-ticker" id="revenueMissTicker">-</div>
+                <div class="winner-value negative" id="revenueMissValue">-</div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>Loading earnings data...</div>
         </div>
 
-        <!-- 4x ČERVENÉ KARTY -->
-                 <div class="winner-card red">
-             <div class="winner-label">Price Change %</div>
-             <div class="winner-ticker" id="priceLoserTicker">-</div>
-             <div class="winner-value negative" id="priceLoserValue">-</div>
-         </div>
-        <div class="winner-card red">
-            <div class="winner-label">Market Cap Diff</div>
-            <div class="winner-ticker" id="marketCapLoserTicker">-</div>
-            <div class="winner-value negative" id="marketCapLoserValue">-</div>
+        <!-- TABLE (single object) -->
+        <section class="table-container" id="earnings-data" style="display:none" aria-label="Earnings Data Table">
+            <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
+                <!-- Precízne šírky pre celý table naraz -->
+                <colgroup>
+                    <col style="width:60px">    <!-- # -->
+                    <col style="width:200px">   <!-- Company -->
+                    <col style="width:80px">    <!-- Time -->
+                    <col style="width:120px">   <!-- Market Cap -->
+                    <col style="width:120px">   <!-- Cap Diff -->
+                    <col style="width:80px">    <!-- Size -->
+                    <col style="width:100px">   <!-- Price -->
+                    <col style="width:100px">   <!-- % Change -->
+                    <col style="width:90px">    <!-- EPS Est -->
+                    <col style="width:90px">    <!-- EPS Act -->
+                    <col style="width:100px">   <!-- EPS Surp -->
+                    <col style="width:120px">   <!-- Rev Est -->
+                    <col style="width:120px">   <!-- Rev Act -->
+                    <col style="width:100px">   <!-- Rev Surp -->
+                </colgroup>
+
+                <thead id="tableHead">
+                    <tr>
+                        <th colspan="14" style="background: #fff; color: #6b7280; font-size: 20px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; border-bottom: 1px solid #e5e7eb; padding: 8px 0;">Earnings table</th>
+                    </tr>
+                    <tr>
+                        <th class="sortable-header" data-sort="rank" scope="col">#</th>
+                        <th class="sortable-header" data-sort="company" scope="col">
+                            <div class="company-header-container">
+                                <div>Company</div>
+                                <input type="text" class="company-search" id="companySearch"
+                                       placeholder="Search ticker or name..." aria-label="Search companies by ticker or name" />
+                            </div>
+                        </th>
+                        <th class="sortable-header" data-sort="time" scope="col">Time</th>
+                        <th class="sortable-header" data-sort="market_cap" scope="col">Market Cap</th>
+                        <th class="sortable-header" data-sort="market_cap_gain" scope="col">Cap Diff</th>
+                        <th class="sortable-header" data-sort="size" scope="col">Size</th>
+                        <th class="sortable-header" data-sort="price" scope="col">Price</th>
+                        <th class="sortable-header" data-sort="today" scope="col">% Change</th>
+                        <th class="sortable-header" data-sort="eps_est" scope="col">EPS Est</th>
+                        <th class="sortable-header" data-sort="eps_act" scope="col">EPS Act</th>
+                        <th class="sortable-header" data-sort="eps_surprise" scope="col">EPS Surp</th>
+                        <th class="sortable-header" data-sort="revenue_est" scope="col">Rev Est</th>
+                        <th class="sortable-header" data-sort="revenue_act" scope="col">Rev Act</th>
+                        <th class="sortable-header" data-sort="revenue_surprise" scope="col">Rev Surp</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody"><!-- rows injected by JS --></tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Disclaimer</h3>
+                <p>Data is for informational purposes only. We are not responsible for accuracy or completeness. Not financial advice. Market data sourced from Polygon.io. Data may be delayed. Investing involves risk. Past performance doesn't guarantee future results. Consult a financial advisor.</p>
+            </div>
         </div>
-                 <div class="winner-card red">
-             <div class="winner-label">EPS Miss</div>
-             <div class="winner-ticker" id="epsMissTicker">-</div>
-             <div class="winner-value negative" id="epsMissValue">-</div>
-         </div>
-                 <div class="winner-card red">
-             <div class="winner-label">Revenue Miss</div>
-             <div class="winner-ticker" id="revenueMissTicker">-</div>
-             <div class="winner-value negative" id="revenueMissValue">-</div>
-         </div>
-                 </section>
- 
-                                                                       <!-- Caption and table header in one div -->
-          <div style="background: #fff; position: sticky; top: calc(var(--h-header) + var(--h-kpis)); z-index: 85;">
-                            <!-- Caption -->
-               <div style="color: #6b7280; font-size: 20px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 0 0;">
-                   Earnings table
-               </div>
-               
-                             <!-- Table header -->
-                                 <div style="background: #e3f2fd; padding: 0 32px 0 32px; border-bottom: none;">
-                                                                                                           <table style="width: 100%; min-width: 1560px; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 14px; table-layout: fixed;">
-                      <colgroup>
-                          <col style="width:60px">    <!-- # -->
-                          <col style="width:200px">   <!-- Company -->
-                          <col style="width:80px">    <!-- Time -->
-                          <col style="width:120px">   <!-- Market Cap -->
-                          <col style="width:120px">   <!-- Cap Diff -->
-                          <col style="width:80px">    <!-- Size -->
-                          <col style="width:100px">   <!-- Price -->
-                          <col style="width:100px">   <!-- % Change -->
-                          <col style="width:90px">    <!-- EPS Est -->
-                          <col style="width:90px">    <!-- EPS Act -->
-                          <col style="width:100px">   <!-- EPS Surp -->
-                          <col style="width:120px">   <!-- Rev Est -->
-                          <col style="width:120px">   <!-- Rev Act -->
-                          <col style="width:100px">   <!-- Rev Surp -->
-                      </colgroup>
-                      <thead>
-                          <tr>
-                                                            <th class="sortable-header" data-sort="rank" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">#</th>
-                                                             <th class="sortable-header" data-sort="company" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; position: relative; cursor: pointer; transition: background-color 0.2s ease;">
-                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <div>Company</div>
-                                        <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 120px; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 10px; background: #fff; color: #374151; outline: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" />
-                                    </div>
-                                </th>
-                               <th class="sortable-header" data-sort="time" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Time</th>
-                               <th class="sortable-header" data-sort="market_cap" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Market Cap</th>
-                               <th class="sortable-header" data-sort="market_cap_gain" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Cap Diff</th>
-                               <th class="sortable-header" data-sort="size" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Size</th>
-                               <th class="sortable-header" data-sort="price" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Price</th>
-                               <th class="sortable-header" data-sort="today" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">% Change</th>
-                               <th class="sortable-header" data-sort="eps_est" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Est</th>
-                               <th class="sortable-header" data-sort="eps_act" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Act</th>
-                               <th class="sortable-header" data-sort="eps_surprise" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Surp</th>
-                               <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Est</th>
-                               <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Act</th>
-                               <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Surp</th>
-                          </tr>
-                      </thead>
-                  </table>
-             </div>
-         </div>
- 
-         <!-- Loading State -->
-         <div id="loading" class="loading" role="status" aria-live="polite">
-             <div class="spinner" aria-hidden="true"></div>
-             <div>Loading earnings data...</div>
-         </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Earnings Table. All rights reserved. | Data for informational purposes only | Not financial advice</p>
+        </div>
+    </footer>
 
-                                                                                                                                                                                                                                                                                                                                                                                               <!-- TABLE (data only) -->
-                                                 <section class="table-container" id="earnings-data" style="display:none; margin-top: 0; padding-top: 0;" aria-label="Earnings Data Table">
-                                                   <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
-                                                    <!-- Precízne šírky pre celý table naraz -->
-                                                    <colgroup>
-                                                      <col style="width:60px">    <!-- # -->
-                                                      <col style="width:200px">   <!-- Company -->
-                                                      <col style="width:80px">    <!-- Time -->
-                                                      <col style="width:120px">   <!-- Market Cap -->
-                                                      <col style="width:120px">   <!-- Cap Diff -->
-                                                      <col style="width:80px">    <!-- Size -->
-                                                      <col style="width:100px">   <!-- Price -->
-                                                      <col style="width:100px">   <!-- % Change -->
-                                                      <col style="width:90px">    <!-- EPS Est -->
-                                                      <col style="width:90px">    <!-- EPS Act -->
-                                                      <col style="width:100px">   <!-- EPS Surp -->
-                                                      <col style="width:120px">   <!-- Rev Est -->
-                                                      <col style="width:120px">   <!-- Rev Act -->
-                                                      <col style="width:100px">   <!-- Rev Surp -->
-                                                    </colgroup>
-
-                                                    <tbody id="tableBody"><!-- rows injected by JS --></tbody>
-                                                  </table>
-                                                </section>
-     </main>
- 
-           <!-- Footer -->
-      <footer class="footer" role="contentinfo">
-          <div class="footer-content">
-              <div class="footer-section">
-                  <h3>Disclaimer</h3>
-                  <p>Data is for informational purposes only. We are not responsible for accuracy or completeness. Not financial advice. Market data sourced from Polygon.io. Data may be delayed. Investing involves risk. Past performance doesn't guarantee future results. Consult a financial advisor.</p>
-              </div>
-          </div>
-          <div class="footer-bottom">
-              <p>&copy; 2024 Earnings Table. All rights reserved. | Data for informational purposes only | Not financial advice</p>
-          </div>
-      </footer>
- 
-     <script>
+    <script>
     // Helper functions
     function formatCurrency(value) {
         if (value === null || value === undefined) return '-';
@@ -871,7 +833,6 @@
         const num = parseFloat(value);
         if (isNaN(num)) return '-';
         
-        // Use absolute value for formatting, then add sign back
         const absNum = Math.abs(num);
         let formatted;
         
@@ -881,7 +842,6 @@
         else if (absNum >= 1e3) formatted = `$${(absNum / 1e3).toFixed(1)}K`;
         else formatted = `$${absNum.toFixed(0)}`;
         
-        // Add negative sign if original value was negative
         return num < 0 ? `-${formatted}` : formatted;
     }
 
@@ -925,26 +885,6 @@
         return 'price-neutral';
     }
 
-    function getEPSClass(actual, estimate) {
-        if (actual === null || estimate === null) return 'price-neutral';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum)) return 'price-neutral';
-        if (actualNum > estimateNum) return 'price-up';
-        if (actualNum < estimateNum) return 'price-down';
-        return 'price-neutral';
-    }
-
-    function getRevenueClass(actual, estimate) {
-        if (actual === null || estimate === null) return 'price-neutral';
-        const actualNum = parseFloat(actual);
-        const estimateNum = parseFloat(estimate);
-        if (isNaN(actualNum) || isNaN(estimateNum)) return 'price-neutral';
-        if (actualNum > estimateNum) return 'price-up';
-        if (actualNum < estimateNum) return 'price-down';
-        return 'price-neutral';
-    }
-
     function getSurpriseClass(actual, estimate) {
         if (actual === null || estimate === null || actual === undefined || estimate === undefined) return 'price-neutral';
         const actualNum = parseFloat(actual);
@@ -972,8 +912,6 @@
         return shortName || companyName.substring(0, 20) + '...';
     }
 
-
-
     // Global variables for sorting
     let currentSort = { field: 'market_cap', direction: 'desc' };
     let earningsData = [];
@@ -983,13 +921,12 @@
         const va = a[key];
         const vb = b[key];
 
-        // Convert to number, treating null/undefined/NaN as a special "non-numeric" value for sorting
         const numA = (va === null || va === undefined || isNaN(va)) ? null : va;
         const numB = (vb === null || vb === undefined || isNaN(vb)) ? null : vb;
 
         if (numA === null && numB === null) return 0;
-        if (numA === null) return 1;      // null/NaN values go to end
-        if (numB === null) return -1;     // null/NaN values go to end
+        if (numA === null) return 1;
+        if (numB === null) return -1;
 
         return direction === 'asc' ? numA - numB : numB - numA;
     }
@@ -1001,7 +938,6 @@
             
             switch(field) {
                 case 'rank':
-                    // For rank sorting, we need to sort by market cap (since rank is based on market cap position)
                     aVal = parseFloat(a.market_cap) || 0;
                     bVal = parseFloat(b.market_cap) || 0;
                     break;
@@ -1042,37 +978,31 @@
                     bVal = parseFloat(b.eps_actual) || 0;
                     break;
                 case 'eps_surprise':
-                    // Precalculate surprise values and use robust comparison
                     const epsASurprise = calculateSurprise(a.eps_actual, a.eps_estimate);
                     const epsBSurprise = calculateSurprise(b.eps_actual, b.eps_estimate);
                     
-                    // Use the same logic as cmpNumericWithNullLast but with calculated values
                     const epsNumA = isNaN(epsASurprise) ? null : epsASurprise;
                     const epsNumB = isNaN(epsBSurprise) ? null : epsBSurprise;
                     
                     if (epsNumA === null && epsNumB === null) return 0;
-                    if (epsNumA === null) return 1;      // null/NaN values go to end
-                    if (epsNumB === null) return -1;     // null/NaN values go to end
+                    if (epsNumA === null) return 1;
+                    if (epsNumB === null) return -1;
                     
                     return direction === 'asc' ? epsNumA - epsNumB : epsNumB - epsNumA;
                 case 'revenue_est':
-                    // Use robust numeric comparison with null handling
                     return cmpNumericWithNullLast(a, b, direction, 'revenue_estimate');
                 case 'revenue_act':
-                    // Use robust numeric comparison with null handling
                     return cmpNumericWithNullLast(a, b, direction, 'revenue_actual');
                 case 'revenue_surprise':
-                    // Precalculate surprise values and use robust comparison
                     const aSurprise = calculateSurprise(a.revenue_actual, a.revenue_estimate);
                     const bSurprise = calculateSurprise(b.revenue_actual, b.revenue_estimate);
                     
-                    // Use the same logic as cmpNumericWithNullLast but with calculated values
                     const numA = isNaN(aSurprise) ? null : aSurprise;
                     const numB = isNaN(bSurprise) ? null : bSurprise;
                     
                     if (numA === null && numB === null) return 0;
-                    if (numA === null) return 1;      // null/NaN values go to end
-                    if (numB === null) return -1;     // null/NaN values go to end
+                    if (numA === null) return 1;
+                    if (numB === null) return -1;
                     
                     return direction === 'asc' ? numA - numB : numB - numA;
                 default:
@@ -1097,12 +1027,10 @@
     }
 
     function updateSortIcons(field, direction) {
-        // Remove active class from all headers
         document.querySelectorAll('.sortable-header').forEach(header => {
             header.classList.remove('active-sort');
         });
         
-        // Add active class to current sort
         const header = document.querySelector(`[data-sort="${field}"]`);
         if (header) {
             header.classList.add('active-sort');
@@ -1113,7 +1041,6 @@
         const header = event.currentTarget;
         const field = header.getAttribute('data-sort');
         
-        // Toggle direction if same field, otherwise set to desc
         if (currentSort.field === field) {
             currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
         } else {
@@ -1121,7 +1048,6 @@
             currentSort.direction = 'desc';
         }
         
-        // Sort data and update display
         sortData(currentSort.field, currentSort.direction);
         updateSortIcons(currentSort.field, currentSort.direction);
         renderTable();
@@ -1139,19 +1065,18 @@
             
             const sizeClass = getSizeClass(item.size);
             
-            // Generate rank based on current position (index + 1)
             const currentRank = index + 1;
             
             row.innerHTML = `
                 <td>${currentRank}</td>
-                                 <td>
-                     <div class="company-info">
-                         <div class="company-details">
-                             <div class="company-ticker">${item.ticker}</div>
-                             <div class="company-name">${item.company_name ? getShortCompanyName(item.company_name) : '-'}</div>
-                         </div>
-                     </div>
-                 </td>
+                <td>
+                    <div class="company-info">
+                        <div class="company-details">
+                            <div class="company-ticker">${item.ticker}</div>
+                            <div class="company-name">${item.company_name ? getShortCompanyName(item.company_name) : '-'}</div>
+                        </div>
+                    </div>
+                </td>
                 <td><span class="status-badge ${timeClass}">${item.report_time}</span></td>
                 <td>${formatCurrency(item.market_cap)}</td>
                 <td class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
@@ -1166,21 +1091,18 @@
                 <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
             `;
             
-                                                   tableBody.appendChild(row);
-          });
-      }
+            tableBody.appendChild(row);
+        });
+    }
 
     // Add click event listeners to headers
     function addSortListeners() {
-        // Hľadáme hlavičky v novom div elemente (nie v tabuľke s dátami)
         document.querySelectorAll('.sortable-header').forEach(header => {
             header.addEventListener('click', handleHeaderClick);
         });
     }
 
-
-
-    // ---------- Pomocné funkcie ----------
+    // Helper functions for KPI cards
     const fmt = new Intl.NumberFormat('en-US');
     function formatCurrency(n) {
         if (n == null || isNaN(n)) return '–';
@@ -1193,7 +1115,7 @@
     }
     const toUpper = v => (typeof v === 'string' ? v.toUpperCase() : v);
 
-    // ---------- 1) Veľkostné karty LARGE / MID / SMALL ----------
+    // Size stats computation
     function computeSizeStats(data) {
         const stats = {
             LARGE: { count: 0, cap: 0 },
@@ -1221,30 +1143,19 @@
     function updateSizeCards(data) {
         const s = computeSizeStats(data);
 
-        // počty
         document.getElementById('largeCount').textContent = s.LARGE.count || 0;
         document.getElementById('midCount').textContent   = s.MID.count   || 0;
         document.getElementById('smallCount').textContent = s.SMALL.count || 0;
 
-        // hodnoty (DRUHÝ RIADOK v kartách – bol prázdny)
         document.getElementById('largeValue').textContent = formatCurrency(s.LARGE.cap);
         document.getElementById('midValue').textContent   = formatCurrency(s.MID.cap);
         document.getElementById('smallValue').textContent = formatCurrency(s.SMALL.cap);
 
-        // total
         document.getElementById('totalMarketCap').textContent      = formatCurrency(s.TOTAL.cap);
         document.getElementById('totalMarketCapValue').textContent = fmt.format(s.TOTAL.count) + ' tickers';
     }
 
-    // ---------- 2) Winners / Losers karty ----------
-    function firstValid(arr, sel, cmp) {
-        const list = arr
-            .map(sel)
-            .filter(v => v != null && isFinite(v));
-        if (!list.length) return null;
-        return cmp(list);
-    }
-
+    // Winners/Losers computation
     function updateWinnersLosers(data) {
         // Price change %
         const up = data.filter(d => {
@@ -1269,7 +1180,7 @@
         document.getElementById('priceLoserValue').textContent  =
             priceWorst ? `${parseFloat(priceWorst.price_change_percent).toFixed(2)}%` : '—';
 
-        // Market cap diff (ak existuje pole, inak preskoč)
+        // Market cap diff
         const mc = data.filter(d => {
             const diff = parseFloat(d.market_cap_diff);
             return !isNaN(diff) && isFinite(diff);
@@ -1338,10 +1249,22 @@
             revWorst ? `${((parseFloat(revWorst.revenue_actual) - parseFloat(revWorst.revenue_estimate)) / Math.abs(parseFloat(revWorst.revenue_estimate)) * 100).toFixed(2)}%` : '—';
     }
 
+    // OPTIMIZED STICKY HEIGHTS FUNCTION
+    function updateStickyHeights() {
+        const hHeader = document.getElementById('pageHeader')?.offsetHeight || 0;
+        const hKpis = document.getElementById('market-stats')?.offsetHeight || 0;
+        const captionRow = document.querySelector('.earnings-table thead tr:first-child th');
+        const hCaption = captionRow ? captionRow.offsetHeight : 36;
+
+        const root = document.documentElement.style;
+        root.setProperty('--h-header', hHeader + 'px');
+        root.setProperty('--h-kpis', hKpis + 'px');
+        root.setProperty('--h-caption', hCaption + 'px');
+    }
+
     async function loadEarningsData() {
         const loading = document.getElementById('loading');
         const tableContainer = document.getElementById('earnings-data');
-        const tableBody = document.getElementById('tableBody');
 
         try {
             loading.style.display = 'block';
@@ -1358,14 +1281,12 @@
             }
 
             const earnings = data.data || [];
-            // Filter out companies without market cap or price data
             const filteredEarnings = earnings.filter(item => {
                 const hasMarketCap = item.market_cap && parseFloat(item.market_cap) > 0;
                 const hasPrice = item.current_price && parseFloat(item.current_price) > 0;
                 return hasMarketCap && hasPrice;
             });
 
-            // Check if we have any earnings data
             if (filteredEarnings.length === 0) {
                 loading.innerHTML = `
                     <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
@@ -1380,35 +1301,25 @@
                 return;
             }
 
-            // Store data globally (without rank - rank will be generated in renderTable)
             earningsData = filteredEarnings;
 
-            // Sort by Market Cap DESC initially
             sortData('market_cap', 'desc');
             updateSortIcons('market_cap', 'desc');
 
-            // Update cards with new robust functions
             updateSizeCards(filteredEarnings);
             updateWinnersLosers(filteredEarnings);
 
-            // Populate table
             renderTable();
 
-            // Add sort listeners after table is rendered
-            addSortListeners();
-
-                         loading.style.display = 'none';
-             tableContainer.style.display = 'block';
-             
-             // Aktualizuj sticky heights po zobrazení tabuľky
-             updateStickyHeights();
- 
-                          // Table displayed successfully
+            loading.style.display = 'none';
+            tableContainer.style.display = 'block';
+            
+            // OPTIMIZED: Update sticky heights after table is displayed
+            updateStickyHeights();
 
         } catch (error) {
             console.error('Error loading data:', error);
             
-            // Check if it's a network error or no data error
             if (error.message.includes('Failed to fetch') || error.message.includes('HTTP error')) {
                 loading.innerHTML = `
                     <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
@@ -1436,18 +1347,11 @@
         const searchInput = document.getElementById('companySearch');
         if (!searchInput) return;
 
-        // Prevent search input clicks from triggering header sort
         searchInput.addEventListener('click', function(event) {
             event.stopPropagation();
         });
 
-        // Prevent search input focus from triggering header sort
         searchInput.addEventListener('focus', function(event) {
-            event.stopPropagation();
-        });
-
-        // Prevent search input input from triggering header sort
-        searchInput.addEventListener('input', function(event) {
             event.stopPropagation();
         });
 
@@ -1455,14 +1359,12 @@
             const searchTerm = this.value.toLowerCase().trim();
             
             if (searchTerm === '') {
-                // Show all rows if search is empty
                 document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
                     row.style.display = '';
                 });
                 return;
             }
 
-            // Filter rows based on search term
             document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
                 const companyCell = row.querySelector('td:nth-child(2)');
                 if (!companyCell) return;
@@ -1475,12 +1377,10 @@
             });
         });
 
-        // Clear search when clicking on other sortable headers (okrem Company)
         document.querySelectorAll('.sortable-header').forEach(header => {
             if (header.getAttribute('data-sort') !== 'company') {
                 header.addEventListener('click', function() {
                     searchInput.value = '';
-                    // Show all rows
                     document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
                         row.style.display = '';
                     });
@@ -1489,46 +1389,22 @@
         });
     }
 
-                                                               // Funkcia na dopočítanie výšok pre sticky pozície
-        function updateStickyHeights() {
-            const hHeader = document.getElementById('pageHeader')?.offsetHeight || 0;
-            const hKpis = document.getElementById('market-stats')?.offsetHeight || 0;
-            // Hľadáme caption div podľa textu "Earnings table" v novom div struktúre
-            const captionDiv = Array.from(document.querySelectorAll('div')).find(div => 
-                div.textContent?.trim() === 'Earnings table' && 
-                div.parentElement?.style.position === 'sticky'
-            );
-            const hCaption = captionDiv ? captionDiv.parentElement.offsetHeight : 120; // fallback na 120px (caption + header)
+    // Initialize when document is ready
+    $(document).ready(function() {
+        loadEarningsData();
+        addSortListeners();
+        setupSearch();
+        
+        // OPTIMIZED: Set sticky heights on load and resize
+        window.addEventListener('load', updateStickyHeights);
+        window.addEventListener('resize', updateStickyHeights);
+        
+        // OPTIMIZED: ResizeObserver for KPI cards
+        new ResizeObserver(updateStickyHeights).observe(document.getElementById('market-stats'));
+    });
 
-            const root = document.documentElement.style;
-            root.setProperty('--h-header', hHeader + 'px');
-            root.setProperty('--h-kpis', hKpis + 'px');
-            root.setProperty('--h-caption', hCaption + 'px');
-            
-            console.log('Sticky heights updated:', { hHeader, hKpis, hCaption });
-        }
-
-                       // Initialize when document is ready
-       $(document).ready(function() {
-           loadEarningsData();
-           setupSearch();
-           
-           // Nastav sticky heights po načítaní
-           window.addEventListener('load', updateStickyHeights);
-           window.addEventListener('resize', updateStickyHeights);
-           
-           // Initialization complete
-       });
-
-         // Auto-refresh every 5 minutes
-     setInterval(loadEarningsData, 5 * 60 * 1000);
-
-         // ResizeObserver pre KPI karty - drží sticky heights v sync
-         new ResizeObserver(updateStickyHeights).observe(document.getElementById('market-stats'));
-
-           // Sticky positioning is now handled with fixed CSS values
-
-
+    // Auto-refresh every 5 minutes
+    setInterval(loadEarningsData, 5 * 60 * 1000);
     </script>
 </body>
 </html>

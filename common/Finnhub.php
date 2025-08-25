@@ -27,7 +27,8 @@ class Finnhub {
         }
         
         // Make API call
-        $url = self::BASE . $path . '?' . http_build_query($q + ['token' => FINNHUB_API_KEY]);
+        $apiKey = 'd2m1rr1r01qgtft6ppjgd2m1rr1r01qgtft6ppk0'; // Hardcoded Finnhub API key
+        $url = self::BASE . $path . '?' . http_build_query($q + ['token' => $apiKey]);
         
         $context = stream_context_create([
             'http' => [

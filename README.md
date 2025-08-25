@@ -14,11 +14,13 @@ A comprehensive real-time dashboard for tracking stock earnings, EPS beats/misse
 ## 📊 Dashboard Components
 
 ### KPI Cards
+
 - **Size Distribution**: Large, Mid, Small cap counts and total market cap
 - **Winners**: Best performing stocks by price change, market cap diff, EPS beat, revenue beat
 - **Losers**: Worst performing stocks by price change, market cap diff, EPS miss, revenue miss
 
 ### Data Table
+
 - Company information and ticker symbols
 - Earnings report times (BMO/AMC/TNS)
 - Market cap and market cap changes
@@ -64,6 +66,7 @@ EarningsTable/
 ## 🔧 Installation
 
 ### Prerequisites
+
 - PHP 8.0 or higher
 - MySQL/MariaDB database
 - Web server (Apache/Nginx)
@@ -72,22 +75,26 @@ EarningsTable/
 ### Setup Steps
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/dusan02/EarningsTable.git
    cd EarningsTable
    ```
 
 2. **Configure database**
+
    - Create a MySQL database
    - Import the schema from `sql/setup_all_tables.sql`
    - Copy `config.example.php` to `config.php` and update database credentials
 
 3. **Set up API keys**
+
    - Get API keys from [Finnhub](https://finnhub.io/)
    - Get API keys from [Polygon.io](https://polygon.io/)
    - Update the API keys in your configuration
 
 4. **Configure web server**
+
    - Point your web server to the `public/` directory
    - Ensure PHP has write permissions to `logs/` and `storage/` directories
 
@@ -98,12 +105,14 @@ EarningsTable/
 ## 📅 Cron Jobs Schedule
 
 ### Daily Tasks (NY Time)
+
 - **02:00**: Clear old data (`clear_old_data.php`)
 - **02:30**: Fetch Finnhub earnings tickers (`fetch_finnhub_earnings_today_tickers.php`)
 - **02:40**: Fetch missing Yahoo Finance tickers (`fetch_missing_tickers_yahoo.php`)
 - **03:00**: Fetch complete market data (`fetch_market_data_complete.php`)
 
 ### Continuous Updates
+
 - **Every 5 minutes**: Update prices and earnings data (`run_5min_updates.php`)
 
 ## 🎯 Usage
@@ -115,10 +124,27 @@ EarningsTable/
 
 ## 🔒 Security
 
-- API keys are stored in configuration files (not in version control)
-- Database credentials are protected
-- Input validation and sanitization implemented
-- CORS headers configured for API endpoints
+### Database Security
+
+- **Minimal Database Permissions**: Separate users with least-privilege access
+- **Encrypted Backups**: AES-256-CBC encryption with automatic rotation
+- **Connection Pooling**: Optimized database connections with monitoring
+- **Secure File Permissions**: Restricted access to sensitive files
+
+### Application Security
+
+- **API Key Protection**: Stored in configuration files (not in version control)
+- **Input Validation**: Comprehensive sanitization and validation
+- **CORS Headers**: Properly configured for API endpoints
+- **SQL Injection Protection**: Prepared statements throughout
+- **Error Handling**: Secure error messages without information disclosure
+
+### Backup & Recovery
+
+- **Automated Backups**: Daily encrypted backups at 2:00 AM
+- **Integrity Verification**: SHA-256 checksums for all backups
+- **Disaster Recovery**: Complete restoration procedures documented
+- **Monitoring**: Automated health checks and alerting
 
 ## 📈 Data Sources
 
@@ -142,6 +168,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation in the `docs/` directory
 - Review the troubleshooting guides
@@ -149,6 +176,7 @@ For support and questions:
 ## 🔄 Changelog
 
 ### Version 1.0.0 (2025-08-23)
+
 - Initial release
 - Real-time earnings dashboard
 - Automated data fetching

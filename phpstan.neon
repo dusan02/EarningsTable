@@ -1,0 +1,16 @@
+parameters:
+    level: 5
+    paths:
+        - .
+    excludePaths:
+        - Tests/
+        - docs/
+        - archive/
+        - vendor/
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    ignoreErrors:
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9\\_]+#'
+        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9\\_]+#'
+    extensions:
+        - PHPStan\Extensions\BetterReflection\BetterReflectionExtension

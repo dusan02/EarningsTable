@@ -1,31 +1,151 @@
-﻿RewriteEngine On
+﻿# 🌐 Security Headers & HTTPS Enforcement
+# Bezpečnostné nastavenia pre Apache
 
-# Security - Protect config file
+# HTTPS Enforcement
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Security Headers
+<IfModule mod_headers.c>
+    # HSTS (HTTP Strict Transport Security)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    
+    # Content Security Policy
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https: http:; connect-src 'self' https://api.polygon.io https://finnhub.io https://query1.finance.yahoo.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests"
+    
+    # XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Content Type Options
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Frame Options
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Permissions Policy
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+    
+    # Remove Server Signature
+    Header always unset Server
+    Header always unset X-Powered-By
+</IfModule>
+
+# Disable Directory Browsing
+Options -Indexes
+
+# Protect Against Common Attacks
+<IfModule mod_rewrite.c>
+    # Block access to sensitive files
+    RewriteRule ^(\.htaccess|\.htpasswd|\.git|\.env|config\.php|composer\.json|composer\.lock)$ - [F,L]
+    
+    # Block access to backup files
+    RewriteRule \.(bak|backup|old|tmp|temp|log)$ - [F,L]
+    
+    # Block access to system files
+    RewriteRule ^(README|CHANGELOG|LICENSE|\.gitignore)$ - [F,L]
+</IfModule>
+
+# File Upload Security
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+    <IfModule mod_headers.c>
+        Header set X-Content-Type-Options nosniff
+    </IfModule>
+</FilesMatch>
+
+# Prevent Access to Configuration Files
+<Files "*.env">
+    Order allow,deny
+    Deny from all
+</Files>
+
 <Files "config.php">
     Order allow,deny
     Deny from all
 </Files>
 
-# Security - Protect .htaccess
-<Files ".htaccess">
+<Files "composer.json">
     Order allow,deny
     Deny from all
 </Files>
 
-# Security - Protect log files
-<Files "*.log">
+<Files "composer.lock">
     Order allow,deny
     Deny from all
 </Files>
 
-# PHP Settings for mydreams.cz
-php_value upload_max_filesize 10M
-php_value post_max_size 10M
-php_value max_execution_time 300
-php_value memory_limit 256M
-php_value max_input_vars 3000
+# Protect Logs Directory
+<Directory "logs">
+    Order allow,deny
+    Deny from all
+</Directory>
 
-# Enable compression
+# Protect Config Directory
+<Directory "config">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Tests Directory
+<Directory "Tests">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Scripts Directory
+<Directory "scripts">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Docs Directory
+<Directory "docs">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Archive Directory
+<Directory "archive">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Deploy Directory
+<Directory "deploy">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect SQL Directory
+<Directory "sql">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Protect Examples Directory
+<Directory "examples">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Block Bad Bots
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} (bot|crawler|spider|scraper|curl|wget) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# Rate Limiting (if mod_ratelimit is available)
+<IfModule mod_ratelimit.c>
+    <Location />
+        SetOutputFilter RATE_LIMIT
+        SetEnv rate-limit 400
+    </Location>
+</IfModule>
+
+# Compression
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain
     AddOutputFilterByType DEFLATE text/html
@@ -38,27 +158,30 @@ php_value max_input_vars 3000
     AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
-# Cache control
+# Cache Control
 <IfModule mod_expires.c>
     ExpiresActive on
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/jpg "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/gif "access plus 1 month"
-    ExpiresByType image/ico "access plus 1 month"
-    ExpiresByType image/icon "access plus 1 month"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/ico "access plus 1 year"
+    ExpiresByType image/icon "access plus 1 year"
     ExpiresByType text/plain "access plus 1 month"
-    ExpiresByType application/pdf "access plus 1 month"
     ExpiresByType application/x-shockwave-flash "access plus 1 month"
+    ExpiresByType text/html "access plus 1 hour"
 </IfModule>
 
-# Redirect to HTTPS (if SSL is available)
-# Uncomment the following lines if you have SSL certificate
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Error Pages
+ErrorDocument 403 /error/403.html
+ErrorDocument 404 /error/404.html
+ErrorDocument 500 /error/500.html
 
-# Custom error pages
-ErrorDocument 404 /public/404.html
-ErrorDocument 500 /public/500.html
+# Custom Error Pages (if they exist)
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^error/([0-9]{3})\.html$ - [F,L]
+</IfModule>

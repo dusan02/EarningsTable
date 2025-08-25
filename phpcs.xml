@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ruleset name="EarningsTable">
+    <description>PHP CodeSniffer rules for EarningsTable project</description>
+
+    <!-- Include PSR-12 standard -->
+    <rule ref="PSR12"/>
+
+    <!-- Files to check -->
+    <file>.</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>Tests/</exclude-pattern>
+    <exclude-pattern>docs/</exclude-pattern>
+    <exclude-pattern>archive/</exclude-pattern>
+    <exclude-pattern>vendor/</exclude-pattern>
+    <exclude-pattern>*.md</exclude-pattern>
+    <exclude-pattern>*.txt</exclude-pattern>
+    <exclude-pattern>*.sql</exclude-pattern>
+
+    <!-- Custom rules -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <!-- Ignore specific rules for this project -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>config/*.php</exclude-pattern>
+        <exclude-pattern>scripts/*.php</exclude-pattern>
+        <exclude-pattern>cron/*.php</exclude-pattern>
+    </rule>
+</ruleset>
