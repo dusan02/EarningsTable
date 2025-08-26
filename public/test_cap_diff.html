@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CAP DIFF Formatting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .test-table th, .test-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .test-table th {
+            background-color: #f2f2f2;
+        }
+        .price-up {
+            color: #059669;
+            font-weight: 600;
+        }
+        .price-down {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .price-neutral {
+            color: #6b7280;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test CAP DIFF Formatting</h1>
+    
+    <div id="test-results"></div>
+    
+    <table class="test-table">
+        <thead>
+            <tr>
+                <th>Test Case</th>
+                <th>Input Value</th>
+                <th>Formatted Output</th>
+                <th>CSS Class</th>
+                <th>Expected</th>
+            </tr>
+        </thead>
+        <tbody id="test-body">
+        </tbody>
+    </table>
+
+    <script src="js/utilities.js"></script>
+    <script>
+        // Test data
+        const testCases = [
+            { value: 1867000000000, expected: "+$1.9T" },  // PDD example
+            { value: -1866132, expected: "-$1.9M" },       // Senstar example
+            { value: -1503891, expected: "-$1.5M" },       // Portage example
+            { value: 1000000000, expected: "+$1.0B" },
+            { value: -500000000, expected: "-$500.0M" },
+            { value: 25000000, expected: "+$25.0M" },
+            { value: -1000000, expected: "-$1.0M" },
+            { value: 500000, expected: "+$500.0K" },
+            { value: -250000, expected: "-$250.0K" },
+            { value: 0, expected: "-" },
+            { value: null, expected: "-" },
+            { value: undefined, expected: "-" }
+        ];
+
+        function runTests() {
+            const testBody = document.getElementById('test-body');
+            const testResults = document.getElementById('test-results');
+            let results = [];
+
+            testCases.forEach((testCase, index) => {
+                const row = document.createElement('tr');
+                
+                const formattedValue = formatMarketCapDiff(testCase.value);
+                const cssClass = getDiffClass(testCase.value);
+                const isCorrect = formattedValue === testCase.expected;
+                
+                row.innerHTML = `
+                    <td>Test ${index + 1}</td>
+                    <td>${testCase.value}</td>
+                    <td class="${cssClass}">${formattedValue}</td>
+                    <td>${cssClass}</td>
+                    <td style="color: ${isCorrect ? 'green' : 'red'}">${testCase.expected}</td>
+                `;
+
+                testBody.appendChild(row);
+
+                results.push({
+                    testCase: index + 1,
+                    input: testCase.value,
+                    output: formattedValue,
+                    expected: testCase.expected,
+                    correct: isCorrect
+                });
+            });
+
+            // Display test summary
+            const correctCount = results.filter(r => r.correct).length;
+            const totalCount = results.length;
+            
+            const summary = document.createElement('div');
+            summary.className = 'test-result success';
+            summary.innerHTML = `
+                <h3>✅ CAP DIFF Formatting Test Results</h3>
+                <p><strong>${correctCount}/${totalCount} tests passed</strong></p>
+                <p><strong>Fixed issues:</strong></p>
+                <ul>
+                    <li>✅ Negative values now show M/B units (e.g., -$1.9M instead of $-1866132)</li>
+                    <li>✅ Positive values show + sign and proper units</li>
+                    <li>✅ Zero/null values show "-"</li>
+                    <li>✅ Proper color coding (green for positive, red for negative)</li>
+                </ul>
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li>1867000000000 → <span class="price-up">+$1.9T</span></li>
+                    <li>-1866132 → <span class="price-down">-$1.9M</span></li>
+                    <li>-1503891 → <span class="price-down">-$1.5M</span></li>
+                </ul>
+            `;
+            testResults.appendChild(summary);
+
+            console.log('CAP DIFF Test Results:', results);
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

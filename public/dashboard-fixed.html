@@ -158,6 +158,38 @@
         overflow-x: hidden;
     }
 
+    /* MAIN CONTENT CONTAINER - 100% width (full width) */
+    .main-container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        position: relative;
+    }
+
+    /* ADVERTISEMENT AREAS - HIDDEN */
+    .ad-left, .ad-right {
+        display: none;
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 1200px) {
+        .main-container {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-container {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-container {
+            width: 100%;
+        }
+    }
+
     /* CSS VARIABLES FOR STICKY HEIGHTS */
     :root {
         --h-header: 0px;
@@ -166,11 +198,66 @@
         --h-table-header: 0px;
     }
 
+    /* FIXED TABLE COLUMN WIDTHS - ENSURES CONSISTENCY */
+    .earnings-table,
+    .earnings-table-header {
+        table-layout: fixed !important;
+        width: 100% !important;
+        min-width: 1480px !important;
+    }
+
+    /* ENFORCE COLUMN WIDTHS */
+    .earnings-table col,
+    .earnings-table-header col {
+        width: auto !important;
+    }
+
+    .earnings-table col:nth-child(1),
+    .earnings-table-header col:nth-child(1) { width: 60px !important; }   /* # */
+    .earnings-table col:nth-child(2),
+    .earnings-table-header col:nth-child(2) { width: 200px !important; }  /* Company */
+    .earnings-table col:nth-child(3),
+    .earnings-table-header col:nth-child(3) { width: 120px !important; }  /* Market Cap */
+    .earnings-table col:nth-child(4),
+    .earnings-table-header col:nth-child(4) { width: 120px !important; }  /* Cap Diff */
+    .earnings-table col:nth-child(5),
+    .earnings-table-header col:nth-child(5) { width: 80px !important; }   /* Size */
+    .earnings-table col:nth-child(6),
+    .earnings-table-header col:nth-child(6) { width: 100px !important; }  /* Price */
+    .earnings-table col:nth-child(7),
+    .earnings-table-header col:nth-child(7) { width: 100px !important; }  /* % Change */
+    .earnings-table col:nth-child(8),
+    .earnings-table-header col:nth-child(8) { width: 90px !important; }   /* EPS Est */
+    .earnings-table col:nth-child(9),
+    .earnings-table-header col:nth-child(9) { width: 90px !important; }   /* EPS Act */
+    .earnings-table col:nth-child(10),
+    .earnings-table-header col:nth-child(10) { width: 100px !important; } /* EPS Surp */
+    .earnings-table col:nth-child(11),
+    .earnings-table-header col:nth-child(11) { width: 120px !important; } /* Rev Est */
+    .earnings-table col:nth-child(12),
+    .earnings-table-header col:nth-child(12) { width: 120px !important; } /* Rev Act */
+    .earnings-table col:nth-child(13),
+    .earnings-table-header col:nth-child(13) { width: 100px !important; } /* Rev Surp */
+
+    /* ENSURE CELLS RESPECT COLUMN WIDTHS */
+    .earnings-table td,
+    .earnings-table-header th {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* FORCE TABLE CONTAINER TO MAINTAIN WIDTH */
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+
     /* FIXED HEADER */
     .header {
         background: #ffffff;
         border-bottom: 1px solid #e5e7eb;
-        padding: 24px 32px;
+        padding: 24px 0;
         position: sticky;
         top: 0;
         z-index: 100;
@@ -204,7 +291,7 @@
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 12px;
-        padding: 20px 24px;
+        padding: 20px 0;
         background: #ffffff;
         position: sticky;
         top: var(--h-header);
@@ -306,7 +393,7 @@
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /* Wrapper – jeden horizontálny scroll */
            .table-container{
-          padding: 0 32px 24px 32px;
+          padding: 0 0 24px 0;
           background:#fff;
           overflow-x:auto;           /* len horizontálny scroll */
           overflow-y:visible;        /* vertikálny scroll nech sa rieši na body */
@@ -591,7 +678,7 @@
      .footer {
          background: #f8fafc;
          border-top: 1px solid #e5e7eb;
-         padding: 40px 32px 20px 32px;
+         padding: 40px 0 20px 0;
          margin-top: 40px;
          font-family: 'Inter', sans-serif;
      }
@@ -656,8 +743,14 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header id="pageHeader" class="header" role="banner">
+    <!-- Advertisement Areas -->
+    <div class="ad-left" aria-label="Left Advertisement Area"></div>
+    <div class="ad-right" aria-label="Right Advertisement Area"></div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <header id="pageHeader" class="header" role="banner">
         <h1 class="earnings-title">EARNINGS TABLE</h1>
                  <p class="subtitle">Today's Earnings KPI Dashboard</p>
         <nav aria-label="Main navigation">
@@ -747,12 +840,11 @@
         </div>
 
                              <!-- Table header -->
-                                 <div style="background: #e3f2fd; padding: 0 32px 0 32px; border-bottom: none;">
-                                                                                                           <table style="width: 100%; min-width: 1560px; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 14px; table-layout: fixed;">
+                                 <div style="background: #e3f2fd; padding: 0 0 0 0; border-bottom: none;">
+                                                                                                           <table class="earnings-table-header" style="width: 100%; min-width: 1480px; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 14px; table-layout: fixed;">
                       <colgroup>
                           <col style="width:60px">    <!-- # -->
                           <col style="width:200px">   <!-- Company -->
-                          <col style="width:80px">    <!-- Time -->
                           <col style="width:120px">   <!-- Market Cap -->
                           <col style="width:120px">   <!-- Cap Diff -->
                           <col style="width:80px">    <!-- Size -->
@@ -774,18 +866,18 @@
                                         <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 150px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; font-weight: 600; background: #fff; color: #374151; outline: none;" />
                         </div>
                     </th>
-                               <th class="sortable-header" data-sort="time" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Time</th>
-                               <th class="sortable-header" data-sort="market_cap" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Market Cap</th>
-                               <th class="sortable-header" data-sort="market_cap_gain" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Cap Diff</th>
+
+                               <th class="sortable-header" data-sort="market_cap" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Market Cap</th>
+                               <th class="sortable-header" data-sort="market_cap_gain" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Cap Diff</th>
                                <th class="sortable-header" data-sort="size" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Size</th>
-                               <th class="sortable-header" data-sort="price" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Price</th>
-                               <th class="sortable-header" data-sort="today" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">% Change</th>
-                               <th class="sortable-header" data-sort="eps_est" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Est</th>
-                               <th class="sortable-header" data-sort="eps_act" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Act</th>
-                               <th class="sortable-header" data-sort="eps_surprise" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Surp</th>
-                               <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Est</th>
-                               <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Act</th>
-                               <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Surp</th>
+                               <th class="sortable-header" data-sort="price" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Price</th>
+                               <th class="sortable-header" data-sort="today" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">% Change</th>
+                               <th class="sortable-header" data-sort="eps_est" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Est</th>
+                               <th class="sortable-header" data-sort="eps_act" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Act</th>
+                               <th class="sortable-header" data-sort="eps_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Surp</th>
+                               <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Est</th>
+                               <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Act</th>
+                               <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Surp</th>
                  </tr>
              </thead>
                   </table>
@@ -805,7 +897,6 @@
                                                     <colgroup>
                                                       <col style="width:60px">    <!-- # -->
                                                       <col style="width:200px">   <!-- Company -->
-                                                      <col style="width:80px">    <!-- Time -->
                                                       <col style="width:120px">   <!-- Market Cap -->
                                                       <col style="width:120px">   <!-- Cap Diff -->
                                                       <col style="width:80px">    <!-- Size -->
@@ -836,6 +927,7 @@
               <p>&copy; 2024 Earnings Table. All rights reserved. | Data for informational purposes only | Not financial advice</p>
           </div>
       </footer>
+    </div> <!-- End of main-container -->
 
     <script>
     // Helper functions
@@ -878,14 +970,7 @@
                     } else {
                         return bName.localeCompare(aName);
                     }
-                case 'time':
-                    const aTime = a.report_time || '';
-                    const bTime = b.report_time || '';
-                    if (direction === 'asc') {
-                        return aTime.localeCompare(bTime);
-                    } else {
-                        return bTime.localeCompare(aTime);
-                    }
+
                 case 'market_cap':
                     return cmpNumericWithNullLast(a, b, direction, 'market_cap');
                 case 'market_cap_gain':
@@ -984,8 +1069,7 @@
         earningsData.forEach((item, index) => {
             const row = document.createElement('tr');
             
-            const timeClass = item.report_time === 'BMO' ? 'status-bmo' : 
-                            item.report_time === 'AMC' ? 'status-amc' : 'status-tns';
+
             
             const sizeClass = getSizeClass(item.size);
             
@@ -993,8 +1077,8 @@
             const currentRank = index + 1;
             
             row.innerHTML = `
-                <td>${currentRank}</td>
-                                 <td>
+                <td style="text-align: center;">${currentRank}</td>
+                                 <td style="text-align: left;">
                      <div class="company-info">
                          <div class="company-details">
                              <div class="company-ticker">${item.ticker}</div>
@@ -1002,18 +1086,18 @@
                          </div>
                      </div>
                  </td>
-                <td><span class="status-badge ${timeClass}">${item.report_time}</span></td>
-                <td>${formatCurrency(item.market_cap)}</td>
-                <td class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
-                <td><span class="size-badge ${sizeClass}">${item.size || '-'}</span></td>
-                <td>${formatPrice(item.current_price)}</td>
-                <td class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
-                <td>${formatEPS(item.eps_estimate)}</td>
-                <td>${formatEPS(item.eps_actual)}</td>
-                <td class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
-                <td>${formatCurrency(item.revenue_estimate)}</td>
-                <td>${formatCurrency(item.revenue_actual)}</td>
-                <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+
+                <td style="text-align: right;">${formatCurrency(item.market_cap)}</td>
+                <td style="text-align: right;" class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
+                <td style="text-align: center;"><span class="size-badge ${sizeClass}">${item.size || '-'}</span></td>
+                <td style="text-align: right;">${formatPrice(item.current_price)}</td>
+                <td style="text-align: right;" class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
+                <td style="text-align: right;">${formatEPS(item.eps_estimate)}</td>
+                <td style="text-align: right;">${formatEPS(item.eps_actual)}</td>
+                <td style="text-align: right;" class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
+                <td style="text-align: right;">${formatCurrency(item.revenue_estimate)}</td>
+                <td style="text-align: right;">${formatCurrency(item.revenue_actual)}</td>
+                <td style="text-align: right;" class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
             `;
             
             tableBody.appendChild(row);
@@ -1188,7 +1272,7 @@
             loading.style.display = 'block';
             tableContainer.style.display = 'none';
 
-            const response = await fetch('http://localhost/api/earnings-tickers-today.php');
+            const response = await fetch('/api/earnings-tickers-today.php');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -1364,8 +1448,29 @@
            window.addEventListener('load', updateStickyHeights);
            window.addEventListener('resize', updateStickyHeights);
            
+           // Synchronize column widths
+           window.addEventListener('load', synchronizeColumnWidths);
+           window.addEventListener('resize', synchronizeColumnWidths);
+           
            // Initialization complete
     });
+
+    // Function to ensure column widths are synchronized
+    function synchronizeColumnWidths() {
+        const headerTable = document.querySelector('.earnings-table-header');
+        const dataTable = document.querySelector('.earnings-table');
+        
+        if (headerTable && dataTable) {
+            // Force table layout recalculation
+            headerTable.style.tableLayout = 'fixed';
+            dataTable.style.tableLayout = 'fixed';
+            
+            // Ensure both tables have the same width
+            const tableWidth = Math.max(1480, window.innerWidth - 40);
+            headerTable.style.minWidth = tableWidth + 'px';
+            dataTable.style.minWidth = tableWidth + 'px';
+        }
+    }
 
     // Auto-refresh every 5 minutes
     setInterval(loadEarningsData, 5 * 60 * 1000);

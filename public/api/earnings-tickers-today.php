@@ -40,12 +40,10 @@ try {
                 t.market_cap_diff_billions,
                 t.price_change_percent,
                 t.shares_outstanding,
-                t.eps_estimate,
-                t.eps_actual,
-                t.revenue_estimate,
-                t.revenue_actual,
-                t.eps_surprise_percent,
-                t.revenue_surprise_percent,
+                e.eps_estimate,
+                e.eps_actual,
+                e.revenue_estimate,
+                e.revenue_actual,
                 t.updated_at,
                 e.report_time
             FROM TodayEarningsMovements t

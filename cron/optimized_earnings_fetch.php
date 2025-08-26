@@ -173,8 +173,8 @@ try {
         $marketCap = null;
         $size = 'Small'; // Default to Small instead of Unknown
         
-        if ($marketCapInfo && isset($marketCapInfo['results'])) {
-            $marketCap = $marketCapInfo['results']['market_cap'] ?? null;
+        if ($marketCapInfo && isset($marketCapInfo['market_cap'])) {
+            $marketCap = $marketCapInfo['market_cap'] ?? null;
             
             if ($marketCap) {
                 if ($marketCap >= 100000000000) {
@@ -197,8 +197,8 @@ try {
         
         // Get company name from Polygon data
         $companyName = $ticker; // Default to ticker
-        if ($marketCapInfo && isset($marketCapInfo['results'])) {
-            $companyName = $marketCapInfo['results']['name'] ?? $ticker;
+        if ($marketCapInfo && isset($marketCapInfo['name'])) {
+            $companyName = $marketCapInfo['name'] ?? $ticker;
         }
         
         // Prepare final data

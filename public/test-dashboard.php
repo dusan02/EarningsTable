@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 // Set headers
 header('Content-Type: text/html; charset=utf-8');
@@ -50,6 +51,10 @@ try {
     }
     
 } catch (Exception $e) {
+    logDatabaseError('test_dashboard', 'SELECT earnings data', [], $e->getMessage(), [
+        'date' => $date,
+        'tickers_count' => count($todayTickers)
+    ]);
     $error = $e->getMessage();
 }
 ?>

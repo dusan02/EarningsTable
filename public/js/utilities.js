@@ -198,7 +198,7 @@ function formatMarketCapDiff(diff) {
   }
 
   // Pridáme znamienko na začiatok
-  const sign = num > 0 ? "+" : "";
+  const sign = num > 0 ? "+" : num < 0 ? "-" : "";
   return sign + formattedValue;
 }
 

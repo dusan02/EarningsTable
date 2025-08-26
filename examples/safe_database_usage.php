@@ -7,6 +7,7 @@
 require_once 'config/env_loader.php';
 require_once 'config/config.php';
 require_once 'config/database_helper.php';
+require_once __DIR__ . '/../common/error_handler.php';
 
 echo "🔒 Príklad bezpečného použitia databázy\n";
 echo "======================================\n\n";

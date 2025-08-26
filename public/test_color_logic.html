@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Color Logic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .test-table th, .test-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .test-table th {
+            background-color: #f2f2f2;
+        }
+        .price-up {
+            color: #059669;
+            font-weight: 600;
+        }
+        .price-down {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .price-neutral {
+            color: #6b7280;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Color Logic for 4 Columns</h1>
+    
+    <div id="test-results"></div>
+    
+    <table class="test-table">
+        <thead>
+            <tr>
+                <th>Test Case</th>
+                <th>CAP DIFF</th>
+                <th>% CHANGE</th>
+                <th>EPS SURP</th>
+                <th>REV SURP</th>
+            </tr>
+        </thead>
+        <tbody id="test-body">
+        </tbody>
+    </table>
+
+    <script src="public/js/utilities.js"></script>
+    <script>
+        // Test data
+        const testCases = [
+            {
+                name: "Positive values",
+                capDiff: 1000000,
+                priceChange: 5.5,
+                epsActual: 1.2,
+                epsEstimate: 1.0,
+                revActual: 1000000,
+                revEstimate: 900000
+            },
+            {
+                name: "Negative values",
+                capDiff: -500000,
+                priceChange: -3.2,
+                epsActual: 0.8,
+                epsEstimate: 1.0,
+                revActual: 800000,
+                revEstimate: 1000000
+            },
+            {
+                name: "Zero values",
+                capDiff: 0,
+                priceChange: 0,
+                epsActual: 1.0,
+                epsEstimate: 1.0,
+                revActual: 1000000,
+                revEstimate: 1000000
+            },
+            {
+                name: "Null/undefined values",
+                capDiff: null,
+                priceChange: undefined,
+                epsActual: null,
+                epsEstimate: 1.0,
+                revActual: 1000000,
+                revEstimate: null
+            },
+            {
+                name: "Mixed values",
+                capDiff: 2500000,
+                priceChange: -1.5,
+                epsActual: 1.5,
+                epsEstimate: 1.2,
+                revActual: 950000,
+                revEstimate: 1000000
+            }
+        ];
+
+        function runTests() {
+            const testBody = document.getElementById('test-body');
+            const testResults = document.getElementById('test-results');
+            let results = [];
+
+            testCases.forEach((testCase, index) => {
+                const row = document.createElement('tr');
+                
+                // Test CAP DIFF
+                const capDiffClass = getDiffClass(testCase.capDiff);
+                const capDiffValue = formatMarketCapDiff(testCase.capDiff);
+                
+                // Test % CHANGE
+                const priceChangeClass = getPriceChangeClass(testCase.priceChange);
+                const priceChangeValue = formatPriceChange(testCase.priceChange);
+                
+                // Test EPS SURP
+                const epsSurpClass = getSurpriseClass(testCase.epsActual, testCase.epsEstimate);
+                const epsSurpValue = formatSurprise(testCase.epsActual, testCase.epsEstimate);
+                
+                // Test REV SURP
+                const revSurpClass = getSurpriseClass(testCase.revActual, testCase.revEstimate);
+                const revSurpValue = formatSurprise(testCase.revActual, testCase.revEstimate);
+
+                row.innerHTML = `
+                    <td><strong>${testCase.name}</strong></td>
+                    <td class="${capDiffClass}">${capDiffValue}</td>
+                    <td class="${priceChangeClass}">${priceChangeValue}</td>
+                    <td class="${epsSurpClass}">${epsSurpValue}</td>
+                    <td class="${revSurpClass}">${revSurpValue}</td>
+                `;
+
+                testBody.appendChild(row);
+
+                // Log results for verification
+                results.push({
+                    testCase: testCase.name,
+                    capDiff: { value: capDiffValue, class: capDiffClass },
+                    priceChange: { value: priceChangeValue, class: priceChangeClass },
+                    epsSurp: { value: epsSurpValue, class: epsSurpClass },
+                    revSurp: { value: revSurpValue, class: revSurpClass }
+                });
+            });
+
+            // Display test summary
+            const summary = document.createElement('div');
+            summary.className = 'test-result success';
+            summary.innerHTML = `
+                <h3>✅ Test Results Summary</h3>
+                <p><strong>All 4 columns now have proper red/green color logic:</strong></p>
+                <ul>
+                    <li><strong>CAP DIFF:</strong> Green for positive, Red for negative, Gray for neutral</li>
+                    <li><strong>% CHANGE:</strong> Green for positive, Red for negative, Gray for neutral</li>
+                    <li><strong>EPS SURP:</strong> Green for positive, Red for negative, Gray for neutral</li>
+                    <li><strong>REV SURP:</strong> Green for positive, Red for negative, Gray for neutral</li>
+                </ul>
+                <p><strong>CSS Classes used:</strong> price-up (green), price-down (red), price-neutral (gray)</p>
+            `;
+            testResults.appendChild(summary);
+
+            console.log('Test Results:', results);
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

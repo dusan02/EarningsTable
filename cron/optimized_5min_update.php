@@ -49,33 +49,52 @@ try {
     
     echo "✅ Found " . count($existingTickers) . " existing tickers\n";
     
-    // STEP 2: Batch fetch actual values from Finnhub
+    // STEP 2: Batch fetch actual values from Finnhub (only for Finnhub tickers)
     echo "\n=== STEP 2: FINNHUB ACTUAL VALUES UPDATE ===\n";
     
-    $finnhub = new Finnhub();
-    $response = $finnhub->getEarningsCalendar('', $date, $date);
-    $earningsData = $response['earningsCalendar'] ?? [];
+    // Get only Finnhub tickers from database
+    $stmt = $pdo->prepare("
+        SELECT ticker 
+        FROM earningstickerstoday 
+        WHERE data_source = 'finnhub' 
+        AND report_date = ?
+    ");
+    $stmt->execute([$date]);
+    $finnhubTickers = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    $actualUpdates = [];
-    $epsActualCount = 0;
-    $revenueActualCount = 0;
-    
-    foreach ($earningsData as $earning) {
-        $ticker = $earning['symbol'] ?? '';
-        if (empty($ticker) || !in_array($ticker, $existingTickers)) continue;
+    if (empty($finnhubTickers)) {
+        echo "❌ No Finnhub tickers found for today\n";
+        $actualUpdates = [];
+        $epsActualCount = 0;
+        $revenueActualCount = 0;
+    } else {
+        echo "✅ Found " . count($finnhubTickers) . " Finnhub tickers\n";
         
-        $epsActual = $earning['epsActual'] ?? null;
-        $revenueActual = $earning['revenueActual'] ?? null;
+        $finnhub = new Finnhub();
+        $response = $finnhub->getEarningsCalendar('', $date, $date);
+        $earningsData = $response['earningsCalendar'] ?? [];
         
-        // Only update if we have actual values
-        if ($epsActual !== null || $revenueActual !== null) {
-            $actualUpdates[$ticker] = [
-                'eps_actual' => $epsActual,
-                'revenue_actual' => $revenueActual
-            ];
+        $actualUpdates = [];
+        $epsActualCount = 0;
+        $revenueActualCount = 0;
+        
+        foreach ($earningsData as $earning) {
+            $ticker = $earning['symbol'] ?? '';
+            if (empty($ticker) || !in_array($ticker, $finnhubTickers)) continue;
             
-            if ($epsActual !== null) $epsActualCount++;
-            if ($revenueActual !== null) $revenueActualCount++;
+            $epsActual = $earning['epsActual'] ?? null;
+            $revenueActual = $earning['revenueActual'] ?? null;
+            
+            // Only update if we have actual values
+            if ($epsActual !== null || $revenueActual !== null) {
+                $actualUpdates[$ticker] = [
+                    'eps_actual' => $epsActual,
+                    'revenue_actual' => $revenueActual
+                ];
+                
+                if ($epsActual !== null) $epsActualCount++;
+                if ($revenueActual !== null) $revenueActualCount++;
+            }
         }
     }
     
