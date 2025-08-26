@@ -41,9 +41,9 @@ try {
                 t.price_change_percent,
                 t.shares_outstanding,
                 e.eps_estimate,
-                e.eps_actual,
+                t.eps_actual,
                 e.revenue_estimate,
-                e.revenue_actual,
+                t.revenue_actual,
                 t.updated_at,
                 e.report_time
             FROM TodayEarningsMovements t
