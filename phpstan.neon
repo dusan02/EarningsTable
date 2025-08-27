@@ -5,8 +5,8 @@ parameters:
     excludePaths:
         - Tests/
         - docs/
-        - archive/
-        - vendor/
+        - archive/ (?)
+        - vendor/ (?)
     checkMissingIterableValueType: false
     checkGenericClassInNonGenericObjectType: false
     ignoreErrors:
