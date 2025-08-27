@@ -52,7 +52,7 @@ echo "\n=== ALL EARNINGS TICKERS FOR TODAY ===\n";
 foreach ($allTickers as $ticker => $data) {
     $eps = $data['eps_estimate'] ?? 'N/A';
     $revenue = $data['revenue_estimate'] ?? 'N/A';
-    $time = $data['report_time'] ?? 'TNS';
+    $time = $data['report_time'];
     echo "  {$ticker}: EPS={$eps}, Revenue={$revenue}, Time={$time}\n";
 }
 

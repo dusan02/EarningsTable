@@ -11,28 +11,10 @@ $date = $usDate->format('Y-m-d');
 
 echo "Date: {$date}\n\n";
 
-// Test 1: Yahoo Finance
+// Test 1: Yahoo Finance (REMOVED)
 echo "=== TEST 1: YAHOO FINANCE ===\n";
-try {
-    $yahoo = new YahooFinance();
-    $result = $yahoo->getEarningsCalendar($date);
-    
-    if (isset($result['error'])) {
-        echo "❌ Yahoo Finance Error: " . $result['error'] . "\n";
-    } else {
-        echo "✅ Yahoo Finance Success: " . $result['count'] . " tickers\n";
-        
-        if (!empty($result['earnings'])) {
-            echo "\nFirst 10 Yahoo Finance tickers:\n";
-            for ($i = 0; $i < min(10, count($result['earnings'])); $i++) {
-                $earning = $result['earnings'][$i];
-                echo "  {$earning['symbol']} - {$earning['company_name']} - EPS: {$earning['eps_estimate']}\n";
-            }
-        }
-    }
-} catch (Exception $e) {
-    echo "❌ Yahoo Finance Exception: " . $e->getMessage() . "\n";
-}
+echo "✅ Yahoo Finance integration removed for better system stability\n";
+echo "Using only Finnhub as primary data source\n";
 
 echo "\n=== TEST 2: ALPHA VANTAGE ===\n";
 

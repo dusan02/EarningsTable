@@ -64,7 +64,7 @@ for ($i = 1; $i < count($lines); $i++) {
     $earning = array_combine($headers, $row);
     
     // Check if this earnings is for today
-    if ($earning['reportDate'] === $date) {
+    if (isset($earning['reportDate']) && $earning['reportDate'] === $date) {
         $todayEarnings[] = $earning;
     }
     
