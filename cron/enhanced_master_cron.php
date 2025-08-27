@@ -34,40 +34,41 @@ try {
         echo "❌ Clear old data failed\n";
     }
     
-    // STEP 2: Intelligent earnings fetch (with tagging)
-    echo "\n=== STEP 2: INTELLIGENT EARNINGS FETCH ===\n";
+    // STEP 2: Daily data setup - static (NEW REFACTORED VERSION)
+    echo "\n=== STEP 2: DAILY DATA SETUP - STATIC ===\n";
     $fetchStart = microtime(true);
     
     $output = [];
     $returnCode = 0;
-    exec('php cron/intelligent_earnings_fetch.php 2>&1', $output, $returnCode);
+    exec('php cron/daily_data_setup_static.php 2>&1', $output, $returnCode);
     
     echo implode("\n", $output) . "\n";
     if ($returnCode === 0) {
-        echo "✅ Intelligent earnings fetch completed in " . round(microtime(true) - $fetchStart, 2) . "s\n";
+        echo "✅ Daily data setup completed in " . round(microtime(true) - $fetchStart, 2) . "s\n";
     } else {
-        echo "❌ Intelligent earnings fetch failed\n";
+        echo "❌ Daily data setup failed\n";
     }
     
-    // STEP 3: Polygon market data update
-    echo "\n=== STEP 3: POLYGON MARKET DATA UPDATE ===\n";
+    // STEP 3: Regular data updates - dynamic (NEW REFACTORED VERSION)
+    echo "\n=== STEP 3: REGULAR DATA UPDATES - DYNAMIC ===\n";
     $polygonStart = microtime(true);
     
     $output = [];
     $returnCode = 0;
-    exec('php cron/optimized_5min_update.php 2>&1', $output, $returnCode);
+    exec('php cron/regular_data_updates_dynamic.php 2>&1', $output, $returnCode);
     
     echo implode("\n", $output) . "\n";
     if ($returnCode === 0) {
-        echo "✅ Polygon market data update completed in " . round(microtime(true) - $polygonStart, 2) . "s\n";
+        echo "✅ Regular data updates completed in " . round(microtime(true) - $polygonStart, 2) . "s\n";
     } else {
-        echo "❌ Polygon market data update failed\n";
+        echo "❌ Regular data updates failed\n";
     }
     
-    // STEP 4: Yahoo Finance removed - using only Finnhub for better stability
-    echo "\n=== STEP 4: YAHOO FINANCE REMOVED ===\n";
-    echo "✅ Yahoo Finance removed for better system stability\n";
-    echo "✅ Using only Finnhub as primary source\n";
+    // STEP 4: New architecture summary
+    echo "\n=== STEP 4: NEW ARCHITECTURE SUMMARY ===\n";
+    echo "✅ Using refactored cron jobs for better performance\n";
+    echo "✅ Daily data setup: Static data (Finnhub + Polygon)\n";
+    echo "✅ Regular updates: Dynamic data (Finnhub + Polygon)\n";
     
     // Calculate step times
     $clearTime = round(microtime(true) - $clearStart, 2);
@@ -115,15 +116,15 @@ try {
     // Detailed timing breakdown
     echo "\n⏱️  EXECUTION TIME BREAKDOWN:\n";
     echo "  🗑️  Step 1 (Clear old data): {$clearTime}s\n";
-    echo "  📊 Step 2 (Earnings fetch): {$fetchTime}s\n";
-    echo "  ⚡ Step 3 (Market data update): {$polygonTime}s\n";
+    echo "  📊 Step 2 (Daily data setup): {$fetchTime}s\n";
+    echo "  ⚡ Step 3 (Regular data updates): {$polygonTime}s\n";
     echo "  📈 Step 4 (Summary): " . round(microtime(true) - $polygonStart, 2) . "s\n";
     
     $totalTime = round(microtime(true) - $startTime, 2);
     echo "  🚀 TOTAL EXECUTION TIME: {$totalTime}s\n";
     
     echo "\n✅ Enhanced master cron completed successfully!\n";
-    echo "🎯 All tickers now have data from their respective sources!\n";
+    echo "🎯 New architecture: Better performance and stability!\n";
     
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";

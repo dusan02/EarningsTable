@@ -251,6 +251,12 @@
         box-sizing: border-box;
     }
 
+    /* HOVER EFFECT FOR TABLE HEADERS */
+    .earnings-table-header .sortable-header:hover {
+        background-color: #bbdefb !important; /* Darker shade of #e3f2fd */
+        transition: background-color 0.2s ease;
+    }
+
     /* ENSURE TABLES STAY ALIGNED ON RESIZE */
     .earnings-table-header,
     .earnings-table {
@@ -286,7 +292,6 @@
     /* FIXED HEADER */
     .header {
         background: #ffffff;
-        border-bottom: 1px solid #e5e7eb;
         padding: 24px 0;
         position: sticky;
         top: 0;
@@ -295,7 +300,6 @@
         text-align: center;
         padding-top: 16px;
         padding-bottom: 12px;
-        box-shadow: 0 1px 0 rgba(15,23,42,0.06);
     }
 
     .header h1 {
@@ -304,7 +308,7 @@
         font-weight: 700;
         color: #1E3A8A;
         margin-top: 32px;
-        margin-bottom: 24px;
+        margin-bottom: 8px;
         text-align: center;
     }
 
@@ -314,6 +318,7 @@
         color: #6b7280;
         font-weight: 400;
         text-align: center;
+        margin-bottom: 8px;
     }
 
     /* WINNERS/LOSERS CARDS */
@@ -321,7 +326,7 @@
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 12px;
-        padding: 20px 0;
+        padding: 8px 0;
         background: #ffffff;
         position: sticky;
         top: var(--h-header);
