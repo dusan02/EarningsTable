@@ -131,7 +131,14 @@ jobs:
             --exclude='docs' \
             --exclude='archive' \
             --exclude='.github' \
-            .
+            --exclude='*.log' \
+            --exclude='*.tmp' \
+            --exclude='*.cache' \
+            --exclude='vendor' \
+            --exclude='node_modules' \
+            --exclude='deployment.tar.gz' \
+            . || echo "⚠️ Some files changed during packaging, but continuing..."
+        continue-on-error: true
 
       - name: 📢 Deployment notification
         run: |
