@@ -122,11 +122,6 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔐 Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: 📦 Create deployment package
         run: |
           echo "📦 Creating deployment package..."
@@ -138,26 +133,19 @@ jobs:
             --exclude='.github' \
             .
 
-      - name: 🚀 Deploy to server
+      - name: 📢 Deployment notification
         run: |
-          echo "🚀 Deploying to production server..."
-          scp deployment.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            cd /var/www/html/
-            tar -xzf /tmp/deployment.tar.gz
-            chmod -R 755 .
-            chown -R www-data:www-data .
-            echo "✅ Deployment completed successfully!"
-          EOF
-
-      - name: 🧪 Post-deployment test
-        run: |
-          echo "🧪 Running post-deployment tests..."
-          curl -f ${{ secrets.SITE_URL }}/test-db.php || exit 1
-          echo "✅ Post-deployment tests passed!"
-
-      - name: 📢 Notify success
-        run: |
-          echo "🎉 Deployment successful!"
-          echo "🌐 Site: ${{ secrets.SITE_URL }}"
+          echo "🎉 CI/CD Pipeline completed successfully!"
+          echo "📦 Deployment package created: deployment.tar.gz"
           echo "📅 Time: $(date)"
+          echo ""
+          echo "📋 To deploy manually:"
+          echo "1. Download deployment.tar.gz from artifacts"
+          echo "2. Upload to your server"
+          echo "3. Extract and set permissions"
+          echo ""
+          echo "🔧 SSH deployment requires:"
+          echo "- SSH_PRIVATE_KEY secret"
+          echo "- SERVER_USER secret" 
+          echo "- SERVER_HOST secret"
+          echo "- SITE_URL secret"
