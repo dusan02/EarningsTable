@@ -98,10 +98,16 @@ jobs:
       - name: 📝 Check documentation
         run: |
           echo "📋 Checking documentation completeness..."
-          if [ -f "README.md" ] && [ -f "docs/" ] && [ -f "Tests/README.md" ]; then
+          if [ -f "README.md" ] && [ -d "docs" ] && [ -f "Tests/README.md" ]; then
             echo "✅ Documentation is complete"
+            echo "📁 README.md: exists"
+            echo "📁 docs/: directory exists"
+            echo "📁 Tests/README.md: exists"
           else
             echo "❌ Missing documentation files"
+            echo "📁 README.md: $([ -f "README.md" ] && echo "exists" || echo "missing")"
+            echo "📁 docs/: $([ -d "docs" ] && echo "exists" || echo "missing")"
+            echo "📁 Tests/README.md: $([ -f "Tests/README.md" ] && echo "exists" || echo "missing")"
             exit 1
           fi
 
