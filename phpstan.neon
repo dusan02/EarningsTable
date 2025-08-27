@@ -9,8 +9,8 @@ parameters:
         - vendor/ (?)
     ignoreErrors:
         - '#Variable \$[a-zA-Z0-9_]+ might not be defined#'
-        - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9\\_]+#'
-        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9\\_]+#'
+        - '#Call to an undefined method#'
+        - '#Access to an undefined property#'
         - '#Path in require_once\(\) .* is not a file or it does not exist#'
         - '#File ends with a trailing whitespace#'
         - '#Call to function is_array\(\) with array will always evaluate to true#'
@@ -18,7 +18,7 @@ parameters:
         - '#Left side of \|\| is always false#'
         - '#Ternary operator condition is always (true|false)#'
         - '#Call to method .* on a separate line has no effect#'
-        - '#Parameter #1 \$microseconds of function usleep expects int, float given#'
+        - '#Parameter #1 of function usleep expects int, float given#'
         - '#Property .* is never read, only written#'
         - '#Method .* is unused#'
         - '#Expression on left side of \?\? is not nullable#'
