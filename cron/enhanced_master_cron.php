@@ -69,7 +69,12 @@ try {
     echo "✅ Yahoo Finance removed for better system stability\n";
     echo "✅ Using only Finnhub as primary source\n";
     
-    // STEP 5: Final summary
+    // Calculate step times
+    $clearTime = round(microtime(true) - $clearStart, 2);
+    $fetchTime = round(microtime(true) - $fetchStart, 2);
+    $polygonTime = round(microtime(true) - $polygonStart, 2);
+    
+    // STEP 5: Final summary with detailed timing
     echo "\n=== FINAL SUMMARY ===\n";
     
     // Get statistics from database
@@ -107,8 +112,15 @@ try {
     echo "\n📊 Actual values: {$actualStats['with_eps']}/{$actualStats['total']} EPS ({$epsPercent}%), ";
     echo "{$actualStats['with_revenue']}/{$actualStats['total']} Revenue ({$revenuePercent}%)\n";
     
+    // Detailed timing breakdown
+    echo "\n⏱️  EXECUTION TIME BREAKDOWN:\n";
+    echo "  🗑️  Step 1 (Clear old data): {$clearTime}s\n";
+    echo "  📊 Step 2 (Earnings fetch): {$fetchTime}s\n";
+    echo "  ⚡ Step 3 (Market data update): {$polygonTime}s\n";
+    echo "  📈 Step 4 (Summary): " . round(microtime(true) - $polygonStart, 2) . "s\n";
+    
     $totalTime = round(microtime(true) - $startTime, 2);
-    echo "\n⏱️  Total execution time: {$totalTime}s\n";
+    echo "  🚀 TOTAL EXECUTION TIME: {$totalTime}s\n";
     
     echo "\n✅ Enhanced master cron completed successfully!\n";
     echo "🎯 All tickers now have data from their respective sources!\n";
