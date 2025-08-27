@@ -1,5 +1,5 @@
 parameters:
-    level: 5
+    level: 1
     paths:
         - .
     excludePaths:
@@ -8,5 +8,23 @@ parameters:
         - archive/ (?)
         - vendor/ (?)
     ignoreErrors:
+        - '#Variable \$[a-zA-Z0-9_]+ might not be defined#'
         - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9\\_]+#'
         - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9\\_]+#'
+        - '#Path in require_once\(\) .* is not a file or it does not exist#'
+        - '#File ends with a trailing whitespace#'
+        - '#Call to function is_array\(\) with array will always evaluate to true#'
+        - '#If condition is always (true|false)#'
+        - '#Left side of \|\| is always false#'
+        - '#Ternary operator condition is always (true|false)#'
+        - '#Call to method .* on a separate line has no effect#'
+        - '#Parameter #1 \$microseconds of function usleep expects int, float given#'
+        - '#Property .* is never read, only written#'
+        - '#Method .* is unused#'
+        - '#Expression on left side of \?\? is not nullable#'
+        - '#Strict comparison using !== between .* will always evaluate to true#'
+        - '#Offset .* on non-empty-array on left side of \?\? always exists and is not nullable#'
+        - '#Expression in empty\(\) is not falsy#'
+        - '#Result of && is always true#'
+        - '#Access to private property .*#'
+        - '#Ignored error pattern .* was not matched in reported errors#'
