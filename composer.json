@@ -35,7 +35,7 @@
         }
     },
     "scripts": {
-        "test": "php Tests/simple_db_test.php && php Tests/health_db.php",
+        "test": "php Tests/github_actions_test.php",
         "test-all": "php Tests/*.php",
         "cs": "phpcs --standard=PSR12 --extensions=php .",
         "stan": "phpstan analyse --level=5 .",

@@ -44,9 +44,7 @@ jobs:
 
       - name: 🧪 Run database tests
         run: |
-          php Tests/simple_db_test.php
-          php Tests/health_db.php
-          php Tests/check_tickers.php
+          php Tests/github_actions_test.php
         env:
           DB_HOST: 127.0.0.1
           DB_NAME: earnings_db

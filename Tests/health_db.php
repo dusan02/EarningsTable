@@ -3,9 +3,9 @@ error_reporting(-1);
 ini_set('display_errors',1);
 
 // Test with hardcoded values first
-$dsn = 'mysql:host=localhost;port=3306;dbname=earnings_db;charset=utf8mb4';
+$dsn = 'mysql:host=127.0.0.1;port=3306;dbname=earnings_db;charset=utf8mb4';
 $user = 'root';
-$pass = '';
+$pass = 'root';
 
 try {
   $t0 = microtime(true);
