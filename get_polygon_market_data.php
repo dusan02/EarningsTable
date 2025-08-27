@@ -74,10 +74,17 @@ foreach ($finnhubData as $ticker => $data) {
         $tickerData = $batchData[$ticker];
         
         // Extract data from batch response
-        $currentPrice = getCurrentPrice($tickerData);
-        $previousClose = $tickerData['prevDay']['c'] ?? $currentPrice;
+        $priceData = getCurrentPrice($tickerData);
+        $currentPrice = $priceData ? $priceData['price'] : null;
+        $previousClose = $tickerData['prevDay']['c'] ?? null;
         $marketCap = $tickerData['market']['market_cap'] ?? null;
         $companyName = $tickerData['ticker'] ?? $ticker;
+        
+        if ($currentPrice === null) {
+            $errors[] = $ticker;
+            echo "⚠️  {$ticker}: No valid current price available\n";
+            continue;
+        }
         
         // Calculate price change
         $priceChange = $currentPrice - $previousClose;

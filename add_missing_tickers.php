@@ -34,10 +34,16 @@ foreach ($missingTickers as $ticker => $data) {
     $batchData = getPolygonBatchQuote([$ticker]);
     
     if ($marketData && $batchData && isset($batchData[$ticker])) {
-        $currentPrice = getCurrentPrice($batchData[$ticker]);
+        $priceData = getCurrentPrice($batchData[$ticker]);
+        $currentPrice = $priceData ? $priceData['price'] : null;
         $previousClose = $batchData[$ticker]['previousClose'] ?? $currentPrice;
         $marketCap = $marketData['market_cap'] ?? null;
         $companyName = $marketData['name'] ?? $ticker;
+        
+        if ($currentPrice === null) {
+            echo "❌ No valid current price found for {$ticker}\n\n";
+            continue;
+        }
         
         echo "✅ Market data found:\n";
         echo "  Current Price: {$currentPrice}\n";

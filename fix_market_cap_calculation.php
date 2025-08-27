@@ -16,7 +16,14 @@ $batchData = getPolygonBatchQuote([$testTicker]);
 
 if ($batchData && isset($batchData[$testTicker])) {
     $tickerData = $batchData[$testTicker];
-    $currentPrice = getCurrentPrice($tickerData);
+    $priceData = getCurrentPrice($tickerData);
+    $currentPrice = $priceData ? $priceData['price'] : null;
+    
+    if ($currentPrice === null) {
+        echo "❌ No valid current price found for {$testTicker}\n";
+        exit(1);
+    }
+    
     echo "✅ Current Price: {$currentPrice}\n";
 } else {
     echo "❌ Failed to get price from Polygon\n";

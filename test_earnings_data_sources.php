@@ -89,7 +89,9 @@ foreach ($testTickers as $ticker) {
         
         if ($marketData && $batchData && isset($batchData[$ticker])) {
             echo "✅ Found market data\n";
-            echo "  Current Price: " . getCurrentPrice($batchData[$ticker]) . "\n";
+            $priceData = getCurrentPrice($batchData[$ticker]);
+        $currentPrice = $priceData ? $priceData['price'] : 'N/A';
+        echo "  Current Price: " . $currentPrice . "\n";
             echo "  Market Cap: {$marketData['market_cap']}\n";
             echo "  Company Name: {$marketData['name']}\n";
         } else {

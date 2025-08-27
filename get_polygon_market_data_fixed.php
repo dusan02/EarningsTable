@@ -74,9 +74,16 @@ foreach ($finnhubData as $ticker => $data) {
         $tickerData = $batchData[$ticker];
         
         // Extract data from batch response
-        $currentPrice = getCurrentPrice($tickerData);
-        $previousClose = $tickerData['prevDay']['c'] ?? $currentPrice;
+        $priceData = getCurrentPrice($tickerData);
+        $currentPrice = $priceData ? $priceData['price'] : null;
+        $previousClose = $tickerData['prevDay']['c'] ?? null;
         $companyName = $tickerData['ticker'] ?? $ticker;
+        
+        if ($currentPrice === null) {
+            $errors[] = $ticker;
+            echo "⚠️  {$ticker}: No valid current price available\n";
+            continue;
+        }
         
         // Get market cap from Finnhub (FIXED)
         $finnhubProfile = $finnhub->get('/stock/profile2', ['symbol' => $ticker]);

@@ -16,10 +16,16 @@ $polygonData = getPolygonBatchQuote([$testTicker]);
 
 if ($finnhubData && isset($polygonData[$testTicker])) {
     // Extract data
-    $currentPrice = getCurrentPrice($polygonData[$testTicker]);
-    $previousClose = $polygonData[$testTicker]['prevDay']['c'] ?? $currentPrice;
+    $priceData = getCurrentPrice($polygonData[$testTicker]);
+    $currentPrice = $priceData ? $priceData['price'] : null;
+    $previousClose = $polygonData[$testTicker]['prevDay']['c'] ?? null;
     $finnhubMarketCap = $finnhubData['marketCapitalization'] ?? null;
     $companyName = $finnhubData['name'] ?? 'N/A';
+    
+    if ($currentPrice === null) {
+        echo "❌ No valid current price found for {$testTicker}\n";
+        exit(1);
+    }
     
     echo "=== INPUT DATA ===\n";
     echo "Company: {$companyName}\n";
