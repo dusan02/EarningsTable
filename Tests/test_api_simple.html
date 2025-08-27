@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple API Test</title>
+</head>
+<body>
+    <h1>Simple API Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('public/api/earnings-tickers-today.php');
+                const data = await response.json();
+                
+                console.log('=== API TEST ===');
+                console.log('Success:', data.success);
+                console.log('Total records:', data.data.length);
+                
+                // Check first record
+                if (data.data.length > 0) {
+                    const first = data.data[0];
+                    console.log('First record:', first.ticker);
+                    console.log('revenue_estimate:', first.revenue_estimate, 'type:', typeof first.revenue_estimate);
+                    console.log('revenue_actual:', first.revenue_actual, 'type:', typeof first.revenue_actual);
+                }
+                
+                // Check null values
+                const nullCount = data.data.filter(item => item.revenue_estimate === null).length;
+                console.log('Records with null revenue_estimate:', nullCount);
+                
+                document.getElementById('output').innerHTML = `
+                    <p>Success: ${data.success}</p>
+                    <p>Total records: ${data.data.length}</p>
+                    <p>Null revenue records: ${nullCount}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

@@ -39,8 +39,10 @@ backup_*/
 storage/daily_cleanup_last_run.txt
 storage/*.log
 
-# Test files (now in Tests/ directory)
-Tests/
+# Test files (keep Tests/ directory but ignore specific test files)
+Tests/*.log
+Tests/temp_*
+Tests/debug_*
 
 # Node modules (if any)
 node_modules/
