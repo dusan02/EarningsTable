@@ -11,12 +11,12 @@ define('LOG_LEVEL', 'DEBUG');
 
 // Database settings (development)
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'earnings_db');
+define('DB_NAME', 'earnings_table');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // API settings (development)
-define('POLYGON_API_KEY', 'your_polygon_api_key_here');
+define('POLYGON_API_KEY', 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX');
 define('FINNHUB_API_KEY', 'your_finnhub_api_key_here');
 
 // Paths

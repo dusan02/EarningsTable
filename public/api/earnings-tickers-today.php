@@ -18,42 +18,34 @@ try {
     $usDate = new DateTime('now', $timezone);
     $date = $usDate->format('Y-m-d');
     
-    // Get today's tickers from EarningsTickersToday
-    $stmt = $pdo->prepare("SELECT ticker FROM EarningsTickersToday WHERE report_date = ?");
+    // Get today's tickers from EarningsTickersToday (MAIN SOURCE)
+    $stmt = $pdo->prepare("
+        SELECT 
+            e.ticker,
+            e.eps_estimate,
+            e.revenue_estimate,
+            e.report_time,
+            e.data_source,
+            e.source_priority,
+            t.company_name,
+            t.current_price,
+            t.previous_close,
+            t.market_cap,
+            t.size,
+            t.market_cap_diff,
+            t.market_cap_diff_billions,
+            t.price_change_percent,
+            t.shares_outstanding,
+            t.eps_actual,
+            t.revenue_actual,
+            t.updated_at
+        FROM EarningsTickersToday e
+        LEFT JOIN TodayEarningsMovements t ON e.ticker = t.ticker
+        WHERE e.report_date = ?
+        ORDER BY e.ticker
+    ");
     $stmt->execute([$date]);
-    $todayTickers = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    
-    if (empty($todayTickers)) {
-        $earnings = [];
-    } else {
-        // Get market cap data for today's tickers from TodayEarningsMovements
-        $placeholders = str_repeat('?,', count($todayTickers) - 1) . '?';
-        $stmt = $pdo->prepare("
-            SELECT 
-                t.ticker,
-                t.company_name,
-                t.current_price,
-                t.previous_close,
-                t.market_cap,
-                t.size,
-                t.market_cap_diff,
-                t.market_cap_diff_billions,
-                t.price_change_percent,
-                t.shares_outstanding,
-                e.eps_estimate,
-                t.eps_actual,
-                e.revenue_estimate,
-                t.revenue_actual,
-                t.updated_at,
-                e.report_time
-            FROM TodayEarningsMovements t
-            LEFT JOIN EarningsTickersToday e ON t.ticker = e.ticker AND e.report_date = ?
-            WHERE t.ticker IN ($placeholders)
-            ORDER BY t.market_cap_diff_billions DESC, t.ticker
-        ");
-        $stmt->execute(array_merge([$date], $todayTickers));
-        $earnings = $stmt->fetchAll();
-    }
+    $earnings = $stmt->fetchAll();
     
     $response = [
         'success' => true,

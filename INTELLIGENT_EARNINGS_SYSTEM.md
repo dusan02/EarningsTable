@@ -11,19 +11,19 @@ Automaticky nájsť a spracovať všetky tickery s earnings reportmi, aj tie kto
 - Primárny zdroj s kompletnými EPS/Revenue odhadmi
 - Spracuje všetky tickery s úplnými dátami
 
-### **Step 2: Získa tickery z Yahoo Finance**
+### **Step 2: Yahoo Finance removed**
 
-- Sekundárny zdroj pre kontrolu kompletnosti
-- Web scraping z Yahoo Finance earnings calendar
+- Yahoo Finance bol odstránený pre lepšiu stabilitu systému
+- Používa sa len Finnhub ako primárny zdroj
 
-### **Step 3: Porovná a nájde chýbajúce tickery**
+### **Step 3: Finnhub data processing**
 
-- Identifikuje tickery ktoré sú v Yahoo Finance ale chýbajú v Finnhub
-- Príklad: BMO, BNS (kanadské banky na US burze)
+- Všetky dáta pochádzajú z Finnhub API
+- Lepšia stabilita a rýchlosť
 
-### **Step 4: Pre chýbajúce tickery získa EPS/Revenue dáta z:**
+### **Step 4: Enhanced data processing:**
 
-- **Yahoo Finance** (ak má lepšie dáta)
+- **Finnhub** poskytuje všetky potrebné dáta
 - **Funkcia je pripravená** pre budúce rozšírenia
 
 ### **Step 5: Spracuje všetky tickery s market dátami**
@@ -63,17 +63,14 @@ Alpha Vantage API kľúč je už nakonfigurovaný v `config/production.env`:
 === STEP 1: FINNHUB (PRIMARY SOURCE) ===
 ✅ Finnhub: 25 tickers with EPS/Revenue data
 
-=== STEP 2: YAHOO FINANCE (SECONDARY SOURCE) ===
-✅ Yahoo Finance: 28 tickers
+=== STEP 2: YAHOO FINANCE REMOVED ===
+✅ Using only Finnhub as primary source for better stability
 
-=== STEP 3: FINDING MISSING TICKERS ===
-Total missing tickers: 0
+=== STEP 3: USING FINNHUB DATA ONLY ===
+Total unique tickers: 25
 
-=== STEP 4: COMBINING ALL TICKERS ===
-Total unique tickers: 33
-
-=== STEP 5: GETTING EPS/REVENUE DATA FOR MISSING TICKERS ===
-No missing tickers to enhance
+=== STEP 6: PROCESSING ALL TICKERS ===
+✅ All tickers processed with market data
 ```
 
 Tento systém zabezpečuje, že nikdy nepremeškáte dôležité earnings reporty! 🎯

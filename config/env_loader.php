@@ -6,7 +6,7 @@
 
 class EnvLoader {
     private static $loaded = false;
-    private static $envFile = '.env';
+    private static $envFile = 'production.env';
     
     /**
      * Načíta .env súbor a nastaví premenné
@@ -20,17 +20,24 @@ class EnvLoader {
             self::$envFile = $envFile;
         }
         
-        $envPath = __DIR__ . '/../' . self::$envFile;
+        $envPath = __DIR__ . '/' . self::$envFile;
         
         if (!file_exists($envPath)) {
-            // Ak .env neexistuje, skús .env.example
-            $examplePath = __DIR__ . '/../env.example';
-            if (file_exists($examplePath)) {
-                logConfigError('env_loader', '.env súbor neexistuje, používam env.example');
-                $envPath = $examplePath;
+            // Ak production.env neexistuje, skús .env v root
+            $rootEnvPath = __DIR__ . '/../.env';
+            if (file_exists($rootEnvPath)) {
+                logConfigError('env_loader', 'production.env neexistuje, používam .env z root');
+                $envPath = $rootEnvPath;
             } else {
-                logConfigError('env_loader', 'Žiadny .env súbor nenájdený!');
-                return;
+                // Ak .env neexistuje, skús .env.example
+                $examplePath = __DIR__ . '/env.example';
+                if (file_exists($examplePath)) {
+                    logConfigError('env_loader', 'Žiadny .env súbor nenájdený, používam env.example');
+                    $envPath = $examplePath;
+                } else {
+                    logConfigError('env_loader', 'Žiadny .env súbor nenájdený!');
+                    return;
+                }
             }
         }
         
@@ -94,5 +101,11 @@ class EnvLoader {
 }
 
 // Automaticky načítaj .env pri include
-EnvLoader::load();
+if (file_exists(__DIR__ . '/development.php')) {
+    // V development móde použij development.php
+    require_once __DIR__ . '/development.php';
+} else {
+    // V production móde použij .env
+    EnvLoader::load();
+}
 ?>

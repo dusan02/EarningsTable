@@ -64,20 +64,10 @@ try {
         echo "❌ Polygon market data update failed\n";
     }
     
-    // STEP 4: Yahoo Finance actual values update
-    echo "\n=== STEP 4: YAHOO FINANCE ACTUAL VALUES ===\n";
-    $yahooStart = microtime(true);
-    
-    $output = [];
-    $returnCode = 0;
-    exec('php cron/yahoo_actual_values_update.php 2>&1', $output, $returnCode);
-    
-    echo implode("\n", $output) . "\n";
-    if ($returnCode === 0) {
-        echo "✅ Yahoo Finance actual values completed in " . round(microtime(true) - $yahooStart, 2) . "s\n";
-    } else {
-        echo "❌ Yahoo Finance actual values failed\n";
-    }
+    // STEP 4: Yahoo Finance removed - using only Finnhub for better stability
+    echo "\n=== STEP 4: YAHOO FINANCE REMOVED ===\n";
+    echo "✅ Yahoo Finance removed for better system stability\n";
+    echo "✅ Using only Finnhub as primary source\n";
     
     // STEP 5: Final summary
     echo "\n=== FINAL SUMMARY ===\n";
@@ -87,44 +77,35 @@ try {
     $usDate = new DateTime('now', $timezone);
     $date = $usDate->format('Y-m-d');
     
-    // Total records by source
+    // Total records (all from Finnhub now)
     $stmt = $pdo->prepare("
-        SELECT data_source, COUNT(*) as count
+        SELECT COUNT(*) as count
         FROM earningstickerstoday 
         WHERE report_date = ?
-        GROUP BY data_source
     ");
     $stmt->execute([$date]);
-    $sourceStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $totalCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    echo "📊 Records by source:\n";
-    foreach ($sourceStats as $stat) {
-        echo "   {$stat['data_source']}: {$stat['count']} tickers\n";
-    }
+    echo "📊 Total records: {$totalCount} tickers (all from Finnhub)\n";
     
-    // Actual values statistics
+    // Actual values statistics (all from Finnhub)
     $stmt = $pdo->prepare("
         SELECT 
-            e.data_source,
             COUNT(*) as total,
             COUNT(t.eps_actual) as with_eps,
             COUNT(t.revenue_actual) as with_revenue
         FROM earningstickerstoday e
         LEFT JOIN todayearningsmovements t ON e.ticker = t.ticker
         WHERE e.report_date = ?
-        GROUP BY e.data_source
     ");
     $stmt->execute([$date]);
-    $actualStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $actualStats = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    echo "\n📊 Actual values by source:\n";
-    foreach ($actualStats as $stat) {
-        $epsPercent = $stat['total'] > 0 ? round(($stat['with_eps'] / $stat['total']) * 100, 1) : 0;
-        $revenuePercent = $stat['total'] > 0 ? round(($stat['with_revenue'] / $stat['total']) * 100, 1) : 0;
-        
-        echo "   {$stat['data_source']}: {$stat['with_eps']}/{$stat['total']} EPS ({$epsPercent}%), ";
-        echo "{$stat['with_revenue']}/{$stat['total']} Revenue ({$revenuePercent}%)\n";
-    }
+    $epsPercent = $actualStats['total'] > 0 ? round(($actualStats['with_eps'] / $actualStats['total']) * 100, 1) : 0;
+    $revenuePercent = $actualStats['total'] > 0 ? round(($actualStats['with_revenue'] / $actualStats['total']) * 100, 1) : 0;
+    
+    echo "\n📊 Actual values: {$actualStats['with_eps']}/{$actualStats['total']} EPS ({$epsPercent}%), ";
+    echo "{$actualStats['with_revenue']}/{$actualStats['total']} Revenue ({$revenuePercent}%)\n";
     
     $totalTime = round(microtime(true) - $startTime, 2);
     echo "\n⏱️  Total execution time: {$totalTime}s\n";

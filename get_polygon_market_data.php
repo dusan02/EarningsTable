@@ -1,9 +1,9 @@
 <?php
-require_once dirname(__DIR__) . '/config.php';
-require_once dirname(__DIR__) . '/common/Finnhub.php';
-require_once dirname(__DIR__) . '/common/api_functions.php';
+require_once 'config.php';
+require_once 'common/Finnhub.php';
+require_once 'common/api_functions.php';
 
-echo "=== INTELLIGENT EARNINGS FETCH (OPTIMIZED) ===\n";
+echo "=== POLYGON MARKET DATA FETCH ===\n";
 
 // Get today's date
 $timezone = new DateTimeZone('America/New_York');
@@ -12,8 +12,8 @@ $date = $usDate->format('Y-m-d');
 
 echo "Date: {$date}\n\n";
 
-// Step 1: Get tickers from Finnhub (primary source)
-echo "=== STEP 1: FINNHUB (PRIMARY SOURCE) ===\n";
+// STEP 1: Get tickers from Finnhub (same as before)
+echo "=== STEP 1: GET EARNINGS TICKERS ===\n";
 $finnhubTickers = [];
 $finnhubData = [];
 try {
@@ -21,7 +21,6 @@ try {
     $response = $finnhub->getEarningsCalendar('', $date, $date);
     $finnhubTickers = $response['earningsCalendar'] ?? [];
     
-    // Store Finnhub data with EPS/Revenue estimates
     foreach ($finnhubTickers as $earning) {
         $symbol = $earning['symbol'] ?? '';
         if (!empty($symbol)) {
@@ -34,27 +33,19 @@ try {
         }
     }
     
-    echo "✅ Finnhub: " . count($finnhubTickers) . " tickers with EPS/Revenue data\n";
+    echo "✅ Found " . count($finnhubTickers) . " tickers with earnings today\n";
 } catch (Exception $e) {
     echo "❌ Finnhub error: " . $e->getMessage() . "\n";
+    exit(1);
 }
 
-// Step 2: Yahoo Finance removed - using only Finnhub as primary source
-echo "\n=== STEP 2: YAHOO FINANCE REMOVED ===\n";
-echo "✅ Using only Finnhub as primary source for better stability\n";
+// STEP 2: Get ticker symbols for Polygon API
+echo "\n=== STEP 2: PREPARE FOR POLYGON API ===\n";
+$tickerSymbols = array_keys($finnhubData);
+echo "Processing " . count($tickerSymbols) . " tickers for market data...\n";
 
-// Step 3: Using only Finnhub data (no missing tickers logic needed)
-echo "\n=== STEP 3: USING FINNHUB DATA ONLY ===\n";
-$allTickers = $finnhubData;
-echo "Total unique tickers: " . count($allTickers) . "\n";
-
-// Step 4: Get all ticker symbols for batch processing
-echo "\n=== STEP 4: BATCH API PROCESSING ===\n";
-$tickerSymbols = array_keys($allTickers);
-echo "Processing " . count($tickerSymbols) . " tickers in batch...\n";
-
-// Step 5: Get batch market data from Polygon (ONE API call for all tickers)
-echo "\n=== STEP 5: POLYGON BATCH MARKET DATA ===\n";
+// STEP 3: Get batch market data from Polygon
+echo "\n=== STEP 3: POLYGON BATCH MARKET DATA ===\n";
 $batchStart = microtime(true);
 
 // Get batch quote data for ALL tickers at once
@@ -69,75 +60,42 @@ if ($batchData) {
     $batchData = [];
 }
 
-// Step 6: Process all tickers with batch data
-echo "\n=== STEP 6: PROCESSING ALL TICKERS ===\n";
+// STEP 4: Process and save market data
+echo "\n=== STEP 4: PROCESSING MARKET DATA ===\n";
 $processedCount = 0;
 $marketCapCount = 0;
 $errors = [];
 
-foreach ($allTickers as $ticker => $data) {
-    echo "\n--- Processing {$ticker} (Source: {$data['source']}) ---\n";
+foreach ($finnhubData as $ticker => $data) {
+    echo "\n--- Processing {$ticker} ---\n";
     
-    // ALWAYS save Finnhub EPS/Revenue data first (even without market data)
-    $stmt = $pdo->prepare("
-        INSERT INTO earningstickerstoday (ticker, report_date, eps_estimate, revenue_estimate, report_time, data_source, source_priority) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-        eps_estimate = VALUES(eps_estimate),
-        revenue_estimate = VALUES(revenue_estimate),
-        report_time = VALUES(report_time),
-        data_source = VALUES(data_source),
-        source_priority = VALUES(source_priority)
-    ");
-    
-    $sourcePriority = 1; // Only Finnhub now
-    $dataSource = 'finnhub';
-    
-    $stmt->execute([
-        $ticker,
-        $date,
-        $data['eps_estimate'],
-        $data['revenue_estimate'],
-        $data['report_time'],
-        $dataSource,
-        $sourcePriority
-    ]);
-    
-    echo "✅ {$ticker}: EPS/Revenue data saved from Finnhub\n";
-    
-    // Check if we have batch data for this ticker (for market data)
+    // Check if we have batch data for this ticker
     if (isset($batchData[$ticker])) {
         $tickerData = $batchData[$ticker];
         
         // Extract data from batch response
         $currentPrice = getCurrentPrice($tickerData);
         $previousClose = $tickerData['prevDay']['c'] ?? $currentPrice;
+        $marketCap = $tickerData['market']['market_cap'] ?? null;
         $companyName = $tickerData['ticker'] ?? $ticker;
-        
-        // Get market cap from Finnhub (FIXED)
-        $finnhub = new Finnhub();
-        $finnhubProfile = $finnhub->get('/stock/profile2', ['symbol' => $ticker]);
-        $marketCap = $finnhubProfile['marketCapitalization'] ?? null;
-        $companyNameFromFinnhub = $finnhubProfile['name'] ?? $companyName;
         
         // Calculate price change
         $priceChange = $currentPrice - $previousClose;
         $priceChangePercent = ($previousClose > 0) ? ($priceChange / $previousClose) * 100 : 0;
         
-        // Determine size based on market cap (FIXED)
+        // Determine size based on market cap
         $size = 'Small';
-        if ($marketCap && $marketCap >= 10000) { // 10B+ (in millions)
+        if ($marketCap >= 10000000000) { // 10B+
             $size = 'Large';
-        } elseif ($marketCap && $marketCap >= 2000) { // 2B+ (in millions)
+        } elseif ($marketCap >= 2000000000) { // 2B+
             $size = 'Mid';
         }
         
-        // Calculate market cap diff (FIXED)
+        // Calculate market cap diff
         $marketCapDiff = null;
         $marketCapDiffBillions = null;
         if ($priceChangePercent !== null && $marketCap && $marketCap > 0) {
-            $marketCapInDollars = $marketCap * 1000000; // Convert from millions to dollars
-            $marketCapDiff = ($priceChangePercent / 100) * $marketCapInDollars;
+            $marketCapDiff = ($priceChangePercent / 100) * $marketCap;
             $marketCapDiffBillions = $marketCapDiff / 1000000000;
         }
         
@@ -158,14 +116,12 @@ foreach ($allTickers as $ticker => $data) {
             updated_at = NOW()
         ");
         
-        $marketCapInDollars = $marketCap ? $marketCap * 1000000 : null; // Convert to dollars for DB
-        
         $stmt->execute([
             $ticker,
-            $companyNameFromFinnhub,
+            $companyName,
             $currentPrice,
             $previousClose,
-            $marketCapInDollars,
+            $marketCap,
             $size,
             $marketCapDiff,
             $marketCapDiffBillions,
@@ -185,8 +141,8 @@ foreach ($allTickers as $ticker => $data) {
     }
 }
 
-// Step 7: Summary
-echo "\n=== STEP 7: SUMMARY ===\n";
+// STEP 5: Summary
+echo "\n=== STEP 5: SUMMARY ===\n";
 echo "Total tickers processed: {$processedCount}\n";
 echo "Tickers with market cap: {$marketCapCount}\n";
 echo "Errors: " . count($errors) . "\n";
@@ -195,10 +151,9 @@ if (!empty($errors)) {
     echo "Failed tickers: " . implode(', ', $errors) . "\n";
 }
 
-// Step 8: Performance comparison
-echo "\n=== STEP 8: PERFORMANCE COMPARISON ===\n";
-$totalTickers = count($allTickers);
-$apiCalls = 1; // Only 1 batch API call instead of 2 * totalTickers
+echo "\n=== PERFORMANCE ===\n";
+$totalTickers = count($finnhubData);
+$apiCalls = 1; // Only 1 batch API call
 
 echo "📊 API Efficiency:\n";
 echo "  Before: " . ($totalTickers * 2) . " API calls (2 per ticker)\n";
@@ -210,29 +165,6 @@ echo "  Batch API time: {$batchTime}s\n";
 echo "  Estimated individual time: " . ($totalTickers * 0.5) . "s (0.5s per ticker)\n";
 echo "  Time saved: " . round(($totalTickers * 0.5 - $batchTime), 1) . "s\n";
 
-// Step 9: Source breakdown
-echo "\n=== STEP 9: SOURCE BREAKDOWN ===\n";
-$sourceCount = [];
-foreach ($allTickers as $ticker => $data) {
-    $source = $data['source'];
-    if (!isset($sourceCount[$source])) {
-        $sourceCount[$source] = 0;
-    }
-    $sourceCount[$source]++;
-}
-
-foreach ($sourceCount as $source => $count) {
-    echo "{$source}: {$count} tickers\n";
-}
-
-echo "\n✅ Intelligent earnings fetch (OPTIMIZED) completed!\n";
-echo "This system uses Finnhub as the primary source and batch API calls for better performance.\n";
-
-// Helper functions
-function getEnhancedEarningsData($ticker, $date) {
-    // This function is kept for future use but currently returns null
-    // Manual data was removed as it's not needed - Finnhub provides all necessary data
-    return null;
-}
-
+echo "\n✅ Polygon market data fetch completed!\n";
+echo "📊 Market data saved to todayearningsmovements table\n";
 ?>
