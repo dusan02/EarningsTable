@@ -28,3 +28,4 @@ parameters:
         - '#Result of && is always true#'
         - '#Access to private property .*#'
         - '#Ignored error pattern .* was not matched in reported errors#'
+    reportUnmatchedIgnoredErrors: false
