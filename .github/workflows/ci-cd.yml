@@ -44,8 +44,8 @@ jobs:
 
       - name: 🧪 Run database tests
         run: |
-          php Tests/test-db.php
-          php Tests/test-path.php
+          php Tests/simple_db_test.php
+          php Tests/health_db.php
           php Tests/check_tickers.php
         env:
           DB_HOST: 127.0.0.1
@@ -56,7 +56,7 @@ jobs:
       - name: 🔍 Run API tests
         run: |
           php Tests/test_api.php
-          php Tests/debug_api.php
+          php Tests/check_api_data.php
         continue-on-error: true
 
       - name: 📊 Test coverage report
