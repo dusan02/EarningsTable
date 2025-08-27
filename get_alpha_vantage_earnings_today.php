@@ -118,7 +118,7 @@ foreach ($todayEarnings as $earning) {
     if ($count >= 10) break;
     
     echo ($count + 1) . ". {$earning['symbol']} - {$earning['name']}\n";
-    echo "   Report Date: " . ($earning['reportDate'] ?? 'N/A') . "\n";
+    echo "   Report Date: " . $earning['reportDate'] . "\n";
     echo "   Time: " . ($earning['time'] ?? 'N/A') . "\n";
     echo "   EPS Estimate: " . ($earning['estimate'] ?? 'N/A') . "\n";
     echo "   Revenue Estimate: " . ($earning['revenueEstimate'] ?? 'N/A') . "\n";
