@@ -2,16 +2,16 @@ name: 🚀 CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   # 🧪 TESTING JOB
   test:
     name: 🧪 Run Tests
     runs-on: ubuntu-latest
-    
+
     services:
       mysql:
         image: mysql:8.0
@@ -23,46 +23,46 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🐘 Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: curl, pdo, pdo_mysql, json
-        coverage: none
+      - name: 🐘 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: curl, pdo, pdo_mysql, json
+          coverage: none
 
-    - name: 📦 Install dependencies
-      run: |
-        composer install --no-dev --optimize-autoloader
+      - name: 📦 Install dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader
 
-    - name: 🔧 Setup database
-      run: |
-        mysql -h 127.0.0.1 -P 3306 -u root -proot -e "CREATE DATABASE IF NOT EXISTS earnings_db;"
-        mysql -h 127.0.0.1 -P 3306 -u root -proot earnings_db < sql/reset_root.sql
+      - name: 🔧 Setup database
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -proot -e "CREATE DATABASE IF NOT EXISTS earnings_db;"
+          mysql -h 127.0.0.1 -P 3306 -u root -proot earnings_db < sql/setup_all_tables.sql
 
-    - name: 🧪 Run database tests
-      run: |
-        php Tests/test-db.php
-        php Tests/test-path.php
-        php Tests/check_tickers.php
-      env:
-        DB_HOST: 127.0.0.1
-        DB_NAME: earnings_db
-        DB_USER: root
-        DB_PASS: root
+      - name: 🧪 Run database tests
+        run: |
+          php Tests/test-db.php
+          php Tests/test-path.php
+          php Tests/check_tickers.php
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: earnings_db
+          DB_USER: root
+          DB_PASS: root
 
-    - name: 🔍 Run API tests
-      run: |
-        php Tests/test_api.php
-        php Tests/debug_api.php
-      continue-on-error: true
+      - name: 🔍 Run API tests
+        run: |
+          php Tests/test_api.php
+          php Tests/debug_api.php
+        continue-on-error: true
 
-    - name: 📊 Test coverage report
-      run: |
-        echo "✅ All tests completed successfully!"
-        echo "📈 Test coverage: 100% (all files tested)"
+      - name: 📊 Test coverage report
+        run: |
+          echo "✅ All tests completed successfully!"
+          echo "📈 Test coverage: 100% (all files tested)"
 
   # 🔍 CODE QUALITY JOB
   code-quality:
@@ -71,37 +71,37 @@ jobs:
     needs: test
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🐘 Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: curl, pdo, pdo_mysql, json
+      - name: 🐘 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: curl, pdo, pdo_mysql, json
 
-    - name: 📦 Install PHP tools
-      run: |
-        composer global require phpstan/phpstan
-        composer global require squizlabs/php_codesniffer
+      - name: 📦 Install PHP tools
+        run: |
+          composer global require phpstan/phpstan
+          composer global require squizlabs/php_codesniffer
 
-    - name: 🔍 PHPStan analysis
-      run: |
-        ~/.composer/vendor/bin/phpstan analyse --level=5 --no-progress .
+      - name: 🔍 PHPStan analysis
+        run: |
+          ~/.composer/vendor/bin/phpstan analyse --level=5 --no-progress .
 
-    - name: 🎨 PHP CodeSniffer
-      run: |
-        ~/.composer/vendor/bin/phpcs --standard=PSR12 --extensions=php .
+      - name: 🎨 PHP CodeSniffer
+        run: |
+          ~/.composer/vendor/bin/phpcs --standard=PSR12 --extensions=php .
 
-    - name: 📝 Check documentation
-      run: |
-        echo "📋 Checking documentation completeness..."
-        if [ -f "README.md" ] && [ -f "docs/" ] && [ -f "Tests/README.md" ]; then
-          echo "✅ Documentation is complete"
-        else
-          echo "❌ Missing documentation files"
-          exit 1
-        fi
+      - name: 📝 Check documentation
+        run: |
+          echo "📋 Checking documentation completeness..."
+          if [ -f "README.md" ] && [ -f "docs/" ] && [ -f "Tests/README.md" ]; then
+            echo "✅ Documentation is complete"
+          else
+            echo "❌ Missing documentation files"
+            exit 1
+          fi
 
   # 🚀 DEPLOYMENT JOB
   deploy:
@@ -111,45 +111,45 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🔐 Setup SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: 🔐 Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: 📦 Create deployment package
-      run: |
-        echo "📦 Creating deployment package..."
-        tar -czf deployment.tar.gz \
-          --exclude='.git' \
-          --exclude='Tests' \
-          --exclude='docs' \
-          --exclude='archive' \
-          --exclude='.github' \
-          .
+      - name: 📦 Create deployment package
+        run: |
+          echo "📦 Creating deployment package..."
+          tar -czf deployment.tar.gz \
+            --exclude='.git' \
+            --exclude='Tests' \
+            --exclude='docs' \
+            --exclude='archive' \
+            --exclude='.github' \
+            .
 
-    - name: 🚀 Deploy to server
-      run: |
-        echo "🚀 Deploying to production server..."
-        scp deployment.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-          cd /var/www/html/
-          tar -xzf /tmp/deployment.tar.gz
-          chmod -R 755 .
-          chown -R www-data:www-data .
-          echo "✅ Deployment completed successfully!"
-        EOF
+      - name: 🚀 Deploy to server
+        run: |
+          echo "🚀 Deploying to production server..."
+          scp deployment.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd /var/www/html/
+            tar -xzf /tmp/deployment.tar.gz
+            chmod -R 755 .
+            chown -R www-data:www-data .
+            echo "✅ Deployment completed successfully!"
+          EOF
 
-    - name: 🧪 Post-deployment test
-      run: |
-        echo "🧪 Running post-deployment tests..."
-        curl -f ${{ secrets.SITE_URL }}/test-db.php || exit 1
-        echo "✅ Post-deployment tests passed!"
+      - name: 🧪 Post-deployment test
+        run: |
+          echo "🧪 Running post-deployment tests..."
+          curl -f ${{ secrets.SITE_URL }}/test-db.php || exit 1
+          echo "✅ Post-deployment tests passed!"
 
-    - name: 📢 Notify success
-      run: |
-        echo "🎉 Deployment successful!"
-        echo "🌐 Site: ${{ secrets.SITE_URL }}"
-        echo "📅 Time: $(date)"
+      - name: 📢 Notify success
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "🌐 Site: ${{ secrets.SITE_URL }}"
+          echo "📅 Time: $(date)"
