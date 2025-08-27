@@ -604,6 +604,11 @@
         color: #374151;
     }
 
+    .size-mega {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
     /* PRICE CHANGES */
     .price-up {
         color: #059669;
@@ -1138,7 +1143,11 @@
             
 
             
-            const sizeClass = getSizeClass(item.size);
+            // Check if company qualifies for MEGA tag (market cap >= $100 billion)
+            const marketCap = parseFloat(item.market_cap) || 0;
+            const isMega = marketCap >= 100000000000; // $100 billion
+            const sizeClass = isMega ? 'size-mega' : getSizeClass(item.size);
+            const displaySize = isMega ? 'MEGA' : (item.size || '-');
             
             // Generate rank based on current position (index + 1)
             const currentRank = index + 1;
@@ -1156,7 +1165,7 @@
 
                 <td style="text-align: right;">${formatCurrency(item.market_cap)}</td>
                 <td style="text-align: right;" class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
-                                 <td style="text-align: right;"><span class="size-badge ${sizeClass}">${item.size || '-'}</span></td>
+                                 <td style="text-align: right;"><span class="size-badge ${sizeClass}">${displaySize}</span></td>
                 <td style="text-align: right;">${formatPrice(item.current_price)}</td>
                 <td style="text-align: right;" class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
                 <td style="text-align: right;">${formatEPS(item.eps_estimate)}</td>
