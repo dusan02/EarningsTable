@@ -132,13 +132,24 @@ foreach ($allTickers as $ticker => $data) {
             $size = 'Mid';
         }
         
-        // Calculate market cap diff (FIXED)
+        // Calculate market cap diff (CORRECTED)
         $marketCapDiff = null;
         $marketCapDiffBillions = null;
-        if ($priceChangePercent !== null && $marketCap && $marketCap > 0) {
-            $marketCapInDollars = $marketCap * 1000000; // Convert from millions to dollars
-            $marketCapDiff = ($priceChangePercent / 100) * $marketCapInDollars;
-            $marketCapDiffBillions = $marketCapDiff / 1000000000;
+        if ($marketCap && $marketCap > 0) {
+            // Get shares outstanding from Finnhub
+            $sharesOutstanding = $finnhubProfile['shareOutstanding'] ?? null;
+            if ($sharesOutstanding) {
+                // Convert shares from thousands to actual shares
+                $shares = $sharesOutstanding * 1000;
+                
+                // Calculate current and previous market cap
+                $currentMC = $currentPrice * $shares;
+                $previousMC = $previousClose * $shares;
+                
+                // Market cap diff = Current Market Cap - Previous Day Market Cap
+                $marketCapDiff = $currentMC - $previousMC;
+                $marketCapDiffBillions = $marketCapDiff / 1000000000;
+            }
         }
         
         // Insert into TodayEarningsMovements
