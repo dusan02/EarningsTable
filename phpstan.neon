@@ -27,5 +27,6 @@ parameters:
         - '#Expression in empty\(\) is not falsy#'
         - '#Result of && is always true#'
         - '#Access to private property .*#'
+        - '#Variable .* in empty\(\) always exists and is not falsy#'
         - '#Ignored error pattern .* was not matched in reported errors#'
     reportUnmatchedIgnoredErrors: false
