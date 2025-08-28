@@ -19,31 +19,32 @@ try {
     $date = $usDate->format('Y-m-d');
     
     // Get today's tickers from EarningsTickersToday (MAIN SOURCE)
-    $stmt = $pdo->prepare("
-        SELECT 
-            e.ticker,
-            e.eps_estimate,
-            e.revenue_estimate,
-            e.report_time,
-            e.data_source,
-            e.source_priority,
-            t.company_name,
-            t.current_price,
-            t.previous_close,
-            t.market_cap,
-            t.size,
-            t.market_cap_diff,
-            t.market_cap_diff_billions,
-            t.price_change_percent,
-            t.shares_outstanding,
-            t.eps_actual,
-            t.revenue_actual,
-            t.updated_at
-        FROM EarningsTickersToday e
-        LEFT JOIN TodayEarningsMovements t ON e.ticker = t.ticker
-        WHERE e.report_date = ?
-        ORDER BY e.ticker
-    ");
+            $stmt = $pdo->prepare("
+            SELECT 
+                e.ticker,
+                e.eps_estimate,
+                e.revenue_estimate,
+                e.report_time,
+                e.data_source,
+                e.source_priority,
+                t.company_name,
+                t.current_price,
+                t.previous_close,
+                t.market_cap,
+                t.size,
+                t.market_cap_diff,
+                t.market_cap_diff_billions,
+                t.price_change_percent,
+                t.change_source,
+                t.shares_outstanding,
+                t.eps_actual,
+                t.revenue_actual,
+                t.updated_at
+            FROM EarningsTickersToday e
+            LEFT JOIN TodayEarningsMovements t ON e.ticker = t.ticker
+            WHERE e.report_date = ?
+            ORDER BY e.ticker
+        ");
     $stmt->execute([$date]);
     $earnings = $stmt->fetchAll();
     

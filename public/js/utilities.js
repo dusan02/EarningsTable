@@ -167,6 +167,12 @@ function formatPriceChange(changePercent) {
   if (!changePercent || isNaN(changePercent)) return "-";
   const num = parseFloat(changePercent);
   if (isNaN(num)) return "-";
+  
+  // If change is exactly 0, it might mean market is closed
+  if (num === 0) {
+    return "0.00%";
+  }
+  
   const sign = num > 0 ? "+" : "";
   return sign + num.toFixed(2) + "%";
 }

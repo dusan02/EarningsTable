@@ -197,8 +197,16 @@ class RegularDataUpdatesDynamic {
             
             $chunkStart = microtime(true);
             
+            // Get snapshot data
             $batchData = $this->retryOperation(
                 fn() => getPolygonBatchQuote($tickerChunk),
+                maxAttempts: $this->config->get('max_retry_attempts'),
+                delay: $this->config->get('retry_delay')
+            );
+            
+            // Get last trades from V3 API for better extended hours data
+            $lastTradesData = $this->retryOperation(
+                fn() => getPolygonBatchLastTrades($tickerChunk),
                 maxAttempts: $this->config->get('max_retry_attempts'),
                 delay: $this->config->get('retry_delay')
             );
@@ -206,7 +214,7 @@ class RegularDataUpdatesDynamic {
             $chunkDuration = round(microtime(true) - $chunkStart, 2);
             
             if ($batchData) {
-                $this->processPolygonBatchData($batchData);
+                $this->processPolygonBatchData($batchData, $lastTradesData);
                 $successfulCalls++;
                 $this->metrics->recordApiCall('polygon', $chunkDuration, true);
             } else {
@@ -228,32 +236,41 @@ class RegularDataUpdatesDynamic {
     }
     
     /**
-     * Spracovanie Polygon batch dát
+     * Spracovanie Polygon batch dát s robustnou logikou pre % CHANGE
      */
-    private function processPolygonBatchData($batchData) {
+    private function processPolygonBatchData($batchData, $lastTradesData = null) {
         // batchData is already ticker-keyed array from getPolygonBatchQuote
         foreach ($batchData as $ticker => $result) {
-            $priceData = getCurrentPrice($result);
             $previousClose = $result['prevDay']['c'] ?? null;
             
-            // Validate data
-            if ($priceData === null || $priceData['price'] <= 0) {
+            // Validate previous close
+            if ($previousClose === null || $previousClose <= 0) {
                 continue;
             }
             
-            if ($previousClose === null || $previousClose <= 0) {
+            // Get last trade from V3 API if available
+            $lastTradeV3 = $lastTradesData[$ticker] ?? null;
+            
+            // Use robust percent change calculation
+            $percentChangeData = computePercentChange($result, $lastTradeV3, $previousClose);
+            $priceChangePercent = $percentChangeData['percent'];
+            $changeSource = $percentChangeData['source'];
+            
+            // Get current price using existing logic
+            $priceData = getCurrentPrice($result);
+            if ($priceData === null || $priceData['price'] <= 0) {
                 continue;
             }
             
             $currentPrice = $priceData['price'];
             $priceSource = $priceData['source'];
-            $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
             
             $this->priceUpdates[$ticker] = [
                 'current_price' => $currentPrice,
                 'previous_close' => $previousClose,
                 'price_change_percent' => $priceChangePercent,
-                'price_source' => $priceSource
+                'price_source' => $priceSource,
+                'change_source' => $changeSource
             ];
         }
     }
@@ -345,6 +362,7 @@ class RegularDataUpdatesDynamic {
             SET 
                 current_price = ?,
                 price_change_percent = ?,
+                change_source = ?,
                 eps_actual = ?,
                 revenue_actual = ?,
                 market_cap_diff = ?,
@@ -371,13 +389,17 @@ class RegularDataUpdatesDynamic {
             $newMarketCapDiff = $marketCapDiffData['market_cap_diff'] ?? $current['market_cap_diff'];
             $newMarketCapDiffBillions = $marketCapDiffData['market_cap_diff_billions'] ?? $current['market_cap_diff_billions'];
             
+            // Get change source
+            $newChangeSource = $priceData['change_source'] ?? $current['change_source'];
+            
             // Only update if there are changes
             if ($this->hasChanges($current, $newEpsActual, $newRevenueActual, $newCurrentPrice, 
-                                 $newPriceChangePercent, $newMarketCapDiff, $newMarketCapDiffBillions)) {
+                                 $newPriceChangePercent, $newMarketCapDiff, $newMarketCapDiffBillions, $newChangeSource)) {
                 
                 $updateStmt->execute([
                     $newCurrentPrice,
                     $newPriceChangePercent,
+                    $newChangeSource,
                     $newEpsActual,
                     $newRevenueActual,
                     $newMarketCapDiff,
@@ -397,13 +419,14 @@ class RegularDataUpdatesDynamic {
      * Kontrola či sa dáta zmenili
      */
     private function hasChanges($current, $newEpsActual, $newRevenueActual, $newCurrentPrice, 
-                               $newPriceChangePercent, $newMarketCapDiff, $newMarketCapDiffBillions) {
+                               $newPriceChangePercent, $newMarketCapDiff, $newMarketCapDiffBillions, $newChangeSource) {
         return $newEpsActual !== $current['eps_actual'] ||
                $newRevenueActual !== $current['revenue_actual'] ||
                $newCurrentPrice !== $current['current_price'] ||
                $newPriceChangePercent !== $current['price_change_percent'] ||
                $newMarketCapDiff !== $current['market_cap_diff'] ||
-               $newMarketCapDiffBillions !== $current['market_cap_diff_billions'];
+               $newMarketCapDiffBillions !== $current['market_cap_diff_billions'] ||
+               $newChangeSource !== $current['change_source'];
     }
     
     /**

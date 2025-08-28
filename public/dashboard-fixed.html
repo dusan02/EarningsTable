@@ -308,7 +308,7 @@
         font-weight: 700;
         color: #1E3A8A;
         margin-top: 32px;
-        margin-bottom: 8px;
+        margin-bottom: 24px;
         text-align: center;
     }
 
@@ -318,7 +318,7 @@
         color: #6b7280;
         font-weight: 400;
         text-align: center;
-        margin-bottom: 8px;
+        margin-bottom: 0px;
         padding-bottom: 0;
     }
 
@@ -327,7 +327,7 @@
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 12px;
-        padding: 16px 0 8px 0;
+        padding: 8px 0 8px 0;
         background: #ffffff;
         position: sticky;
         top: var(--h-header);
@@ -910,10 +910,11 @@
 
                                                                        <!-- Caption and table header in one div -->
           <div style="background: #fff; position: sticky; top: calc(var(--h-header) + var(--h-kpis)); z-index: 85;">
-                            <!-- Caption -->
-               <div style="color: #6b7280; font-size: 18px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 0 0;">
-                   Today's Earnings Table
-        </div>
+                                                         <!-- Caption -->
+                <div style="color: #6b7280; font-size: 18px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 8px 0;">
+                    Today's Earnings Table
+                    <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;" id="marketStatusInfo">Loading market status...</div>
+         </div>
 
                              <!-- Table header -->
                                  <div style="background: #e3f2fd; padding: 0 0 0 0; border-bottom: none;">
@@ -1341,9 +1342,37 @@
         document.getElementById('revenueBeatValue').textContent  =
             revBest ? `+${((parseFloat(revBest.revenue_actual) - parseFloat(revBest.revenue_estimate)) / Math.abs(parseFloat(revBest.revenue_estimate)) * 100).toFixed(2)}%` : '—';
         document.getElementById('revenueMissTicker').textContent = revWorst?.ticker ?? '—';
-        document.getElementById('revenueMissValue').textContent  =
-            revWorst ? `${((parseFloat(revWorst.revenue_actual) - parseFloat(revWorst.revenue_estimate)) / Math.abs(parseFloat(revWorst.revenue_estimate)) * 100).toFixed(2)}%` : '—';
-    }
+                 document.getElementById('revenueMissValue').textContent  =
+             revWorst ? `${((parseFloat(revWorst.revenue_actual) - parseFloat(revWorst.revenue_estimate)) / Math.abs(parseFloat(revWorst.revenue_estimate)) * 100).toFixed(2)}%` : '—';
+     }
+
+     // ---------- 3) Market Status Update ----------
+     function updateMarketStatus(data) {
+         if (!data || data.length === 0) {
+             document.getElementById('marketStatusInfo').textContent = 'No data available';
+             return;
+         }
+         
+         // Analyze data sources
+         const sources = data.map(item => item.change_source).filter(Boolean);
+         const uniqueSources = [...new Set(sources)];
+         
+         let statusText = '';
+         
+         if (uniqueSources.includes('v3_trade')) {
+             statusText = 'Live trading data available';
+         } else if (uniqueSources.includes('snapshot_change')) {
+             statusText = 'Market data from Polygon snapshot';
+         } else if (uniqueSources.includes('quote_mid')) {
+             statusText = 'Extended hours quote data';
+         } else if (uniqueSources.includes('minute_close')) {
+             statusText = 'Minute-level price data';
+         } else {
+             statusText = 'Market closed - Previous close prices';
+         }
+         
+         document.getElementById('marketStatusInfo').textContent = statusText;
+     }
 
     async function loadEarningsData() {
         const loading = document.getElementById('loading');
@@ -1397,6 +1426,7 @@
             // Update cards with new robust functions
             updateSizeCards(filteredEarnings);
             updateWinnersLosers(filteredEarnings);
+            updateMarketStatus(filteredEarnings);
 
             // Populate table
             renderTable();

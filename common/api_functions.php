@@ -161,6 +161,70 @@ function getPolygonTickerDetails($ticker) {
 }
 
 /**
+ * Get last trade from Polygon V3 Trades API
+ * @param string $ticker Ticker symbol
+ * @return array|false Last trade data or false on error
+ */
+function getPolygonLastTrade($ticker) {
+    $url = POLYGON_BASE_URL . '/v3/trades/' . urlencode($ticker);
+    $url .= '?limit=1&apikey=' . POLYGON_API_KEY;
+    
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 10,
+            'header' => [
+                'User-Agent: EarningsTable/1.0',
+                'Accept: application/json'
+            ]
+        ]
+    ]);
+    
+    $response = file_get_contents($url, false, $context);
+    
+    if ($response === false) {
+        return false;
+    }
+    
+    $data = json_decode($response, true);
+    
+    if (!isset($data['results']) || empty($data['results'])) {
+        return false;
+    }
+    
+    return $data['results'][0]; // Return first (most recent) trade
+}
+
+/**
+ * Get batch last trades from Polygon V3 Trades API
+ * @param array $tickers Array of ticker symbols
+ * @return array|false Last trades data or false on error
+ */
+function getPolygonBatchLastTrades($tickers) {
+    if (empty($tickers)) return false;
+    
+    $results = [];
+    $apiCalls = 0;
+    
+    foreach ($tickers as $ticker) {
+        $lastTrade = getPolygonLastTrade($ticker);
+        
+        if ($lastTrade) {
+            $results[$ticker] = $lastTrade;
+        }
+        
+        $apiCalls++;
+        
+        // Rate limiting - pause every 5 calls
+        if ($apiCalls % 5 == 0) {
+            usleep(500000); // 0.5 second pause
+        }
+    }
+    
+    return $results;
+}
+
+/**
  * Get batch ticker details from Polygon V3 Reference API
  * @param array $tickers Array of ticker symbols
  * @return array|false Polygon V3 reference data or false on error
@@ -193,6 +257,50 @@ function getPolygonBatchTickerDetails($tickers) {
     }
     
     return $results;
+}
+
+/**
+ * Compute robust percent change with hierarchy of data sources
+ * @param array $snapshot Polygon snapshot data
+ * @param array|null $lastTradeV3 Last trade from V3 API
+ * @param float $prevClose Previous close price
+ * @return array Array with 'percent' and 'source'
+ */
+function computePercentChange($snapshot, $lastTradeV3, $prevClose) {
+    // 1) Prefer last trade from V3 (includes extended hours)
+    if ($lastTradeV3 && isset($lastTradeV3['p'])) {
+        $price = (float)$lastTradeV3['p'];
+        if ($price > 0 && $prevClose > 0) {
+            $percent = (($price - $prevClose) / $prevClose) * 100;
+            return ['percent' => $percent, 'source' => 'v3_trade'];
+        }
+    }
+    
+    // 2) If snapshot has nonzero todaysChangePerc, use it
+    if (isset($snapshot['todaysChangePerc']) && $snapshot['todaysChangePerc'] != 0) {
+        return ['percent' => (float)$snapshot['todaysChangePerc'], 'source' => 'snapshot_change'];
+    }
+    
+    // 3) Try lastQuote midpoint (extended hours quote)
+    if (isset($snapshot['lastQuote']['bp'], $snapshot['lastQuote']['ap'])) {
+        $bp = (float)$snapshot['lastQuote']['bp'];
+        $ap = (float)$snapshot['lastQuote']['ap'];
+        if ($bp > 0 && $ap > 0 && $ap >= $bp && $prevClose > 0) {
+            $mid = ($bp + $ap) / 2.0;
+            $percent = (($mid - $prevClose) / $prevClose) * 100;
+            return ['percent' => $percent, 'source' => 'quote_mid'];
+        }
+    }
+    
+    // 4) Try last minute close
+    if (isset($snapshot['min']['c']) && $snapshot['min']['c'] > 0 && $prevClose > 0) {
+        $price = (float)$snapshot['min']['c'];
+        $percent = (($price - $prevClose) / $prevClose) * 100;
+        return ['percent' => $percent, 'source' => 'minute_close'];
+    }
+    
+    // 5) Fallback: no change
+    return ['percent' => 0.0, 'source' => 'prev_close'];
 }
 
 /**
