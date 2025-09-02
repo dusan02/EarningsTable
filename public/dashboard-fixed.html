@@ -201,131 +201,73 @@
         --h-table-header: 0px;
     }
 
-    /* ===== COMPLETE TABLE REFACTORING ===== */
+    /* ===== GPT SOLUTION: SINGLE TABLE WITH STICKY THEAD ===== */
     
-    /* TABLE CONTAINER */
-    .table-container {
-        overflow-x: auto;
-        width: 100%;
-        min-width: 2000px;
-        padding: 0 0 24px 0;
+    /* Scroll container: this fixes "overflow" and alignment issues */
+    .table-scroll {
+        position: relative;
+        overflow: auto;            /* horizontal AND vertical scroll */
+        max-width: 100%;
+        /* reserve space for scrollbar so header never shifts */
+        scrollbar-gutter: stable both-edges; /* supported in most modern browsers */
         background: #fff;
-        margin-top: 0;
+        padding: 0 0 24px 0;
     }
 
-    /* UNIFIED TABLE STYLES */
-    .earnings-table,
-    .earnings-table-header {
-        table-layout: fixed !important;
-        width: 100% !important;
-        min-width: 2000px !important;
-        border-collapse: collapse !important;
-        box-sizing: border-box;
+    /* Single table for header and body */
+    .earnings-table {
+        width: max(100%, 2000px);  /* maintain min width but adapt */
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-family: 'Inter', sans-serif;
+        font-size: 12.6px;
+        font-variant-numeric: tabular-nums;
         margin: 0;
         padding: 0;
-        font-family: 'Inter', sans-serif;
-        font-variant-numeric: tabular-nums;
+        box-sizing: border-box;
     }
 
-    /* COLUMN WIDTHS - ALL 18 COLUMNS */
-    .earnings-table col,
-    .earnings-table-header col {
-        width: auto !important;
-        min-width: 0 !important;
-        max-width: none !important;
-    }
-
-    /* Column 1: # */
-    .earnings-table col:nth-child(1),
-    .earnings-table-header col:nth-child(1) { width: 60px !important; }
-    
-    /* Column 2: Company */
-    .earnings-table col:nth-child(2),
-    .earnings-table-header col:nth-child(2) { width: 200px !important; }
-    
-    /* Column 3: Market Cap */
-    .earnings-table col:nth-child(3),
-    .earnings-table-header col:nth-child(3) { width: 120px !important; }
-    
-    /* Column 4: Cap Diff */
-    .earnings-table col:nth-child(4),
-    .earnings-table-header col:nth-child(4) { width: 120px !important; }
-    
-    /* Column 5: Size */
-    .earnings-table col:nth-child(5),
-    .earnings-table-header col:nth-child(5) { width: 80px !important; }
-    
-    /* Column 6: Price */
-    .earnings-table col:nth-child(6),
-    .earnings-table-header col:nth-child(6) { width: 100px !important; }
-    
-    /* Column 7: % Change */
-    .earnings-table col:nth-child(7),
-    .earnings-table-header col:nth-child(7) { width: 100px !important; }
-    
-    /* Column 8: EPS Est */
-    .earnings-table col:nth-child(8),
-    .earnings-table-header col:nth-child(8) { width: 90px !important; }
-    
-    /* Column 9: EPS Act */
-    .earnings-table col:nth-child(9),
-    .earnings-table-header col:nth-child(9) { width: 90px !important; }
-    
-    /* Column 10: EPS Surp */
-    .earnings-table col:nth-child(10),
-    .earnings-table-header col:nth-child(10) { width: 100px !important; }
-    
-    /* Column 11: Rev Est */
-    .earnings-table col:nth-child(11),
-    .earnings-table-header col:nth-child(11) { width: 120px !important; }
-    
-    /* Column 12: Rev Act */
-    .earnings-table col:nth-child(12),
-    .earnings-table-header col:nth-child(12) { width: 120px !important; }
-    
-    /* Column 13: Rev Surp */
-    .earnings-table col:nth-child(13),
-    .earnings-table-header col:nth-child(13) { width: 100px !important; }
-    
-    /* Column 14: EPS Guide */
-    .earnings-table col:nth-child(14),
-    .earnings-table-header col:nth-child(14) { width: 110px !important; }
-    
-    /* Column 15: Guide Surp EPS */
-    .earnings-table col:nth-child(15),
-    .earnings-table-header col:nth-child(15) { width: 110px !important; }
-    
-    /* Column 16: Rev Guide */
-    .earnings-table col:nth-child(16),
-    .earnings-table-header col:nth-child(16) { width: 110px !important; }
-    
-    /* Column 17: Guide Surp Rev */
-    .earnings-table col:nth-child(17),
-    .earnings-table-header col:nth-child(17) { width: 110px !important; }
-    
-    /* Column 18: Notes */
-    .earnings-table col:nth-child(18),
-    .earnings-table-header col:nth-child(18) { width: 150px !important; }
-
-    /* UNIFIED CELL STYLES */
-    .earnings-table th,
-    .earnings-table td,
-    .earnings-table-header th {
-        padding: 12px 8px !important;
+    /* Sticky thead (no duplicate tables) */
+    .earnings-table thead th {
+        position: sticky;
+        top: calc(var(--h-header, 0px) + var(--h-kpis, 0px)); /* using your offsets */
+        z-index: 2;
+        background: #e3f2fd;        /* covers rows below */
+        /* style from your .sortable-header */
+        cursor: pointer;
+        user-select: none;
+        padding: 12px 8px;
+        line-height: 1.3;
+        white-space: normal;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #374151;
+        transition: background-color 0.2s ease;
         box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
         vertical-align: middle;
+    }
+    
+    .earnings-table thead th:hover { 
+        background: #bbdefb; 
+    }
+
+    .earnings-table th,
+    .earnings-table td {
+        padding: 12px 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        border-bottom: 1px solid #f3f4f6;
+        box-sizing: border-box;
     }
 
     /* DATA TABLE SPECIFIC STYLES */
-    .earnings-table {
+    .earnings-table tbody {
         font-size: 14px;
-    }
-
-    .earnings-table tbody td {
-        border-bottom: 1px solid #f3f4f6;
     }
 
     /* First row - no top border */
@@ -336,6 +278,32 @@
     /* Hover effect for data rows */
     .earnings-table tbody tr:hover {
         background-color: #f9fafb;
+    }
+
+    /* Text alignments (as you had) */
+    .earnings-table th:nth-child(1),
+    .earnings-table td:nth-child(1) { text-align: center; }
+    .earnings-table th:nth-child(2),
+    .earnings-table td:nth-child(2) { text-align: left; }
+    .earnings-table th:nth-child(n+3),
+    .earnings-table td:nth-child(n+3) { text-align: right; }
+
+    /* Company search input styling */
+    .company-search {
+        width: 120px;
+        padding: 6px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 10.8px;
+        font-weight: 600;
+        background: #fff;
+        color: #374151;
+        outline: none;
+    }
+
+    /* Prevent horizontal "micro-shifts" when scrollbar appears/disappears */
+    html, body { 
+        overflow-y: scroll; 
     }
 
     /* FIXED HEADER */
@@ -480,87 +448,53 @@
     
     /* Column 1: # - Centered */
     .earnings-table th:nth-child(1),
-    .earnings-table td:nth-child(1),
-    .earnings-table-header th:nth-child(1) { text-align: center !important; }
+    .earnings-table td:nth-child(1) { text-align: center !important; }
     
     /* Column 2: Company - Left aligned */
     .earnings-table th:nth-child(2),
-    .earnings-table td:nth-child(2),
-    .earnings-table-header th:nth-child(2) { text-align: left !important; }
+    .earnings-table td:nth-child(2) { text-align: left !important; }
     
     /* Columns 3-17: All numeric data - Right aligned */
-    .earnings-table th:nth-child(3), .earnings-table td:nth-child(3),
-    .earnings-table-header th:nth-child(3) { text-align: right !important; } /* Market Cap */
+    .earnings-table th:nth-child(3), .earnings-table td:nth-child(3) { text-align: right !important; } /* Market Cap */
     
-    .earnings-table th:nth-child(4), .earnings-table td:nth-child(4),
-    .earnings-table-header th:nth-child(4) { text-align: right !important; } /* Cap Diff */
+    .earnings-table th:nth-child(4), .earnings-table td:nth-child(4) { text-align: right !important; } /* Cap Diff */
     
-    .earnings-table th:nth-child(5), .earnings-table td:nth-child(5),
-    .earnings-table-header th:nth-child(5) { text-align: right !important; } /* Size */
+    .earnings-table th:nth-child(5), .earnings-table td:nth-child(5) { text-align: right !important; } /* Size */
     
-    .earnings-table th:nth-child(6), .earnings-table td:nth-child(6),
-    .earnings-table-header th:nth-child(6) { text-align: right !important; } /* Price */
+    .earnings-table th:nth-child(6), .earnings-table td:nth-child(6) { text-align: right !important; } /* Price */
     
-    .earnings-table th:nth-child(7), .earnings-table td:nth-child(7),
-    .earnings-table-header th:nth-child(7) { text-align: right !important; } /* % Change */
+    .earnings-table th:nth-child(7), .earnings-table td:nth-child(7) { text-align: right !important; } /* % Change */
     
-    .earnings-table th:nth-child(8), .earnings-table td:nth-child(8),
-    .earnings-table-header th:nth-child(8) { text-align: right !important; } /* EPS Est */
+    .earnings-table th:nth-child(8), .earnings-table td:nth-child(8) { text-align: right !important; } /* EPS Est */
     
-    .earnings-table th:nth-child(9), .earnings-table td:nth-child(9),
-    .earnings-table-header th:nth-child(9) { text-align: right !important; } /* EPS Act */
+    .earnings-table th:nth-child(9), .earnings-table td:nth-child(9) { text-align: right !important; } /* EPS Act */
     
-    .earnings-table th:nth-child(10), .earnings-table td:nth-child(10),
-    .earnings-table-header th:nth-child(10) { text-align: right !important; } /* EPS Surp */
+    .earnings-table th:nth-child(10), .earnings-table td:nth-child(10) { text-align: right !important; } /* EPS Surp */
     
-    .earnings-table th:nth-child(11), .earnings-table td:nth-child(11),
-    .earnings-table-header th:nth-child(11) { text-align: right !important; } /* Rev Est */
+    .earnings-table th:nth-child(11), .earnings-table td:nth-child(11) { text-align: right !important; } /* Rev Est */
     
-    .earnings-table th:nth-child(12), .earnings-table td:nth-child(12),
-    .earnings-table-header th:nth-child(12) { text-align: right !important; } /* Rev Act */
+    .earnings-table th:nth-child(12), .earnings-table td:nth-child(12) { text-align: right !important; } /* Rev Act */
     
-    .earnings-table th:nth-child(13), .earnings-table td:nth-child(13),
-    .earnings-table-header th:nth-child(13) { text-align: right !important; } /* Rev Surp */
+    .earnings-table th:nth-child(13), .earnings-table td:nth-child(13) { text-align: right !important; } /* Rev Surp */
     
-    .earnings-table th:nth-child(14), .earnings-table td:nth-child(14),
-    .earnings-table-header th:nth-child(14) { text-align: right !important; } /* EPS Guide */
+    .earnings-table th:nth-child(14), .earnings-table td:nth-child(14) { text-align: right !important; } /* EPS Guide */
     
-    .earnings-table th:nth-child(15), .earnings-table td:nth-child(15),
-    .earnings-table-header th:nth-child(15) { text-align: right !important; } /* Guide Surp EPS */
+    .earnings-table th:nth-child(15), .earnings-table td:nth-child(15) { text-align: right !important; } /* Guide Surp EPS */
     
-    .earnings-table th:nth-child(16), .earnings-table td:nth-child(16),
-    .earnings-table-header th:nth-child(16) { text-align: right !important; } /* Rev Guide */
+    .earnings-table th:nth-child(16), .earnings-table td:nth-child(16) { text-align: right !important; } /* Rev Guide */
     
-    .earnings-table th:nth-child(17), .earnings-table td:nth-child(17),
-    .earnings-table-header th:nth-child(17) { text-align: right !important; } /* Guide Surp Rev */
+    .earnings-table th:nth-child(17), .earnings-table td:nth-child(17) { text-align: right !important; } /* Guide Surp Rev */
     
     /* Column 18: Notes - Left aligned */
     .earnings-table th:nth-child(18),
-    .earnings-table td:nth-child(18),
-    .earnings-table-header th:nth-child(18) { text-align: left !important; }
+    .earnings-table td:nth-child(18) { text-align: left !important; }
 
-            /* ===== UNIFIED SORTABLE HEADERS ===== */
+            /* ===== SORTABLE HEADER STYLES ===== */
     
-    .sortable-header {
-        cursor: pointer;
-        user-select: none;
-        padding: 12px 8px !important; /* Consistent with cell padding */
-        min-height: 70px;
-        background-color: #e3f2fd;
-        transition: background-color 0.2s ease;
-        white-space: normal !important;
-        line-height: 1.3;
-        vertical-align: middle;
-        box-sizing: border-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    /* These styles are now handled by .earnings-table thead th above */
+    /* No need for separate .sortable-header class with single table structure */
     
-    .sortable-header:hover {
-        background-color: #bbdefb !important;
-        color: #374151 !important;
-    }
-    
+    /* Active sort indicator - still needed for JavaScript */
     .sortable-header.active-sort {
         background-color: #bbdefb !important;
         color: #374151 !important;
@@ -738,8 +672,7 @@
             padding: 16px 20px;
         }
         
-        .earnings-table,
-        .earnings-table-header {
+        .earnings-table {
             min-width: 2000px;
         }
 
@@ -754,42 +687,15 @@
         }
         
         /* Ensure consistent column widths on mobile */
-        .earnings-table col,
-        .earnings-table-header col {
+        .earnings-table col {
             width: auto !important;
         }
     }
 
     /* ===== HEADER TEXT ALIGNMENT OVERRIDES ===== */
     
-    /* Override text-align for specific header columns to match data alignment */
-    .earnings-table-header th[data-sort="market_cap"],
-    .earnings-table-header th[data-sort="market_cap_gain"],
-    .earnings-table-header th[data-sort="size"],
-    .earnings-table-header th[data-sort="price"],
-    .earnings-table-header th[data-sort="today"],
-    .earnings-table-header th[data-sort="eps_est"],
-    .earnings-table-header th[data-sort="eps_act"],
-    .earnings-table-header th[data-sort="eps_surprise"],
-    .earnings-table-header th[data-sort="revenue_est"],
-    .earnings-table-header th[data-sort="revenue_act"],
-    .earnings-table-header th[data-sort="revenue_surprise"],
-    .earnings-table-header th[data-sort="eps_guide"],
-    .earnings-table-header th[data-sort="eps_guide_surprise"],
-    .earnings-table-header th[data-sort="revenue_guide"],
-    .earnings-table-header th[data-sort="revenue_guide_surprise"] {
-        text-align: right !important;
-    }
-    
-    /* Company header stays left-aligned */
-    .earnings-table-header th[data-sort="company"] {
-        text-align: left !important;
-    }
-    
-    /* Notes header stays left-aligned */
-    .earnings-table-header th[data-sort="notes"] {
-        text-align: left !important;
-    }
+    /* These are now handled by the unified text alignment rules above */
+    /* No need for separate header overrides with single table structure */
 
     /* SEARCH BAR STYLES */
     .company-header-container {
@@ -984,102 +890,70 @@
           </div>
         </section>
 
-                                                                       <!-- Caption and table header in one div -->
-          <div style="background: #fff; position: sticky; top: calc(var(--h-header) + var(--h-kpis)); z-index: 85;">
-                                                         <!-- Caption -->
-                <div style="color: #6b7280; font-size: 18px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 8px 0;">
-                    Today's Earnings Table
-                    <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;" id="marketStatusInfo">Loading market status...</div>
-         </div>
+        <!-- Caption -->
+        <div style="color: #6b7280; font-size: 18px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 8px 0;">
+            Today's Earnings Table
+            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;" id="marketStatusInfo">Loading market status...</div>
+        </div>
 
-                             <!-- Table header -->
-                                 <div style="background: #e3f2fd; padding: 0 0 0 0; border-bottom: none;">
-                                                                                                           <table class="earnings-table-header" style="width: 100%; min-width: 2000px; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 12.6px; table-layout: fixed;">
-                      <colgroup>
-                          <col style="width:60px">    <!-- # -->
-                          <col style="width:200px">   <!-- Company -->
-                          <col style="width:120px">   <!-- Market Cap -->
-                          <col style="width:120px">   <!-- Cap Diff -->
-                          <col style="width:80px">    <!-- Size -->
-                          <col style="width:100px">   <!-- Price -->
-                          <col style="width:100px">   <!-- % Change -->
-                          <col style="width:110px">    <!-- EPS Est -->
-                          <col style="width:110px">    <!-- EPS Act -->
-                          <col style="width:110px">   <!-- EPS Surp -->
-                          <col style="width:110px">   <!-- Rev Est -->
-                          <col style="width:110px">   <!-- Rev Act -->
-                          <col style="width:110px">   <!-- Rev Surp -->
-                          <col style="width:110px">    <!-- EPS Guide -->
-                          <col style="width:110px">   <!-- Guide Surp EPS -->
-                          <col style="width:110px">   <!-- Rev Guide -->
-                          <col style="width:110px">   <!-- Guide Surp Rev -->
-                          <col style="width:150px">   <!-- Notes -->
-                      </colgroup>
-                      <thead>
-                          <tr>
-                                                            <th class="sortable-header" data-sort="rank" style="padding: 12px 8px; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">#</th>
-                                                                                           <th class="sortable-header" data-sort="company" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; position: relative; cursor: pointer; transition: background-color 0.2s ease;">
-                                     <div style="display: flex; align-items: center; justify-content: flex-start;">
-                                         <div style="margin-right: 15px; margin-left: -8px;">Company</div>
-                                                                                   <input type="text" class="company-search" id="companySearch" placeholder="Search..." style="width: 120px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 10.8px; font-weight: 600; background: #fff; color: #374151; outline: none;" />
-                         </div>
-                     </th>
+        <!-- Loading State -->
+        <div id="loading" class="loading" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>Loading earnings data...</div>
+        </div>
 
-                               <th class="sortable-header" data-sort="market_cap" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Market<br>Cap</th>
-                               <th class="sortable-header" data-sort="market_cap_gain" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Cap<br>Diff</th>
-                                                               <th class="sortable-header" data-sort="size" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Size</th>
-                               <th class="sortable-header" data-sort="price" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Price</th>
-                               <th class="sortable-header" data-sort="today" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">%<br>Change</th>
-                               <th class="sortable-header" data-sort="eps_est" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS<br>Est</th>
-                               <th class="sortable-header" data-sort="eps_act" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS<br>Act</th>
-                               <th class="sortable-header" data-sort="eps_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS<br>Surp</th>
-                               <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev<br>Est</th>
-                               <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev<br>Act</th>
-                               <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev<br>Surp</th>
-                               <th class="sortable-header" data-sort="eps_guide" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS<br>Guide</th>
-                               <th class="sortable-header" data-sort="eps_guide_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Guide<br>Surp</th>
-                               <th class="sortable-header" data-sort="revenue_guide" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev<br>Guide</th>
-                               <th class="sortable-header" data-sort="revenue_guide_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Guide<br>Surp</th>
-                               <th class="sortable-header" data-sort="notes" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Notes</th>
-                 </tr>
-             </thead>
-                  </table>
-             </div>
-         </div>
- 
-         <!-- Loading State -->
-         <div id="loading" class="loading" role="status" aria-live="polite">
-             <div class="spinner" aria-hidden="true"></div>
-             <div>Loading earnings data...</div>
-         </div>
-
-                                                                                                                                                                                                                                                                                                                                                                                               <!-- TABLE (data only) -->
-                                                 <section class="table-container" id="earnings-data" style="display:none; margin-top: 0; padding-top: 0;" aria-label="Earnings Data Table">
-                                                   <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
-                                                    <!-- Precízne šírky pre celý table naraz -->
-                                                    <colgroup>
-                                                      <col style="width:60px">    <!-- # -->
-                                                      <col style="width:200px">   <!-- Company -->
-                                                      <col style="width:120px">   <!-- Market Cap -->
-                                                      <col style="width:120px">   <!-- Cap Diff -->
-                                                      <col style="width:80px">    <!-- Size -->
-                                                      <col style="width:100px">   <!-- Price -->
-                                                      <col style="width:100px">   <!-- % Change -->
-                                                      <col style="width:110px">    <!-- EPS Est -->
-                                                      <col style="width:110px">    <!-- EPS Act -->
-                                                      <col style="width:110px">   <!-- EPS Surp -->
-                                                      <col style="width:110px">   <!-- Rev Est -->
-                                                      <col style="width:110px">   <!-- Rev Act -->
-                                                      <col style="width:110px">   <!-- Rev Surp -->
-                                                      <col style="width:110px">    <!-- EPS Guide -->
-                                                      <col style="width:110px">   <!-- Guide Surp EPS -->
-                                                      <col style="width:110px">   <!-- Rev Guide -->
-                                                      <col style="width:110px">   <!-- Guide Surp Rev -->
-                                                      <col style="width:150px">   <!-- Notes -->
-                                                    </colgroup>
-
-                                                    <tbody id="tableBody"><!-- rows injected by JS --></tbody>
-         </table>
+        <!-- UNIFIED TABLE WITH STICKY THEAD -->
+        <section class="table-scroll" id="earnings-data" style="display:none;" aria-label="Earnings Data Table">
+            <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
+                <colgroup>
+                    <col style="width:60px">    <!-- # -->
+                    <col style="width:200px">   <!-- Company -->
+                    <col style="width:120px">   <!-- Market Cap -->
+                    <col style="width:120px">   <!-- Cap Diff -->
+                    <col style="width:80px">    <!-- Size -->
+                    <col style="width:100px">   <!-- Price -->
+                    <col style="width:100px">   <!-- % Change -->
+                    <col style="width:110px">   <!-- EPS Est -->
+                    <col style="width:110px">   <!-- EPS Act -->
+                    <col style="width:110px">   <!-- EPS Surp -->
+                    <col style="width:110px">   <!-- Rev Est -->
+                    <col style="width:110px">   <!-- Rev Act -->
+                    <col style="width:110px">   <!-- Rev Surp -->
+                    <col style="width:110px">   <!-- EPS Guide -->
+                    <col style="width:110px">   <!-- Guide Surp EPS -->
+                    <col style="width:110px">   <!-- Rev Guide -->
+                    <col style="width:110px">   <!-- Guide Surp Rev -->
+                    <col style="width:150px">   <!-- Notes -->
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="sortable-header" data-sort="rank">#</th>
+                        <th class="sortable-header" data-sort="company">
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <span>Company</span>
+                                <input type="text" id="companySearch" class="company-search" placeholder="Search...">
+                            </div>
+                        </th>
+                        <th class="sortable-header" data-sort="market_cap">Market<br>Cap</th>
+                        <th class="sortable-header" data-sort="market_cap_gain">Cap<br>Diff</th>
+                        <th class="sortable-header" data-sort="size">Size</th>
+                        <th class="sortable-header" data-sort="price">Price</th>
+                        <th class="sortable-header" data-sort="today">%<br>Change</th>
+                        <th class="sortable-header" data-sort="eps_est">EPS<br>Est</th>
+                        <th class="sortable-header" data-sort="eps_act">EPS<br>Act</th>
+                        <th class="sortable-header" data-sort="eps_surprise">EPS<br>Surp</th>
+                        <th class="sortable-header" data-sort="revenue_est">Rev<br>Est</th>
+                        <th class="sortable-header" data-sort="revenue_act">Rev<br>Act</th>
+                        <th class="sortable-header" data-sort="revenue_surprise">Rev<br>Surp</th>
+                        <th class="sortable-header" data-sort="eps_guide">EPS<br>Guide</th>
+                        <th class="sortable-header" data-sort="eps_guide_surprise">Guide<br>Surp</th>
+                        <th class="sortable-header" data-sort="revenue_guide">Rev<br>Guide</th>
+                        <th class="sortable-header" data-sort="revenue_guide_surprise">Guide<br>Surp</th>
+                        <th class="sortable-header" data-sort="notes">Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"><!-- rows injected by JS --></tbody>
+            </table>
         </section>
     </main>
  
@@ -1638,16 +1512,12 @@
         });
     }
 
-                                                               // Funkcia na dopočítanie výšok pre sticky pozície
+        // Function to update sticky heights for positioning
         function updateStickyHeights() {
             const hHeader = document.getElementById('pageHeader')?.offsetHeight || 0;
             const hKpis = document.getElementById('market-stats')?.offsetHeight || 0;
-            // Hľadáme caption div podľa textu "Earnings table" v novom div struktúre
-            const captionDiv = Array.from(document.querySelectorAll('div')).find(div => 
-                div.textContent?.trim() === 'Earnings table' && 
-                div.parentElement?.style.position === 'sticky'
-            );
-            const hCaption = captionDiv ? captionDiv.parentElement.offsetHeight : 120; // fallback na 120px (caption + header)
+            // Caption is now part of the main flow, not sticky
+            const hCaption = 0;
 
             const root = document.documentElement.style;
             root.setProperty('--h-header', hHeader + 'px');
@@ -1655,7 +1525,7 @@
             root.setProperty('--h-caption', hCaption + 'px');
             
             console.log('Sticky heights updated:', { hHeader, hKpis, hCaption });
-    }
+        }
 
     // Initialize when document is ready
     $(document).ready(function() {
@@ -1672,38 +1542,12 @@
            window.addEventListener('load', updateStickyHeights);
            window.addEventListener('resize', updateStickyHeights);
            
-           // Synchronize column widths
-           window.addEventListener('load', synchronizeColumnWidths);
-           window.addEventListener('resize', synchronizeColumnWidths);
-           
-           // Additional synchronization after table rendering
-           window.addEventListener('load', function() {
-               setTimeout(synchronizeColumnWidths, 100);
-           });
+           // Column width synchronization no longer needed with single table structure
            
            // Initialization complete
     });
 
-    // Function to ensure column widths are synchronized
-    function synchronizeColumnWidths() {
-        const headerTable = document.querySelector('.earnings-table-header');
-        const dataTable = document.querySelector('.earnings-table');
-        
-        if (headerTable && dataTable) {
-            // Force table layout recalculation
-            headerTable.style.tableLayout = 'fixed';
-            dataTable.style.tableLayout = 'fixed';
-            
-                                      // Ensure both tables have the same width and maintain column alignment
-              const tableWidth = Math.max(2000, window.innerWidth * 0.8 - 40);
-            headerTable.style.minWidth = tableWidth + 'px';
-            dataTable.style.minWidth = tableWidth + 'px';
-            
-            // Force browser to recalculate layout
-            headerTable.offsetHeight;
-            dataTable.offsetHeight;
-        }
-    }
+    // Column width synchronization no longer needed with single table structure
 
     // Auto-refresh every 5 minutes
     setInterval(loadEarningsData, 5 * 60 * 1000);
