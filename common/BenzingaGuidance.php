@@ -19,7 +19,7 @@ class BenzingaGuidance {
     
     public function __construct() {
         $this->apiKey = POLYGON_API_KEY ?? null;
-        if ($this->apiKey === null || $this->apiKey === '') {
+        if (empty($this->apiKey)) {
             throw new Exception("POLYGON_API_KEY not configured in config.php");
         }
         
