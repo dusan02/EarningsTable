@@ -10,6 +10,7 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/Finnhub.php';
 require_once __DIR__ . '/api_functions.php';
+require_once __DIR__ . '/HistoricalDataManager.php';
 
 class DailyDataSetup {
     private $date;
@@ -222,7 +223,7 @@ class DailyDataSetup {
     }
     
     /**
-     * Spracovanie dát pre jeden ticker
+     * Spracovanie dát pre jeden ticker - OPTIMALIZOVANÉ
      */
     private function processTickerData($ticker) {
         $tickerData = [
@@ -237,8 +238,8 @@ class DailyDataSetup {
             return false;
         }
         
-        // Extract and validate previous close
-        $previousClose = $tickerData['polygon_batch']['prevDay']['c'] ?? null;
+        // Extract and validate previous close - INTELLIGENTNÉ HĽADANIE
+        $previousClose = HistoricalDataManager::findValidPreviousClose($tickerData, $ticker);
         if ($previousClose === null || $previousClose <= 0) {
             return false;
         }

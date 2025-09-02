@@ -12,6 +12,7 @@ require_once __DIR__ . '/error_handler.php';
 require_once __DIR__ . '/Lock.php';
 require_once __DIR__ . '/api_functions.php';
 require_once __DIR__ . '/Finnhub.php';
+require_once __DIR__ . '/HistoricalDataManager.php';
 
 class RegularDataUpdatesDynamic {
     private $date;
@@ -236,15 +237,20 @@ class RegularDataUpdatesDynamic {
     }
     
     /**
-     * Spracovanie Polygon batch dát s robustnou logikou pre % CHANGE
+     * Spracovanie Polygon batch dát s robustnou logikou pre % CHANGE - UPRAVENÉ
      */
     private function processPolygonBatchData($batchData, $lastTradesData = null) {
         // batchData is already ticker-keyed array from getPolygonBatchQuote
         foreach ($batchData as $ticker => $result) {
-            $previousClose = $result['prevDay']['c'] ?? null;
+            // Use historical previous_close from database instead of current prevDay.c
+            $historicalPreviousClose = HistoricalDataManager::getHistoricalPreviousCloseFromDB($ticker);
+            
+            // Fallback to current prevDay.c if historical data not available
+            $previousClose = $historicalPreviousClose ?? ($result['prevDay']['c'] ?? null);
             
             // Validate previous close
             if ($previousClose === null || $previousClose <= 0) {
+                echo "⚠️  {$ticker}: Skipping - no valid previous close (historical: {$historicalPreviousClose}, current: " . ($result['prevDay']['c'] ?? 'null') . ")\n";
                 continue;
             }
             
@@ -258,12 +264,23 @@ class RegularDataUpdatesDynamic {
             
             // Get current price using existing logic
             $priceData = getCurrentPrice($result);
+            
+            // FALLBACK: If no current price, use historical previous_close from database
             if ($priceData === null || $priceData['price'] <= 0) {
-                continue;
+                $fallbackData = HistoricalDataManager::getCurrentPriceWithFallback($result, $ticker);
+                if ($fallbackData) {
+                    $currentPrice = $fallbackData['price'];
+                    $priceSource = $fallbackData['source'];
+                } else {
+                    echo "⚠️  {$ticker}: Skipping - no valid current price or historical fallback\n";
+                    continue;
+                }
+            } else {
+                $currentPrice = $priceData['price'];
+                $priceSource = $priceData['source'];
             }
             
-            $currentPrice = $priceData['price'];
-            $priceSource = $priceData['source'];
+            echo "✅ {$ticker}: Processing with historical prevClose={$previousClose}, currentPrice={$currentPrice}\n";
             
             $this->priceUpdates[$ticker] = [
                 'current_price' => $currentPrice,
@@ -318,6 +335,8 @@ class RegularDataUpdatesDynamic {
         
         $this->phaseTimes['market_cap_diff'] = round(microtime(true) - $phaseStart, 2);
     }
+    
+    // Historical data management moved to HistoricalDataManager class
     
     /**
      * Batch fetch current data from database

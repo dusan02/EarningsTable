@@ -225,6 +225,55 @@ function getPolygonBatchLastTrades($tickers) {
 }
 
 /**
+ * Get historical daily close data from Polygon V2 Aggregates API
+ * @param string $ticker Ticker symbol
+ * @param string $date Date in Y-m-d format
+ * @return float|false Previous close price or false on error
+ */
+function getPolygonHistoricalClose($ticker, $date) {
+    // Convert date to timestamp for Polygon API
+    $timestamp = strtotime($date);
+    if ($timestamp === false) return false;
+    
+    // Polygon expects milliseconds timestamp
+    $from = ($timestamp - (24 * 60 * 60)) * 1000; // Previous day
+    $to = $timestamp * 1000; // Current day
+    
+    $url = POLYGON_BASE_URL . "/v2/aggs/ticker/{$ticker}/range/1/day/{$from}/{$to}";
+    $url .= "?adjusted=true&sort=desc&limit=2&apikey=" . POLYGON_API_KEY;
+    
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 10,
+            'header' => [
+                'User-Agent: EarningsTable/1.0',
+                'Accept: application/json'
+            ]
+        ]
+    ]);
+    
+    $response = file_get_contents($url, false, $context);
+    
+    if ($response === false) {
+        return false;
+    }
+    
+    $data = json_decode($response, true);
+    
+    if (!isset($data['results']) || empty($data['results'])) {
+        return false;
+    }
+    
+    // Return previous day's close (second result, since we're sorting desc)
+    if (count($data['results']) >= 2) {
+        return (float)$data['results'][1]['c']; // Close price
+    }
+    
+    return false;
+}
+
+/**
  * Get batch ticker details from Polygon V3 Reference API
  * @param array $tickers Array of ticker symbols
  * @return array|false Polygon V3 reference data or false on error
