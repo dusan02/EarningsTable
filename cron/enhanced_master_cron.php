@@ -27,9 +27,10 @@ try {
     $returnCode = 0;
     exec('php cron/clear_old_data.php --force 2>&1', $output, $returnCode);
     
+    $clearTime = round(microtime(true) - $clearStart, 2);
     echo implode("\n", $output) . "\n";
     if ($returnCode === 0) {
-        echo "✅ Clear old data completed in " . round(microtime(true) - $clearStart, 2) . "s\n";
+        echo "✅ Clear old data completed in {$clearTime}s\n";
     } else {
         echo "❌ Clear old data failed\n";
     }
@@ -42,9 +43,10 @@ try {
     $returnCode = 0;
     exec('php cron/daily_data_setup_static.php 2>&1', $output, $returnCode);
     
+    $fetchTime = round(microtime(true) - $fetchStart, 2);
     echo implode("\n", $output) . "\n";
     if ($returnCode === 0) {
-        echo "✅ Daily data setup completed in " . round(microtime(true) - $fetchStart, 2) . "s\n";
+        echo "✅ Daily data setup completed in {$fetchTime}s\n";
     } else {
         echo "❌ Daily data setup failed\n";
     }
@@ -57,9 +59,10 @@ try {
     $returnCode = 0;
     exec('php cron/regular_data_updates_dynamic.php 2>&1', $output, $returnCode);
     
+    $polygonTime = round(microtime(true) - $polygonStart, 2);
     echo implode("\n", $output) . "\n";
     if ($returnCode === 0) {
-        echo "✅ Regular data updates completed in " . round(microtime(true) - $polygonStart, 2) . "s\n";
+        echo "✅ Regular data updates completed in {$polygonTime}s\n";
     } else {
         echo "❌ Regular data updates failed\n";
     }
@@ -70,10 +73,8 @@ try {
     echo "✅ Daily data setup: Static data (Finnhub + Polygon)\n";
     echo "✅ Regular updates: Dynamic data (Finnhub + Polygon)\n";
     
-    // Calculate step times
-    $clearTime = round(microtime(true) - $clearStart, 2);
-    $fetchTime = round(microtime(true) - $fetchStart, 2);
-    $polygonTime = round(microtime(true) - $polygonStart, 2);
+    // Calculate step times - FIXED: each step measures its own time
+    // $clearTime, $fetchTime, $polygonTime are already calculated above
     
     // STEP 5: Final summary with detailed timing
     echo "\n=== FINAL SUMMARY ===\n";
@@ -113,15 +114,15 @@ try {
     echo "\n📊 Actual values: {$actualStats['with_eps']}/{$actualStats['total']} EPS ({$epsPercent}%), ";
     echo "{$actualStats['with_revenue']}/{$actualStats['total']} Revenue ({$revenuePercent}%)\n";
     
-    // Detailed timing breakdown
+    // Detailed timing breakdown - FIXED: using correct step times
     echo "\n⏱️  EXECUTION TIME BREAKDOWN:\n";
     echo "  🗑️  Step 1 (Clear old data): {$clearTime}s\n";
     echo "  📊 Step 2 (Daily data setup): {$fetchTime}s\n";
     echo "  ⚡ Step 3 (Regular data updates): {$polygonTime}s\n";
-    echo "  📈 Step 4 (Summary): " . round(microtime(true) - $polygonStart, 2) . "s\n";
     
-    $totalTime = round(microtime(true) - $startTime, 2);
-    echo "  🚀 TOTAL EXECUTION TIME: {$totalTime}s\n";
+    // Calculate total time correctly
+    $totalTime = $clearTime + $fetchTime + $polygonTime;
+    echo "  🚀 TOTAL EXECUTION TIME: {$totalTime}s (sum of all steps)\n";
     
     echo "\n✅ Enhanced master cron completed successfully!\n";
     echo "🎯 New architecture: Better performance and stability!\n";
