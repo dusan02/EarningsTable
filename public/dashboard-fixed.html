@@ -961,6 +961,18 @@
     /* ===== IMPROVED TABLE ROWS ===== */
     /* Note: .table-row and .table-cell styles are now handled by .earnings-table-left tbody tr and .earnings-table-right tbody tr */
     /* The dual table structure provides separate styling for each part */
+    
+    /* Extreme value indicator */
+    .extreme-value {
+        color: var(--color-orange-500);
+        font-weight: 600;
+    }
+    
+    /* Extreme value warning (!) */
+    .extreme-warning {
+        color: var(--color-orange-600);
+        font-weight: 700;
+    }
 
     /* ===== IMPROVED WINNER CARDS ===== */
     .winner-card {
@@ -2272,11 +2284,18 @@
             return `${sign}${absNum.toFixed(0)}`;
         },
 
-        formatGuidePercent: (value) => {
+        formatGuidePercent: (value, isExtreme = false) => {
             if (value == null || !isFinite(value)) return '–';
             const num = parseFloat(value);
-            const sign = num >= 0 ? '+' : '';
-            return `${sign}${num.toFixed(2)}%`;
+            
+            // Clamp extreme values for visual display (but keep raw data)
+            const clamped = Math.max(-300, Math.min(300, num));
+            const isClamped = Math.abs(num) > 300;
+            
+            const sign = clamped >= 0 ? '+' : '';
+            const suffix = isClamped ? ' !' : '';
+            
+            return `${sign}${clamped.toFixed(2)}%${suffix}`;
         },
 
         // CSS class helpers
@@ -2517,9 +2536,9 @@
                 const guidanceRow = document.createElement('tr');
                 guidanceRow.innerHTML = `
                     <td>${Utils.formatEPS(item.eps_guide)}</td>
-                    <td class="${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}` : 'No data available'}">${Utils.formatGuidePercent(item.eps_guide_surprise)}</td>
+                    <td class="${item.eps_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}${item.eps_guide_extreme ? ' (Raw: ' + (item.eps_guide_surprise != null ? Number(item.eps_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.eps_guide_surprise, item.eps_guide_extreme)}</td>
                     <td>${Utils.formatCurrency(item.revenue_guide)}</td>
-                    <td class="${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}` : 'No data available'}">${Utils.formatGuidePercent(item.revenue_guide_surprise)}</td>
+                    <td class="${item.revenue_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}${item.revenue_guide_extreme ? ' (Raw: ' + (item.revenue_guide_surprise != null ? Number(item.revenue_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.revenue_guide_surprise, item.revenue_guide_extreme)}</td>
                 <td>
                     <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
                         i

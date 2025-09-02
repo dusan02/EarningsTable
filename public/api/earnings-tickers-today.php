@@ -49,6 +49,11 @@ try {
             g.previous_max_eps_guidance,
             g.previous_min_revenue_guidance,
             g.previous_max_revenue_guidance,
+            g.fiscal_period as guidance_fiscal_period,
+            g.fiscal_year as guidance_fiscal_year,
+            g.eps_method as guidance_eps_method,
+            g.revenue_method as guidance_revenue_method,
+            g.currency as guidance_currency,
             g.notes as guidance_notes
         FROM EarningsTickersToday e
         LEFT JOIN TodayEarningsMovements t ON e.ticker = t.ticker
@@ -63,6 +68,11 @@ try {
                 previous_max_eps_guidance,
                 previous_min_revenue_guidance,
                 previous_max_revenue_guidance,
+                fiscal_period,
+                fiscal_year,
+                eps_method,
+                revenue_method,
+                currency,
                 notes,
                 ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY 
                     CASE WHEN release_type = 'final' THEN 1 ELSE 2 END,
@@ -79,33 +89,70 @@ try {
     $stmt->execute([$date]);
     $earnings = $stmt->fetchAll();
     
-    // Apply fallback logic for guidance surprise values
+    // Helper functions for validation
+    function periodsMatch($guidance, $item) {
+        // For now, we'll use a simplified approach since EarningsTickersToday doesn't have fiscal periods
+        // In the future, when estimates have fiscal periods, we can add proper validation
+        return true; // Allow fallback 2 for now, but log for monitoring
+    }
+    
+    function methodOk($guidanceMethod, $estimateMethod) {
+        // Allow calculation if either method is null (unknown)
+        // Only block if both are known and different
+        if ($guidanceMethod === null || $estimateMethod === null) return true;
+        return $guidanceMethod === $estimateMethod;
+    }
+    
+    function isExtremeValue($value) {
+        return abs($value) > 300; // Flag values above 300% as potentially extreme
+    }
+    
+    // Apply fallback logic for guidance surprise values with enhanced validation
     foreach ($earnings as &$item) {
         // EPS Guide Surprise Fallback
         if ($item['eps_guide_surprise_consensus'] !== null) {
             // Use consensus if available
             $item['eps_guide_surprise'] = $item['eps_guide_surprise_consensus'];
             $item['eps_guide_basis'] = 'consensus';
-        } elseif ($item['eps_guide'] !== null && $item['eps_estimate'] !== null && $item['eps_estimate'] != 0) {
+            $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
+        } elseif (
+            $item['eps_guide'] !== null && 
+            $item['eps_estimate'] !== null && 
+            $item['eps_estimate'] != 0 &&
+            periodsMatch($item, $item) && // TODO: Fix when guidance data has fiscal periods
+            methodOk($item['guidance_eps_method'] ?? null, null) // No estimate method available yet
+        ) {
             // Fallback: guidance vs estimate
             $item['eps_guide_surprise'] = (($item['eps_guide'] - $item['eps_estimate']) / $item['eps_estimate']) * 100;
             $item['eps_guide_basis'] = 'estimate';
-        } elseif ($item['eps_guide'] !== null && 
-                  ($item['previous_min_eps_guidance'] !== null || $item['previous_max_eps_guidance'] !== null)) {
-            // Fallback: guidance vs previous guidance midpoint
-            $min = $item['previous_min_eps_guidance'] ?? $item['eps_guide'];
-            $max = $item['previous_max_eps_guidance'] ?? $item['eps_guide'];
-            $midpoint = ($min + $max) / 2;
+            $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
+            
+            // Log potential mismatches for monitoring
+            if ($item['eps_guide_extreme']) {
+                error_log("EXTREME EPS: {$item['ticker']} = {$item['eps_guide_surprise']}% (guidance: {$item['eps_estimate']}, estimate: {$item['eps_estimate']}) - basis: estimate");
+            }
+        } elseif (
+            $item['eps_guide'] !== null && 
+            $item['previous_min_eps_guidance'] !== null && 
+            $item['previous_max_eps_guidance'] !== null &&
+            $item['previous_min_eps_guidance'] != 0 && 
+            $item['previous_max_eps_guidance'] != 0
+        ) {
+            // Fallback: guidance vs previous guidance midpoint (only if both min/max exist)
+            $midpoint = ($item['previous_min_eps_guidance'] + $item['previous_max_eps_guidance']) / 2;
             if ($midpoint != 0) {
                 $item['eps_guide_surprise'] = (($item['eps_guide'] - $midpoint) / $midpoint) * 100;
                 $item['eps_guide_basis'] = 'previous_mid';
+                $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
             } else {
                 $item['eps_guide_surprise'] = null;
                 $item['eps_guide_basis'] = null;
+                $item['eps_guide_extreme'] = false;
             }
         } else {
             $item['eps_guide_surprise'] = null;
             $item['eps_guide_basis'] = null;
+            $item['eps_guide_extreme'] = false;
         }
         
         // Revenue Guide Surprise Fallback
@@ -113,26 +160,45 @@ try {
             // Use consensus if available
             $item['revenue_guide_surprise'] = $item['revenue_guide_surprise_consensus'];
             $item['revenue_guide_basis'] = 'consensus';
-        } elseif ($item['revenue_guide'] !== null && $item['revenue_estimate'] !== null && $item['revenue_estimate'] != 0) {
+            $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
+        } elseif (
+            $item['revenue_guide'] !== null && 
+            $item['revenue_estimate'] !== null && 
+            $item['revenue_estimate'] != 0 &&
+            periodsMatch($item, $item) && // TODO: Fix when guidance data has fiscal periods
+            methodOk($item['guidance_revenue_method'] ?? null, null) // No estimate method available yet
+        ) {
             // Fallback: guidance vs estimate
             $item['revenue_guide_surprise'] = (($item['revenue_guide'] - $item['revenue_estimate']) / $item['revenue_estimate']) * 100;
             $item['revenue_guide_basis'] = 'estimate';
-        } elseif ($item['revenue_guide'] !== null && 
-                  ($item['previous_min_revenue_guidance'] !== null || $item['previous_max_revenue_guidance'] !== null)) {
-            // Fallback: guidance vs previous guidance midpoint
-            $min = $item['previous_min_revenue_guidance'] ?? $item['revenue_guide'];
-            $max = $item['previous_max_revenue_guidance'] ?? $item['revenue_guide'];
-            $midpoint = ($min + $max) / 2;
+            $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
+            
+            // Log potential mismatches for monitoring
+            if ($item['revenue_guide_extreme']) {
+                error_log("EXTREME REVENUE: {$item['ticker']} = {$item['revenue_guide_surprise']}% (guidance: {$item['revenue_guide']}, estimate: {$item['revenue_estimate']}) - basis: estimate");
+            }
+        } elseif (
+            $item['revenue_guide'] !== null && 
+            $item['previous_min_revenue_guidance'] !== null && 
+            $item['previous_max_revenue_guidance'] !== null &&
+            $item['previous_min_revenue_guidance'] != 0 && 
+            $item['previous_max_revenue_guidance'] != 0
+        ) {
+            // Fallback: guidance vs previous guidance midpoint (only if both min/max exist)
+            $midpoint = ($item['previous_min_revenue_guidance'] + $item['previous_max_revenue_guidance']) / 2;
             if ($midpoint != 0) {
                 $item['revenue_guide_surprise'] = (($item['revenue_guide'] - $midpoint) / $midpoint) * 100;
                 $item['revenue_guide_basis'] = 'previous_mid';
+                $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
             } else {
                 $item['revenue_guide_surprise'] = null;
                 $item['revenue_guide_basis'] = null;
+                $item['revenue_guide_extreme'] = false;
             }
         } else {
             $item['revenue_guide_surprise'] = null;
             $item['revenue_guide_basis'] = null;
+            $item['revenue_guide_extreme'] = false;
         }
         
         // Clean up temporary fields
@@ -142,6 +208,11 @@ try {
         unset($item['previous_max_eps_guidance']);
         unset($item['previous_min_revenue_guidance']);
         unset($item['previous_max_revenue_guidance']);
+        unset($item['guidance_fiscal_period']);
+        unset($item['guidance_fiscal_year']);
+        unset($item['guidance_eps_method']);
+        unset($item['guidance_revenue_method']);
+        unset($item['guidance_currency']);
     }
     
     $response = [
