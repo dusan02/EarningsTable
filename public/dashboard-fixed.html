@@ -200,17 +200,18 @@
     /* Scroll container: this fixes "overflow" and alignment issues */
     .table-scroll {
         position: relative;
-        overflow: auto;            /* horizontal AND vertical scroll */
+        overflow: hidden;           /* žiadny horizontálny scroll */
+        width: 100%;                /* zabezpečí plnú šírku */
         max-width: 100%;
-        /* reserve space for scrollbar so header never shifts */
-        scrollbar-gutter: stable both-edges; /* supported in most modern browsers */
         background: #fff;
-        padding: 0 0 24px 0;
+        padding-bottom: 12px;
     }
 
     /* Single table for header and body */
     .earnings-table {
-        width: max(100%, 1930px);  /* maintain min width but adapt - reduced due to Notes column width change */
+        width: 100%;                /* roztiahni na celú šírku kontajnera */
+        min-width: 100%;            /* zabezpečí minimálnu šírku */
+        transform-origin: top left; /* škálovanie od ľavého horného rohu */
         table-layout: fixed;
         border-collapse: collapse;
         font-family: 'Inter', sans-serif;
@@ -580,17 +581,18 @@
            display:flex; gap:8px; align-items:center; justify-content:flex-start; width:100%;
          }
          
-         /* Company stĺpec - zabezpečí správnu šírku */
-         th[data-sort="company"] {
-           overflow: hidden;
-           max-width: 200px;
-         }
-        .company-search{
-          width:160px; max-width:180px;
-          padding:6px 8px;
-          border:1px solid #d1d5db; border-radius:4px;
-          font-size:11px; background:#fff; color:#374151; outline:none;
-        }
+                             /* Company stĺpec - zabezpečí správnu šírku */
+           th[data-sort="company"] {
+             overflow: hidden;
+             max-width: 120px;
+             width: 120px;
+           }
+                                   .company-search{
+            width:100px; max-width:120px;
+            padding:6px 8px;
+            border:1px solid #d1d5db; border-radius:4px;
+            font-size:11px; background:#fff; color:#374151; outline:none;
+          }
         .company-search:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.1); }
 
 
@@ -601,40 +603,47 @@
          
 
 
-    /* COMPANY INFO */
-    .company-info {
-        display: flex;
-        align-items: center;
-        width: 100%;
-    }
+         /* COMPANY INFO */
+     .company-info {
+         display: flex;
+         align-items: center;
+         width: 100%;
+         min-width: 0;
+         overflow: hidden;
+     }
 
-    .company-details {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        min-width: 0;
-        flex: 1;
-    }
+         .company-details {
+         display: flex;
+         flex-direction: row;
+         align-items: center;
+         min-width: 0;
+         flex: 1;
+         width: 100%;
+     }
 
-    .company-name {
-        font-weight: 600;
-        color: #1a1a1a;
-        font-size: 13px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1;
-    }
+     .company-name {
+         font-weight: 600;
+         color: #1a1a1a;
+         font-size: 13px;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         flex: 1;
+         min-width: 0;
+         max-width: none;
+     }
 
-    .company-ticker {
-        font-weight: 600;
-        color: #1a1a1a;
-        font-size: 13px;
-        flex-shrink: 0;
-        min-width: 50px; /* fixná šírka pre ticker */
-        margin-right: 16px; /* dve medzery medzi tickerom a názvom */
-        text-transform: uppercase; /* ticker symboly budú veľkými písmenami */
-    }
+         .company-ticker {
+         font-weight: 600;
+         color: #1a1a1a;
+         font-size: 13px;
+         flex-shrink: 0;
+         min-width: 60px; /* zväčšené z 50px na 60px pre lepšiu čitateľnosť */
+         max-width: 60px; /* fixná maximálna šírka */
+         margin-right: 12px; /* zmenšené z 16px na 12px pre lepšie využitie priestoru */
+         text-transform: uppercase; /* ticker symboly budú veľkými písmenami */
+         text-align: left;
+     }
 
     /* STATUS BADGES */
     .status-badge {
@@ -746,10 +755,6 @@
             padding: 16px 20px;
         }
         
-        .earnings-table {
-            min-width: 1930px; /* Reduced from 2000px due to Notes column width change */
-        }
-
         /* Mobile spacing adjustments */
         .header { 
             padding-top: 10px; 
@@ -758,11 +763,6 @@
         
         .winners-container { 
             padding-bottom: 6px; 
-        }
-        
-        /* Ensure consistent column widths on mobile */
-        .earnings-table col {
-            width: auto !important;
         }
     }
 
@@ -780,21 +780,21 @@
         justify-content: center;
     }
 
-         .company-search {
-         width: 120px;
-         max-width: 120px;
-         padding: 6px 8px;
-         border: 1px solid #d1d5db;
-         border-radius: 4px;
-         font-size: 10.8px;
-         font-family: 'Inter', sans-serif;
-         background: white;
-         color: #374151;
-         outline: none;
-         transition: border-color 0.2s ease;
-         overflow: hidden;
-         text-overflow: ellipsis;
-     }
+                   .company-search {
+          width: 180px;
+          max-width: 200px;
+          padding: 6px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 10.8px;
+          font-family: 'Inter', sans-serif;
+          background: white;
+          color: #374151;
+          outline: none;
+          transition: border-color 0.2s ease;
+          overflow: hidden;
+          text-overflow: ellipsis;
+      }
 
     .company-search:focus {
         border-color: #3b82f6;
@@ -979,53 +979,54 @@
         <!-- UNIFIED TABLE WITH STICKY THEAD -->
         <section class="table-scroll" id="earnings-data" style="display:none;" aria-label="Earnings Data Table">
             <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
-                <colgroup>
-                    <col style="width:60px">    <!-- # -->
-                    <col style="width:200px">   <!-- Company -->
-                    <col style="width:120px">   <!-- Market Cap -->
-                    <col style="width:120px">   <!-- Cap Diff -->
-                    <col style="width:80px">    <!-- Size -->
-                    <col style="width:100px">   <!-- Price -->
-                    <col style="width:100px">   <!-- % Change -->
-                    <col style="width:110px">   <!-- EPS Est -->
-                    <col style="width:110px">   <!-- EPS Act -->
-                    <col style="width:110px">   <!-- EPS Surp -->
-                    <col style="width:110px">   <!-- Rev Est -->
-                    <col style="width:110px">   <!-- Rev Act -->
-                    <col style="width:110px">   <!-- Rev Surp -->
-                    <col style="width:110px">   <!-- EPS Guide -->
-                    <col style="width:110px">   <!-- Guide Surp EPS -->
-                    <col style="width:110px">   <!-- Rev Guide -->
-                    <col style="width:110px">   <!-- Guide Surp Rev -->
-                                         <col style="width:80px">    <!-- Notes -->
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th class="sortable-header" data-sort="rank">#</th>
-                        <th class="sortable-header" data-sort="company">
-                            <div style="display:flex;align-items:center;gap:12px">
-                                <span>Company</span>
-                                <input type="text" id="companySearch" class="company-search" placeholder="Search...">
-                            </div>
-                        </th>
-                        <th class="sortable-header" data-sort="market_cap">Market<br>Cap</th>
-                        <th class="sortable-header" data-sort="market_cap_gain">Cap<br>Diff</th>
-                        <th class="sortable-header" data-sort="size">Size</th>
-                        <th class="sortable-header" data-sort="price">Price</th>
-                        <th class="sortable-header" data-sort="today">%<br>Change</th>
-                        <th class="sortable-header" data-sort="eps_est">EPS<br>Est</th>
-                        <th class="sortable-header" data-sort="eps_act">EPS<br>Act</th>
-                        <th class="sortable-header" data-sort="eps_surprise">EPS<br>Surp</th>
-                        <th class="sortable-header" data-sort="revenue_est">Rev<br>Est</th>
-                        <th class="sortable-header" data-sort="revenue_act">Rev<br>Act</th>
-                        <th class="sortable-header" data-sort="revenue_surprise">Rev<br>Surp</th>
-                        <th class="sortable-header" data-sort="eps_guide">EPS<br>Guide</th>
-                        <th class="sortable-header" data-sort="eps_guide_surprise">Guide<br>Surp</th>
-                        <th class="sortable-header" data-sort="revenue_guide">Rev<br>Guide</th>
-                        <th class="sortable-header" data-sort="revenue_guide_surprise">Guide<br>Surp</th>
-                                                 <th class="sortable-header" data-sort="notes" style="text-align: center;">Notes</th>
-                    </tr>
-                </thead>
+<colgroup>
+     <col style="width:12px"> <!-- # -->
+     <col style="width:100px"> <!-- Company - optimalizované z 200px na 120px -->
+     <col style="width:35px"> <!-- Market Cap - zväčšené z 22px na 35px -->
+     <col style="width:35px"> <!-- Cap Diff - zväčšené z 22px na 35px -->
+     <col style="width:25px"> <!-- Size - zväčšené z 15px na 25px -->
+     <col style="width:25px"> <!-- Price - zväčšené z 15px na 25px -->
+     <col style="width:25px"> <!-- % Change - zväčšené z 15px na 25px -->
+     <col style="width:25px"> <!-- EPS Est - zväčšené z 15px na 25px -->
+     <col style="width:25px"> <!-- EPS Act - zväčšené z 15px na 25px -->
+     <col style="width:25px"> <!-- EPS Surp - zväčšené z 15px na 25px -->
+     <col style="width:35px"> <!-- Rev Est - zväčšené z 15px na 35px -->
+     <col style="width:35px"> <!-- Rev Act - zväčšené z 15px na 35px -->
+     <col style="width:30px"> <!-- Rev Surp - zväčšené z 15px na 25px -->
+     <col style="width:28px"> <!-- EPS Guide - zväčšené z 15px na 25px -->
+     <col style="width:35px"> <!-- Guide Surp EPS - zväčšené z 15px na 25px -->
+     <col style="width:35px"> <!-- Rev Guide - zväčšené z 15px na 35px -->
+     <col style="width:35px"> <!-- Guide Surp Rev - zväčšené z 15px na 25px -->
+     <col style="width:15px"> <!-- Notes - zväčšené z 10px na 15px -->
+ </colgroup>
+
+                                 <thead>
+                     <tr>
+                         <th class="sortable-header" data-sort="rank">#</th>
+                         <th class="sortable-header" data-sort="company">
+                             <div style="display:flex;align-items:center;gap:12px">
+                                 <span>Company</span>
+                                 <input type="text" id="companySearch" class="company-search" placeholder="Search...">
+                             </div>
+                         </th>
+                         <th class="sortable-header" data-sort="market_cap">Market Cap</th>
+                         <th class="sortable-header" data-sort="market_cap_gain">Cap Diff</th>
+                         <th class="sortable-header" data-sort="size">Size</th>
+                         <th class="sortable-header" data-sort="price">Price</th>
+                                                   <th class="sortable-header" data-sort="today">CHANGE</th>
+                         <th class="sortable-header" data-sort="eps_est">EPS Est</th>
+                         <th class="sortable-header" data-sort="eps_act">EPS Act</th>
+                         <th class="sortable-header" data-sort="eps_surprise">EPS Surp</th>
+                         <th class="sortable-header" data-sort="revenue_est">Rev Est</th>
+                         <th class="sortable-header" data-sort="revenue_act">Rev Act</th>
+                         <th class="sortable-header" data-sort="revenue_surprise">Rev Surp</th>
+                         <th class="sortable-header" data-sort="eps_guide">EPS Guide</th>
+                         <th class="sortable-header" data-sort="eps_guide_surprise">Guide Surp</th>
+                         <th class="sortable-header" data-sort="revenue_guide">Rev Guide</th>
+                         <th class="sortable-header" data-sort="revenue_guide_surprise">Guide Surp</th>
+                                                  <th class="sortable-header" data-sort="notes" style="text-align: center;">i</th>
+                     </tr>
+                 </thead>
                 <tbody id="tableBody"><!-- rows injected by JS --></tbody>
             </table>
         </section>
@@ -1047,8 +1048,68 @@
       </footer>
     </div> <!-- End of main-container -->
 
-    <script>
-    // Helper functions
+         <script>
+     // Helper functions
+     
+     // Optimalizovaná funkcia pre skracovanie názvov spoločností
+     function getShortCompanyNameOptimized(fullName) {
+         if (!fullName) return '-';
+         
+         // Odstráni bežné prípony a prídavky
+         let shortName = fullName
+             .replace(/\s*Inc\.?/i, '')           // Inc, Inc.
+             .replace(/\s*Corp\.?/i, '')          // Corp, Corp.
+             .replace(/\s*Corporation/i, '')       // Corporation
+             .replace(/\s*LLC/i, '')               // LLC
+             .replace(/\s*Ltd\.?/i, '')           // Ltd, Ltd.
+             .replace(/\s*Limited/i, '')           // Limited
+             .replace(/\s*Company/i, '')           // Company
+             .replace(/\s*Co\.?/i, '')            // Co, Co.
+             .replace(/\s*Group/i, '')             // Group
+             .replace(/\s*Holdings/i, '')          // Holdings
+             .replace(/\s*International/i, '')     // International
+             .replace(/\s*Int'l/i, '')            // Int'l
+             .replace(/\s*American/i, '')          // American
+             .replace(/\s*Common/i, '')            // Common
+             .replace(/\s*Stock/i, '')             // Stock
+             .replace(/\s*Shares/i, '')            // Shares
+             .replace(/\s*Class\s+[A-Z]/i, '')    // Class A, Class B, atď.
+             .replace(/\s*Series\s+[A-Z]/i, '')   // Series A, Series B, atď.
+             .replace(/\s*Preferred/i, '')         // Preferred
+             .replace(/\s*Ordinary/i, '')          // Ordinary
+             .replace(/\s*Depositary/i, '')        // Depositary
+             .replace(/\s*Receipts/i, '')          // Receipts
+             .replace(/\s*Units/i, '')             // Units
+             .replace(/\s*Trust/i, '')             // Trust
+             .replace(/\s*Fund/i, '')              // Fund
+             .replace(/\s*ETF/i, '')               // ETF
+             .replace(/\s*REIT/i, '')              // REIT
+             .replace(/\s*MLP/i, '')               // MLP
+             .replace(/\s*Partnership/i, '')       // Partnership
+             .replace(/\s*Associates/i, '')        // Associates
+             .replace(/\s*Enterprises/i, '')       // Enterprises
+             .replace(/\s*Industries/i, '')        // Industries
+             .replace(/\s*Technologies/i, '')      // Technologies
+             .replace(/\s*Technology/i, '')        // Technology
+             .replace(/\s*Systems/i, '')           // Systems
+             .replace(/\s*Solutions/i, '')         // Solutions
+             .replace(/\s*Services/i, '')          // Services
+             .replace(/\s*Service/i, '')           // Service
+             .replace(/\s*Products/i, '')          // Products
+             .replace(/\s*Product/i, '')           // Product
+             .replace(/\s*Manufacturing/i, '')     // Manufacturing
+             .replace(/\s*Manufacturing/i, '')     // Manufacturing
+             .replace(/\s*&/g, '&')               // Zachová &
+             .replace(/\s+/g, ' ')                 // Viacero medzier na jednu
+             .trim();
+         
+         // Ak je názov stále príliš dlhý, skráti ho na maximálne 30 znakov
+         if (shortName.length > 30) {
+             shortName = shortName.substring(0, 27) + '...';
+         }
+         
+         return shortName || fullName.substring(0, 30);
+     }
 
 
 
@@ -1194,6 +1255,33 @@
         sortData(currentSort.field, currentSort.direction);
         updateSortIcons(currentSort.field, currentSort.direction);
         renderTable();
+        
+        // Fit table to container after sorting
+        requestAnimationFrame(fitTableToContainer);
+    }
+
+    function fitTableToContainer(){
+        const cont  = document.querySelector('.table-scroll');
+        const table = cont?.querySelector('.earnings-table');
+        if (!cont || !table) return;
+
+        // reset transform, zmeraj prirodzenú šírku
+        table.style.transform = 'none';
+        const tableW = table.scrollWidth;
+        const contW  = cont.clientWidth;
+
+        // mierka – nikdy nezväčšujeme, len zmenšujeme
+        const scale = Math.min(1, contW / tableW);
+
+        table.style.transform = `scale(${scale})`;
+
+        // uprav výšku kontajnera, aby neodrezalo spodok po scale
+        const rect = table.getBoundingClientRect();
+        cont.style.height = `${rect.height}px`;
+        
+        // Vždy roztiahni tabuľku na celú šírku kontajnera
+        table.style.width = '100%';
+        table.style.minWidth = '100%';
     }
 
     function renderTable() {
@@ -1215,32 +1303,32 @@
             const currentRank = index + 1;
             
                          row.innerHTML = `
-                 <td style="text-align: center;">${currentRank}</td>
-                                  <td style="text-align: left;">
+                 <td>${currentRank}</td>
+                                  <td>
                       <div class="company-info">
                           <div class="company-details">
                               <div class="company-ticker">${item.ticker}</div>
-                              <div class="company-name">${item.company_name ? getShortCompanyName(item.company_name) : '-'}</div>
+                                                             <div class="company-name">${item.company_name ? getShortCompanyNameOptimized(item.company_name) : '-'}</div>
                           </div>
                       </div>
                   </td>
 
-                <td style="text-align: right;">${formatCurrency(item.market_cap)}</td>
-                <td style="text-align: right;" class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
-                                 <td style="text-align: right;"><span class="size-badge ${sizeClass}">${displaySize}</span></td>
-                <td style="text-align: right;">${formatPrice(item.current_price)}</td>
-                <td style="text-align: right;" class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
-                <td style="text-align: right;">${formatEPS(item.eps_estimate)}</td>
-                <td style="text-align: right;">${formatEPS(item.eps_actual)}</td>
-                <td style="text-align: right;" class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
-                <td style="text-align: right;">${formatCurrency(item.revenue_estimate)}</td>
-                <td style="text-align: right;">${formatCurrency(item.revenue_actual)}</td>
-                <td style="text-align: right;" class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
-                <td style="text-align: right;">${formatEPS(item.eps_guide)}</td>
-                <td style="text-align: right;" class="${getGuideClass(item.eps_guide_surprise)}">${formatGuidePercent(item.eps_guide_surprise)}</td>
-                <td style="text-align: right;">${formatCurrency(item.revenue_guide)}</td>
-                <td style="text-align: right;" class="${getGuideClass(item.revenue_guide_surprise)}">${formatGuidePercent(item.revenue_guide_surprise)}</td>
-                <td style="text-align: center;">
+                <td>${formatCurrency(item.market_cap)}</td>
+                <td class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
+                                 <td><span class="size-badge ${sizeClass}">${displaySize}</span></td>
+                <td>${formatPrice(item.current_price)}</td>
+                <td class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
+                <td>${formatEPS(item.eps_estimate)}</td>
+                <td>${formatEPS(item.eps_actual)}</td>
+                <td class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
+                <td>${formatCurrency(item.revenue_estimate)}</td>
+                <td>${formatCurrency(item.revenue_actual)}</td>
+                <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+                <td>${formatEPS(item.eps_guide)}</td>
+                <td class="${getGuideClass(item.eps_guide_surprise)}">${formatGuidePercent(item.eps_guide_surprise)}</td>
+                <td>${formatCurrency(item.revenue_guide)}</td>
+                <td class="${getGuideClass(item.revenue_guide_surprise)}">${formatGuidePercent(item.revenue_guide_surprise)}</td>
+                <td>
                     <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
                         i
                         ${item.guidance_notes ? `<div class="notes-tooltip">${item.guidance_notes}</div>` : ''}
@@ -1495,6 +1583,9 @@
 
             // Populate table
             renderTable();
+            
+            // Fit table to container after rendering
+            requestAnimationFrame(fitTableToContainer);
 
             // Add sort listeners after table is rendered
             addSortListeners();
@@ -1602,6 +1693,9 @@
            
         loadEarningsData();
         setupSearch();
+        
+        // Fit table to container after initial load
+        window.addEventListener('resize', fitTableToContainer);
            
            // Sticky heights no longer needed - table header is positioned normally
            
