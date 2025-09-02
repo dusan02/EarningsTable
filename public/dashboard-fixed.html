@@ -193,13 +193,7 @@
         }
     }
 
-    /* CSS VARIABLES FOR STICKY HEIGHTS */
-    :root {
-        --h-header: 0px;
-        --h-kpis: 0px;
-        --h-caption: 0px;
-        --h-table-header: 0px;
-    }
+    /* CSS VARIABLES - no longer needed for sticky positioning */
 
     /* ===== GPT SOLUTION: SINGLE TABLE WITH STICKY THEAD ===== */
     
@@ -227,10 +221,9 @@
         box-sizing: border-box;
     }
 
-    /* Sticky thead (no duplicate tables) */
+    /* Table header - no longer sticky, positioned normally above table */
     .earnings-table thead th {
-        position: sticky;
-        top: calc(var(--h-header, 0px) + var(--h-kpis, 0px)); /* using your offsets */
+        position: relative;
         z-index: 2;
         background: #e3f2fd;        /* covers rows below */
         /* style from your .sortable-header */
@@ -1509,8 +1502,7 @@
             loading.style.display = 'none';
             tableContainer.style.display = 'block';
 
-             // Aktualizuj sticky heights po zobrazení tabuľky
-             updateStickyHeights();
+             // Sticky heights no longer needed - table header is positioned normally
  
                           // Table displayed successfully
 
@@ -1598,20 +1590,7 @@
         });
     }
 
-        // Function to update sticky heights for positioning
-        function updateStickyHeights() {
-            const hHeader = document.getElementById('pageHeader')?.offsetHeight || 0;
-            const hKpis = document.getElementById('market-stats')?.offsetHeight || 0;
-            // Caption is now part of the main flow, not sticky
-            const hCaption = 0;
 
-            const root = document.documentElement.style;
-            root.setProperty('--h-header', hHeader + 'px');
-            root.setProperty('--h-kpis', hKpis + 'px');
-            root.setProperty('--h-caption', hCaption + 'px');
-            
-            console.log('Sticky heights updated:', { hHeader, hKpis, hCaption });
-        }
 
     // Initialize when document is ready
     $(document).ready(function() {
@@ -1624,9 +1603,7 @@
         loadEarningsData();
         setupSearch();
            
-           // Nastav sticky heights po načítaní
-           window.addEventListener('load', updateStickyHeights);
-           window.addEventListener('resize', updateStickyHeights);
+           // Sticky heights no longer needed - table header is positioned normally
            
            // Column width synchronization no longer needed with single table structure
            
@@ -1638,8 +1615,7 @@
     // Auto-refresh every 5 minutes
     setInterval(loadEarningsData, 5 * 60 * 1000);
 
-         // ResizeObserver pre KPI karty - drží sticky heights v sync
-         new ResizeObserver(updateStickyHeights).observe(document.getElementById('market-stats'));
+         // ResizeObserver no longer needed - table header is positioned normally
 
            // Sticky positioning is now handled with fixed CSS values
 
