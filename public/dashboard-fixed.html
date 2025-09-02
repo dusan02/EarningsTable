@@ -2273,7 +2273,7 @@
         },
 
         formatGuidePercent: (value) => {
-            if (!value || isNaN(value)) return '-';
+            if (value == null || !isFinite(value)) return '–';
             const num = parseFloat(value);
             const sign = num >= 0 ? '+' : '';
             return `${sign}${num.toFixed(2)}%`;
@@ -2300,7 +2300,7 @@
         },
 
         getGuideClass: (value) => {
-            if (!value || isNaN(value)) return '';
+            if (value == null || !isFinite(value)) return '';
             const num = parseFloat(value);
             if (num > 0) return 'price-up';
             if (num < 0) return 'price-down';
@@ -2502,12 +2502,24 @@
                 tableBodyRightEpsRev.appendChild(epsRevRow);
                 
                 // Create Guidance row (right part)
+                // Debug logging for guidance surprise values
+                if (item.ticker === 'DKS' || item.ticker === 'DLTR') {
+                    console.log(`🔍 ${item.ticker} Guidance Debug:`, {
+                        eps_guide: item.eps_guide,
+                        eps_guide_surprise: item.eps_guide_surprise,
+                        eps_guide_basis: item.eps_guide_basis,
+                        revenue_guide: item.revenue_guide,
+                        revenue_guide_surprise: item.revenue_guide_surprise,
+                        revenue_guide_basis: item.revenue_guide_basis
+                    });
+                }
+                
                 const guidanceRow = document.createElement('tr');
                 guidanceRow.innerHTML = `
                     <td>${Utils.formatEPS(item.eps_guide)}</td>
-                    <td class="${Utils.getGuideClass(item.eps_guide_surprise)}">${Utils.formatGuidePercent(item.eps_guide_surprise)}</td>
+                    <td class="${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}` : 'No data available'}">${Utils.formatGuidePercent(item.eps_guide_surprise)}</td>
                     <td>${Utils.formatCurrency(item.revenue_guide)}</td>
-                    <td class="${Utils.getGuideClass(item.revenue_guide_surprise)}">${Utils.formatGuidePercent(item.revenue_guide_surprise)}</td>
+                    <td class="${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}` : 'No data available'}">${Utils.formatGuidePercent(item.revenue_guide_surprise)}</td>
                 <td>
                     <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
                         i
