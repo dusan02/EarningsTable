@@ -244,8 +244,12 @@ class BenzingaGuidance {
         
         foreach ($guidanceData as $guidance) {
             try {
-                $this->saveGuidanceRecord($guidance);
-                $savedCount++;
+                if ($this->saveGuidanceRecord($guidance)) {
+                    $savedCount++;
+                } else {
+                    // Validation failed, count as error
+                    $errors++;
+                }
             } catch (Exception $e) {
                 echo "    ❌ Failed to save {$guidance['ticker']}: " . $e->getMessage() . "\n";
                 $errors++;
@@ -257,9 +261,92 @@ class BenzingaGuidance {
     }
     
     /**
-     * Uloží jeden guidance záznam
+     * Validuje guidance dáta pred vložením do databázy
+     * Zabráni constraint chybám chk_eps_in_range a chk_rev_in_range
+     */
+    private function validateGuidanceData($guidance) {
+        $issues = [];
+        
+        // Validácia EPS guidance
+        if (isset($guidance['estimated_eps_guidance']) && $guidance['estimated_eps_guidance'] !== null) {
+            $eps = $guidance['estimated_eps_guidance'];
+            
+            // Kontrola rozsahu EPS (-100 až +100)
+            if ($eps < -100 || $eps > 100) {
+                $issues[] = "EPS guidance {$eps} outside allowed range (-100 to +100)";
+            }
+            
+            // Kontrola, či je EPS medzi min a max (ak sú nastavené)
+            if (isset($guidance['min_eps_guidance']) && $guidance['min_eps_guidance'] !== null) {
+                if ($eps < $guidance['min_eps_guidance']) {
+                    $issues[] = "EPS guidance {$eps} below min_eps_guidance {$guidance['min_eps_guidance']}";
+                }
+            }
+            
+            if (isset($guidance['max_eps_guidance']) && $guidance['max_eps_guidance'] !== null) {
+                if ($eps > $guidance['max_eps_guidance']) {
+                    $issues[] = "EPS guidance {$eps} above max_eps_guidance {$guidance['max_eps_guidance']}";
+                }
+            }
+        }
+        
+        // Validácia Revenue guidance
+        if (isset($guidance['estimated_revenue_guidance']) && $guidance['estimated_revenue_guidance'] !== null) {
+            $revenue = $guidance['estimated_revenue_guidance'];
+            
+            // Kontrola, či je revenue pozitívne
+            if ($revenue < 0) {
+                $issues[] = "Revenue guidance {$revenue} is negative";
+            }
+            
+            // Kontrola, či je revenue medzi min a max (ak sú nastavené)
+            if (isset($guidance['min_revenue_guidance']) && $guidance['min_revenue_guidance'] !== null) {
+                if ($revenue < $guidance['min_revenue_guidance']) {
+                    $issues[] = "Revenue guidance {$revenue} below min_revenue_guidance {$guidance['min_revenue_guidance']}";
+                }
+            }
+            
+            if (isset($guidance['max_revenue_guidance']) && $guidance['max_revenue_guidance'] !== null) {
+                if ($revenue > $guidance['max_revenue_guidance']) {
+                    $issues[] = "Revenue guidance {$revenue} above max_revenue_guidance {$guidance['max_revenue_guidance']}";
+                }
+            }
+        }
+        
+        // Validácia percentuálnych hodnôt
+        if (isset($guidance['eps_guide_vs_consensus_pct']) && $guidance['eps_guide_vs_consensus_pct'] !== null) {
+            $epsPct = $guidance['eps_guide_vs_consensus_pct'];
+            if ($epsPct < -1000 || $epsPct > 1000) {
+                $issues[] = "EPS vs consensus percent {$epsPct}% outside reasonable range (-1000% to +1000%)";
+            }
+        }
+        
+        if (isset($guidance['revenue_guide_vs_consensus_pct']) && $guidance['revenue_guide_vs_consensus_pct'] !== null) {
+            $revPct = $guidance['revenue_guide_vs_consensus_pct'];
+            if ($revPct < -1000 || $revPct > 1000) {
+                $issues[] = "Revenue vs consensus percent {$revPct}% outside reasonable range (-1000% to +1000%)";
+            }
+        }
+        
+        return $issues;
+    }
+    
+    /**
+     * Uloží jeden guidance záznam s validáciou
      */
     private function saveGuidanceRecord($guidance) {
+        // Validácia dát pred vložením
+        $validationIssues = $this->validateGuidanceData($guidance);
+        
+        if (!empty($validationIssues)) {
+            echo "    ⚠️  Validation issues for {$guidance['ticker']}:\n";
+            foreach ($validationIssues as $issue) {
+                echo "       - {$issue}\n";
+            }
+            echo "    🚫 Skipping insertion due to validation issues\n";
+            return false;
+        }
+        
         $sql = "INSERT INTO benzinga_guidance (
             ticker, estimated_eps_guidance, estimated_revenue_guidance,
             fiscal_period, fiscal_year, importance, max_eps_guidance,
@@ -295,6 +382,7 @@ class BenzingaGuidance {
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($guidance);
+        return true;
     }
     
     /**
