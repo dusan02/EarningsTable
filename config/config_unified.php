@@ -23,6 +23,8 @@ if (!defined('FINNHUB_API_KEY')) define('FINNHUB_API_KEY', $config->get('api.fin
 if (!defined('FINNHUB_BASE_URL')) define('FINNHUB_BASE_URL', $config->get('api.finnhub.base_url'));
 if (!defined('POLYGON_API_KEY')) define('POLYGON_API_KEY', $config->get('api.polygon.key'));
 if (!defined('POLYGON_BASE_URL')) define('POLYGON_BASE_URL', $config->get('api.polygon.base_url'));
+if (!defined('BENZINGA_API_KEY')) define('BENZINGA_API_KEY', $config->get('api.benzinga.key'));
+if (!defined('BENZINGA_BASE_URL')) define('BENZINGA_BASE_URL', $config->get('api.benzinga.base_url'));
 
 if (!defined('TIMEZONE')) define('TIMEZONE', $config->get('app.timezone'));
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', $config->isDebug());

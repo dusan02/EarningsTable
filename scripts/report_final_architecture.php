@@ -27,11 +27,11 @@ echo "    ✅ Market Cap Diff - zmena trhovej kapitalizácie (vypočítané)\n\n
 
 echo "📋 ROZDELENIE PODĽA SKRIPTU:\n\n";
 
-echo "🔍 DAILY DATA SETUP - STATIC (cron/daily_data_setup_static.php):\n";
+echo "🔍 DAILY DATA SETUP - STATIC (cron/3_daily_data_setup_static.php):\n";
 echo "  Finnhub - Statické: EPS/Revenue estimates, Report Time\n";
 echo "  Polygon - Statické: Previous Close, Market Cap, Company Name, Shares Outstanding, Company Type, Primary Exchange\n\n";
 
-echo "⚡ REGULAR DATA UPDATES - DYNAMIC (cron/regular_data_updates_dynamic.php):\n";
+echo "⚡ REGULAR DATA UPDATES - DYNAMIC (cron/4_regular_data_updates_dynamic.php):\n";
 echo "  Finnhub - Dynamické: EPS/Revenue Actual\n";
 echo "  Polygon - Dynamické: Current Price, Price Change %, Market Cap Diff\n\n";
 

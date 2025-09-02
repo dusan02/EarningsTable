@@ -36,7 +36,7 @@ echo "🚀 Starting all cron jobs...\n\n";
 
 // Run all cron jobs in sequence
 $cronJobs = [
-    'cron/clear_old_data.php --force',
+            'cron/2_clear_old_data.php --force',
     'cron/fetch_finnhub_earnings_today_tickers.php',
     'cron/fetch_missing_tickers_yahoo.php',
     'cron/fetch_market_data_complete.php'

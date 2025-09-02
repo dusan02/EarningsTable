@@ -18,8 +18,8 @@ echo "✅ API kľúče nastavené\n";
 echo "✅ Konfigurácia načítaná\n\n";
 
 // 1. Clear old data
-echo "1️⃣ Spúšťam clear_old_data.php...\n";
-$output = shell_exec('D:\xampp\php\php.exe cron/clear_old_data.php 2>&1');
+echo "1️⃣ Spúšťam 2_clear_old_data.php...\n";
+$output = shell_exec('D:\xampp\php\php.exe cron/2_clear_old_data.php 2>&1');
 echo $output . "\n";
 
 // 2. Fetch today's earnings tickers from Finnhub

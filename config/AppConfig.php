@@ -51,6 +51,10 @@ class AppConfig {
                 'polygon' => [
                     'key' => EnvLoader::get('POLYGON_API_KEY', ''),
                     'base_url' => 'https://api.polygon.io'
+                ],
+                'benzinga' => [
+                    'key' => EnvLoader::get('BENZINGA_API_KEY', ''),
+                    'base_url' => 'https://api.benzinga.com/api/v2.1'
                 ]
             ],
             

@@ -25,7 +25,7 @@ echo "\n=== CRON JOB PATHS ===\n\n";
 
 // Test if cron files exist
 $cronFiles = [
-    'cron/clear_old_data.php',
+            'cron/2_clear_old_data.php',
     'cron/fetch_finnhub_earnings_today_tickers.php',
     'cron/fetch_missing_tickers_yahoo.php',
     'cron/fetch_market_data_complete.php',
@@ -46,7 +46,7 @@ echo "\n=== RECOMMENDED CRON COMMANDS ===\n\n";
 $basePath = __DIR__;
 echo "# For earningstable.com on mydreams.cz:\n";
 echo "# Daily cleanup (08:00 CET)\n";
-echo "0 8 * * * /usr/bin/php $basePath/cron/clear_old_data.php\n\n";
+echo "0 8 * * * /usr/bin/php $basePath/cron/2_clear_old_data.php\n\n";
 
 echo "# Fetch earnings (08:30 CET)\n";
 echo "30 8 * * * /usr/bin/php $basePath/cron/fetch_finnhub_earnings_today_tickers.php\n\n";
@@ -63,7 +63,7 @@ echo "*/5 * * * * /usr/bin/php $basePath/cron/run_5min_updates.php\n\n";
 echo "=== ALTERNATIVE (RELATIVE PATHS) ===\n\n";
 
 echo "# Alternative using relative paths:\n";
-echo "0 8 * * * cd $basePath && /usr/bin/php cron/clear_old_data.php\n";
+echo "0 8 * * * cd $basePath && /usr/bin/php cron/2_clear_old_data.php\n";
 echo "30 8 * * * cd $basePath && /usr/bin/php cron/fetch_finnhub_earnings_today_tickers.php\n";
 echo "40 8 * * * cd $basePath && /usr/bin/php cron/fetch_missing_tickers_yahoo.php\n";
 echo "0 9 * * * cd $basePath && /usr/bin/php cron/fetch_market_data_complete.php\n";

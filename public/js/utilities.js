@@ -167,12 +167,12 @@ function formatPriceChange(changePercent) {
   if (!changePercent || isNaN(changePercent)) return "-";
   const num = parseFloat(changePercent);
   if (isNaN(num)) return "-";
-  
+
   // If change is exactly 0, it might mean market is closed
   if (num === 0) {
     return "0.00%";
   }
-  
+
   const sign = num > 0 ? "+" : "";
   return sign + num.toFixed(2) + "%";
 }
@@ -219,4 +219,60 @@ function formatSurprise(actual, estimate) {
   if (isNaN(surprise)) return "-";
   const sign = surprise > 0 ? "+" : "";
   return sign + surprise.toFixed(1) + "%";
+}
+
+// === NEW GUIDANCE FUNCTIONS ===
+
+/**
+ * Format guidance percentage (vs consensus)
+ * @param {number} percent - Guidance percentage vs consensus
+ * @returns {string} Formatted percentage string
+ */
+function formatGuidePercent(percent) {
+  if (percent === null || percent === undefined || isNaN(percent)) {
+    return "-";
+  }
+
+  const num = parseFloat(percent);
+  if (isNaN(num)) return "-";
+
+  const sign = num >= 0 ? "+" : "";
+  return sign + num.toFixed(2) + "%";
+}
+
+/**
+ * Format guidance notes for table display
+ * @param {string} notes - Guidance notes
+ * @returns {string} Formatted notes string
+ */
+function formatNotes(notes) {
+  if (!notes || notes.trim() === "") {
+    return "-";
+  }
+  // Truncate long notes for table display
+  if (notes.length > 50) {
+    return notes.substring(0, 47) + "...";
+  }
+  return notes;
+}
+
+/**
+ * Get CSS class for guidance percentage styling
+ * @param {number} percent - Guidance percentage vs consensus
+ * @returns {string} CSS class name
+ */
+function getGuideClass(percent) {
+  if (percent === null || percent === undefined || isNaN(percent)) {
+    return "price-neutral";
+  }
+
+  const num = parseFloat(percent);
+  if (isNaN(num)) return "price-neutral";
+
+  if (num > 0) {
+    return "price-up"; // Positive guidance vs consensus
+  } else if (num < 0) {
+    return "price-down"; // Negative guidance vs consensus
+  }
+  return "price-neutral";
 }

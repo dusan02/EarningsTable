@@ -202,12 +202,12 @@
     }
 
     /* FIXED TABLE COLUMN WIDTHS - ENSURES CONSISTENCY */
-    .earnings-table,
-    .earnings-table-header {
-        table-layout: fixed !important;
-        width: 100% !important;
-        min-width: 1480px !important;
-    }
+         .earnings-table,
+     .earnings-table-header {
+         table-layout: fixed !important;
+         width: 100% !important;
+         min-width: 1680px !important;
+     }
 
     /* ENFORCE COLUMN WIDTHS */
     .earnings-table col,
@@ -927,12 +927,17 @@
                           <col style="width:80px">    <!-- Size -->
                           <col style="width:100px">   <!-- Price -->
                           <col style="width:100px">   <!-- % Change -->
-                          <col style="width:90px">    <!-- EPS Est -->
-                          <col style="width:90px">    <!-- EPS Act -->
-                          <col style="width:100px">   <!-- EPS Surp -->
-                          <col style="width:120px">   <!-- Rev Est -->
-                          <col style="width:120px">   <!-- Rev Act -->
-                          <col style="width:100px">   <!-- Rev Surp -->
+                          <col style="width:110px">    <!-- EPS Est -->
+                          <col style="width:110px">    <!-- EPS Act -->
+                          <col style="width:110px">   <!-- EPS Surp -->
+                          <col style="width:110px">   <!-- Rev Est -->
+                          <col style="width:110px">   <!-- Rev Act -->
+                          <col style="width:110px">   <!-- Rev Surp -->
+                          <col style="width:110px">    <!-- EPS Guide -->
+                          <col style="width:110px">   <!-- Guide Surp EPS -->
+                          <col style="width:110px">   <!-- Rev Guide -->
+                          <col style="width:110px">   <!-- Guide Surp Rev -->
+                          <col style="width:150px">   <!-- Notes -->
                       </colgroup>
                       <thead>
                           <tr>
@@ -955,6 +960,11 @@
                                <th class="sortable-header" data-sort="revenue_est" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Est</th>
                                <th class="sortable-header" data-sort="revenue_act" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Act</th>
                                <th class="sortable-header" data-sort="revenue_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Surp</th>
+                               <th class="sortable-header" data-sort="eps_guide" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">EPS Guide</th>
+                               <th class="sortable-header" data-sort="eps_guide_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Guide Surp</th>
+                               <th class="sortable-header" data-sort="revenue_guide" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Rev Guide</th>
+                               <th class="sortable-header" data-sort="revenue_guide_surprise" style="padding: 12px 8px; text-align: right; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Guide Surp</th>
+                               <th class="sortable-header" data-sort="notes" style="padding: 12px 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; cursor: pointer; transition: background-color 0.2s ease;">Notes</th>
                  </tr>
              </thead>
                   </table>
@@ -979,12 +989,17 @@
                                                       <col style="width:80px">    <!-- Size -->
                                                       <col style="width:100px">   <!-- Price -->
                                                       <col style="width:100px">   <!-- % Change -->
-                                                      <col style="width:90px">    <!-- EPS Est -->
-                                                      <col style="width:90px">    <!-- EPS Act -->
-                                                      <col style="width:100px">   <!-- EPS Surp -->
-                                                      <col style="width:120px">   <!-- Rev Est -->
-                                                      <col style="width:120px">   <!-- Rev Act -->
-                                                      <col style="width:100px">   <!-- Rev Surp -->
+                                                      <col style="width:110px">    <!-- EPS Est -->
+                                                      <col style="width:110px">    <!-- EPS Act -->
+                                                      <col style="width:110px">   <!-- EPS Surp -->
+                                                      <col style="width:110px">   <!-- Rev Est -->
+                                                      <col style="width:110px">   <!-- Rev Act -->
+                                                      <col style="width:110px">   <!-- Rev Surp -->
+                                                      <col style="width:110px">    <!-- EPS Guide -->
+                                                      <col style="width:110px">   <!-- Guide Surp EPS -->
+                                                      <col style="width:110px">   <!-- Rev Guide -->
+                                                      <col style="width:110px">   <!-- Guide Surp Rev -->
+                                                      <col style="width:150px">   <!-- Notes -->
                                                     </colgroup>
 
                                                     <tbody id="tableBody"><!-- rows injected by JS --></tbody>
@@ -1102,6 +1117,22 @@
                     if (numB === null) return -1;     // null/NaN values go to end
                     
                     return direction === 'asc' ? numA - numB : numB - numA;
+                case 'eps_guide':
+                    return cmpNumericWithNullLast(a, b, direction, 'eps_guide');
+                case 'eps_guide_surprise':
+                    return cmpNumericWithNullLast(a, b, direction, 'eps_guide_surprise');
+                case 'revenue_guide':
+                    return cmpNumericWithNullLast(a, b, direction, 'revenue_guide');
+                case 'revenue_guide_surprise':
+                    return cmpNumericWithNullLast(a, b, direction, 'revenue_guide_surprise');
+                case 'notes':
+                    const aNotes = (a.guidance_notes || '').toLowerCase();
+                    const bNotes = (b.guidance_notes || '').toLowerCase();
+                    if (direction === 'asc') {
+                        return aNotes.localeCompare(bNotes);
+                    } else {
+                        return bNotes.localeCompare(aNotes);
+                    }
                 default:
                     return 0;
             }
@@ -1181,6 +1212,11 @@
                 <td style="text-align: right;">${formatCurrency(item.revenue_estimate)}</td>
                 <td style="text-align: right;">${formatCurrency(item.revenue_actual)}</td>
                 <td style="text-align: right;" class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+                <td style="text-align: right;">${formatEPS(item.eps_guide)}</td>
+                <td style="text-align: right;" class="${getGuideClass(item.eps_guide_surprise)}">${formatGuidePercent(item.eps_guide_surprise)}</td>
+                <td style="text-align: right;">${formatCurrency(item.revenue_guide)}</td>
+                <td style="text-align: right;" class="${getGuideClass(item.revenue_guide_surprise)}">${formatGuidePercent(item.revenue_guide_surprise)}</td>
+                <td style="text-align: left;">${formatNotes(item.guidance_notes)}</td>
             `;
             
             tableBody.appendChild(row);
@@ -1582,8 +1618,8 @@
             headerTable.style.tableLayout = 'fixed';
             dataTable.style.tableLayout = 'fixed';
             
-                         // Ensure both tables have the same width and maintain column alignment
-             const tableWidth = Math.max(1184, window.innerWidth * 0.8 - 40);
+                                      // Ensure both tables have the same width and maintain column alignment
+              const tableWidth = Math.max(1680, window.innerWidth * 0.8 - 40);
             headerTable.style.minWidth = tableWidth + 'px';
             dataTable.style.minWidth = tableWidth + 'px';
             

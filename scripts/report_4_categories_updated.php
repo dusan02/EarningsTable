@@ -27,7 +27,7 @@ echo "    ✅ Market Cap Diff - zmena trhovej kapitalizácie (vypočítané)\n\n
 
 echo "📋 ROZDELENIE PODĽA SKRIPTU:\n\n";
 
-echo "🔍 DAILY DATA SETUP - STATIC (cron/daily_data_setup_static.php):\n";
+echo "🔍 DAILY DATA SETUP - STATIC (cron/3_daily_data_setup_static.php):\n";
 echo "  Finnhub - Statické: EPS/Revenue estimates, Report Time\n";
 echo "  Polygon - Statické: Previous Close, Market Cap, Company Name, Shares Outstanding, Company Type, Primary Exchange\n\n";
 

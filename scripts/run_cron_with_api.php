@@ -16,7 +16,7 @@ echo "====================================\n\n";
 
 // Step 1: Clear old data
 echo "=== STEP 1: CLEAR OLD DATA ===\n";
-$output = shell_exec("D:\\xampp\\php\\php.exe cron\\clear_old_data.php --force 2>&1");
+$output = shell_exec("D:\\xampp\\php\\php.exe cron\\2_clear_old_data.php --force 2>&1");
 echo $output;
 echo "\n" . str_repeat("-", 50) . "\n\n";
 
