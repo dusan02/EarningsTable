@@ -201,102 +201,141 @@
         --h-table-header: 0px;
     }
 
-    /* FIXED TABLE COLUMN WIDTHS - ENSURES CONSISTENCY */
-         .earnings-table,
-     .earnings-table-header {
-         table-layout: fixed !important;
-         width: 100% !important;
-         min-width: 2000px !important;
-     }
-
-    /* ENFORCE COLUMN WIDTHS */
-    .earnings-table col,
-    .earnings-table-header col {
-        width: auto !important;
+    /* ===== COMPLETE TABLE REFACTORING ===== */
+    
+    /* TABLE CONTAINER */
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+        min-width: 2000px;
+        padding: 0 0 24px 0;
+        background: #fff;
+        margin-top: 0;
     }
 
-    .earnings-table col:nth-child(1),
-    .earnings-table-header col:nth-child(1) { width: 60px !important; }   /* # */
-    .earnings-table col:nth-child(2),
-    .earnings-table-header col:nth-child(2) { width: 200px !important; }  /* Company */
-    .earnings-table col:nth-child(3),
-    .earnings-table-header col:nth-child(3) { width: 120px !important; }  /* Market Cap */
-    .earnings-table col:nth-child(4),
-    .earnings-table-header col:nth-child(4) { width: 120px !important; }  /* Cap Diff */
-    .earnings-table col:nth-child(5),
-    .earnings-table-header col:nth-child(5) { width: 80px !important; }   /* Size */
-    .earnings-table col:nth-child(6),
-    .earnings-table-header col:nth-child(6) { width: 100px !important; }  /* Price */
-    .earnings-table col:nth-child(7),
-    .earnings-table-header col:nth-child(7) { width: 100px !important; }  /* % Change */
-    .earnings-table col:nth-child(8),
-    .earnings-table-header col:nth-child(8) { width: 90px !important; }   /* EPS Est */
-    .earnings-table col:nth-child(9),
-    .earnings-table-header col:nth-child(9) { width: 90px !important; }   /* EPS Act */
-    .earnings-table col:nth-child(10),
-    .earnings-table-header col:nth-child(10) { width: 100px !important; } /* EPS Surp */
-    .earnings-table col:nth-child(11),
-    .earnings-table-header col:nth-child(11) { width: 120px !important; } /* Rev Est */
-    .earnings-table col:nth-child(12),
-    .earnings-table-header col:nth-child(12) { width: 120px !important; } /* Rev Act */
-    .earnings-table col:nth-child(13),
-    .earnings-table-header col:nth-child(13) { width: 100px !important; } /* Rev Surp */
-    .earnings-table col:nth-child(14),
-    .earnings-table-header col:nth-child(14) { width: 110px !important; } /* EPS Guide */
-    .earnings-table col:nth-child(15),
-    .earnings-table-header col:nth-child(15) { width: 110px !important; } /* Guide Surp EPS */
-    .earnings-table col:nth-child(16),
-    .earnings-table-header col:nth-child(16) { width: 110px !important; } /* Rev Guide */
-    .earnings-table col:nth-child(17),
-    .earnings-table-header col:nth-child(17) { width: 110px !important; } /* Guide Surp Rev */
-    .earnings-table col:nth-child(18),
-    .earnings-table-header col:nth-child(18) { width: 150px !important; } /* Notes */
-
-    /* ENSURE CELLS RESPECT COLUMN WIDTHS */
-    .earnings-table td,
-    .earnings-table-header th {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        box-sizing: border-box;
-    }
-
-    /* HOVER EFFECT FOR TABLE HEADERS */
-    .earnings-table-header .sortable-header:hover {
-        background-color: #bbdefb !important; /* Darker shade of #e3f2fd */
-        transition: background-color 0.2s ease;
-    }
-
-    /* ENSURE TABLES STAY ALIGNED ON RESIZE */
-    .earnings-table-header,
-    .earnings-table {
+    /* UNIFIED TABLE STYLES */
+    .earnings-table,
+    .earnings-table-header {
+        table-layout: fixed !important;
+        width: 100% !important;
+        min-width: 2000px !important;
+        border-collapse: collapse !important;
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        font-family: 'Inter', sans-serif;
+        font-variant-numeric: tabular-nums;
     }
 
-         /* FORCE TABLE CONTAINER TO MAINTAIN WIDTH */
-     .table-container {
-         overflow-x: auto;
-         width: 100%;
-         min-width: 2000px;
-     }
-
-         /* ENSURE HEADER AND DATA TABLE ARE ALWAYS SYNCHRONIZED */
-     .earnings-table-header,
-     .earnings-table {
-         table-layout: fixed !important;
-         width: 100% !important;
-         min-width: 2000px !important;
-         border-collapse: collapse !important;
-     }
-
-    /* PREVENT COLUMN WIDTH CHANGES ON RESIZE */
-    .earnings-table-header col,
-    .earnings-table col {
+    /* COLUMN WIDTHS - ALL 18 COLUMNS */
+    .earnings-table col,
+    .earnings-table-header col {
         width: auto !important;
         min-width: 0 !important;
         max-width: none !important;
+    }
+
+    /* Column 1: # */
+    .earnings-table col:nth-child(1),
+    .earnings-table-header col:nth-child(1) { width: 60px !important; }
+    
+    /* Column 2: Company */
+    .earnings-table col:nth-child(2),
+    .earnings-table-header col:nth-child(2) { width: 200px !important; }
+    
+    /* Column 3: Market Cap */
+    .earnings-table col:nth-child(3),
+    .earnings-table-header col:nth-child(3) { width: 120px !important; }
+    
+    /* Column 4: Cap Diff */
+    .earnings-table col:nth-child(4),
+    .earnings-table-header col:nth-child(4) { width: 120px !important; }
+    
+    /* Column 5: Size */
+    .earnings-table col:nth-child(5),
+    .earnings-table-header col:nth-child(5) { width: 80px !important; }
+    
+    /* Column 6: Price */
+    .earnings-table col:nth-child(6),
+    .earnings-table-header col:nth-child(6) { width: 100px !important; }
+    
+    /* Column 7: % Change */
+    .earnings-table col:nth-child(7),
+    .earnings-table-header col:nth-child(7) { width: 100px !important; }
+    
+    /* Column 8: EPS Est */
+    .earnings-table col:nth-child(8),
+    .earnings-table-header col:nth-child(8) { width: 90px !important; }
+    
+    /* Column 9: EPS Act */
+    .earnings-table col:nth-child(9),
+    .earnings-table-header col:nth-child(9) { width: 90px !important; }
+    
+    /* Column 10: EPS Surp */
+    .earnings-table col:nth-child(10),
+    .earnings-table-header col:nth-child(10) { width: 100px !important; }
+    
+    /* Column 11: Rev Est */
+    .earnings-table col:nth-child(11),
+    .earnings-table-header col:nth-child(11) { width: 120px !important; }
+    
+    /* Column 12: Rev Act */
+    .earnings-table col:nth-child(12),
+    .earnings-table-header col:nth-child(12) { width: 120px !important; }
+    
+    /* Column 13: Rev Surp */
+    .earnings-table col:nth-child(13),
+    .earnings-table-header col:nth-child(13) { width: 100px !important; }
+    
+    /* Column 14: EPS Guide */
+    .earnings-table col:nth-child(14),
+    .earnings-table-header col:nth-child(14) { width: 110px !important; }
+    
+    /* Column 15: Guide Surp EPS */
+    .earnings-table col:nth-child(15),
+    .earnings-table-header col:nth-child(15) { width: 110px !important; }
+    
+    /* Column 16: Rev Guide */
+    .earnings-table col:nth-child(16),
+    .earnings-table-header col:nth-child(16) { width: 110px !important; }
+    
+    /* Column 17: Guide Surp Rev */
+    .earnings-table col:nth-child(17),
+    .earnings-table-header col:nth-child(17) { width: 110px !important; }
+    
+    /* Column 18: Notes */
+    .earnings-table col:nth-child(18),
+    .earnings-table-header col:nth-child(18) { width: 150px !important; }
+
+    /* UNIFIED CELL STYLES */
+    .earnings-table th,
+    .earnings-table td,
+    .earnings-table-header th {
+        padding: 12px 8px !important;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* DATA TABLE SPECIFIC STYLES */
+    .earnings-table {
+        font-size: 14px;
+    }
+
+    .earnings-table tbody td {
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    /* First row - no top border */
+    .earnings-table tbody tr:first-child td {
+        border-top: none;
+    }
+
+    /* Hover effect for data rows */
+    .earnings-table tbody tr:hover {
+        background-color: #f9fafb;
     }
 
     /* FIXED HEADER */
@@ -437,76 +476,96 @@
         }
     }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           /* Wrapper – jeden horizontálny scroll */
-           .table-container{
-          padding: 0 0 24px 0;
-          background:#fff;
-          overflow-x:auto;           /* len horizontálny scroll */
-          overflow-y:visible;        /* vertikálny scroll nech sa rieši na body */
-          margin-top: 0;
-      }
+    /* ===== UNIFIED TEXT ALIGNMENT FOR ALL COLUMNS ===== */
+    
+    /* Column 1: # - Centered */
+    .earnings-table th:nth-child(1),
+    .earnings-table td:nth-child(1),
+    .earnings-table-header th:nth-child(1) { text-align: center !important; }
+    
+    /* Column 2: Company - Left aligned */
+    .earnings-table th:nth-child(2),
+    .earnings-table td:nth-child(2),
+    .earnings-table-header th:nth-child(2) { text-align: left !important; }
+    
+    /* Columns 3-17: All numeric data - Right aligned */
+    .earnings-table th:nth-child(3), .earnings-table td:nth-child(3),
+    .earnings-table-header th:nth-child(3) { text-align: right !important; } /* Market Cap */
+    
+    .earnings-table th:nth-child(4), .earnings-table td:nth-child(4),
+    .earnings-table-header th:nth-child(4) { text-align: right !important; } /* Cap Diff */
+    
+    .earnings-table th:nth-child(5), .earnings-table td:nth-child(5),
+    .earnings-table-header th:nth-child(5) { text-align: right !important; } /* Size */
+    
+    .earnings-table th:nth-child(6), .earnings-table td:nth-child(6),
+    .earnings-table-header th:nth-child(6) { text-align: right !important; } /* Price */
+    
+    .earnings-table th:nth-child(7), .earnings-table td:nth-child(7),
+    .earnings-table-header th:nth-child(7) { text-align: right !important; } /* % Change */
+    
+    .earnings-table th:nth-child(8), .earnings-table td:nth-child(8),
+    .earnings-table-header th:nth-child(8) { text-align: right !important; } /* EPS Est */
+    
+    .earnings-table th:nth-child(9), .earnings-table td:nth-child(9),
+    .earnings-table-header th:nth-child(9) { text-align: right !important; } /* EPS Act */
+    
+    .earnings-table th:nth-child(10), .earnings-table td:nth-child(10),
+    .earnings-table-header th:nth-child(10) { text-align: right !important; } /* EPS Surp */
+    
+    .earnings-table th:nth-child(11), .earnings-table td:nth-child(11),
+    .earnings-table-header th:nth-child(11) { text-align: right !important; } /* Rev Est */
+    
+    .earnings-table th:nth-child(12), .earnings-table td:nth-child(12),
+    .earnings-table-header th:nth-child(12) { text-align: right !important; } /* Rev Act */
+    
+    .earnings-table th:nth-child(13), .earnings-table td:nth-child(13),
+    .earnings-table-header th:nth-child(13) { text-align: right !important; } /* Rev Surp */
+    
+    .earnings-table th:nth-child(14), .earnings-table td:nth-child(14),
+    .earnings-table-header th:nth-child(14) { text-align: right !important; } /* EPS Guide */
+    
+    .earnings-table th:nth-child(15), .earnings-table td:nth-child(15),
+    .earnings-table-header th:nth-child(15) { text-align: right !important; } /* Guide Surp EPS */
+    
+    .earnings-table th:nth-child(16), .earnings-table td:nth-child(16),
+    .earnings-table-header th:nth-child(16) { text-align: right !important; } /* Rev Guide */
+    
+    .earnings-table th:nth-child(17), .earnings-table td:nth-child(17),
+    .earnings-table-header th:nth-child(17) { text-align: right !important; } /* Guide Surp Rev */
+    
+    /* Column 18: Notes - Left aligned */
+    .earnings-table th:nth-child(18),
+    .earnings-table td:nth-child(18),
+    .earnings-table-header th:nth-child(18) { text-align: left !important; }
 
-                 /* Jedna tabuľka = jeden layout */
-                                       .earnings-table{
-             width:100%;
-             min-width:2000px;
-             border-collapse:collapse;
-             table-layout:fixed;        /* presné šírky z colgroup */
-             font-family:'Inter',sans-serif;
-             font-size:14px;
-             font-variant-numeric: tabular-nums; /* stabilné čísla */
-           }
-
-                 
-
-                                                             /* Table header is now in separate div above table */
-
-                 /* ZJEDNOTENÉ metriky – žiadne rozdielne paddingy */
-         .earnings-table th,
-         .earnings-table td{
-           padding:12px 8px;
-           box-sizing:border-box;
-         }
-
-                 .earnings-table tbody td{
-           border-bottom:1px solid #f3f4f6;
-           vertical-align:middle;
-           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-         }
-
-         /* Prvý riadok tabuľky - bez horného border */
-         .earnings-table tbody tr:first-child td {
-           border-top: none;
-         }
-
-                                   /* Zarovnania: # vycentrovaný, Company vľavo, ostatné doprava */
-          th:nth-child(1), td:nth-child(1){ text-align:center; } /* # stĺpec */
-          th:nth-child(2), td:nth-child(2){ text-align:left; } /* Company */
-         th:nth-child(3), td:nth-child(3){ text-align:right; } /* Market Cap */
-         th:nth-child(4), td:nth-child(4){ text-align:right; } /* Cap Diff */
-         th:nth-child(5), td:nth-child(5){ text-align:right; } /* Size */
-         th:nth-child(6), td:nth-child(6){ text-align:right; } /* Price */
-         th:nth-child(7), td:nth-child(7){ text-align:right; } /* % Change */
-         th:nth-child(8), td:nth-child(8){ text-align:right; } /* EPS Est */
-         th:nth-child(9), td:nth-child(9){ text-align:right; } /* EPS Act */
-         th:nth-child(10), td:nth-child(10){ text-align:right; } /* EPS Surp */
-                   th:nth-child(11), td:nth-child(11){ text-align:right; } /* Rev Est */
-          th:nth-child(12), td:nth-child(12){ text-align:right; } /* Rev Act */
-          th:nth-child(13), td:nth-child(13){ text-align:right; } /* Rev Surp */
-          th:nth-child(14), td:nth-child(14){ text-align:right; } /* EPS Guide */
-          th:nth-child(15), td:nth-child(15){ text-align:right; } /* Guide Surp EPS */
-          th:nth-child(16), td:nth-child(16){ text-align:right; } /* Rev Guide */
-          th:nth-child(17), td:nth-child(17){ text-align:right; } /* Guide Surp Rev */
-          th:nth-child(18), td:nth-child(18){ text-align:left; }  /* Notes */
-
-        /* Sortovateľné th – len vzhľad (bez position) */
-        .sortable-header{
-          cursor:pointer; user-select:none;
-          padding:12px 16px !important;
-          transition:background-color .2s ease;
-        }
-        .sortable-header:hover{ background:#bbdefb !important; }
-        .sortable-header.active-sort{ background:#bbdefb !important; font-weight:700; }
+            /* ===== UNIFIED SORTABLE HEADERS ===== */
+    
+    .sortable-header {
+        cursor: pointer;
+        user-select: none;
+        padding: 12px 8px !important; /* Consistent with cell padding */
+        min-height: 70px;
+        background-color: #e3f2fd;
+        transition: background-color 0.2s ease;
+        white-space: normal !important;
+        line-height: 1.3;
+        vertical-align: middle;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .sortable-header:hover {
+        background-color: #bbdefb !important;
+        color: #374151 !important;
+    }
+    
+    .sortable-header.active-sort {
+        background-color: #bbdefb !important;
+        color: #374151 !important;
+        font-weight: 700;
+    }
 
                  /* Company header obsah nesmie nafukovať šírku */
          .company-header-container{
@@ -667,7 +726,8 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* RESPONSIVE - NO MOVEMENT */
+    /* ===== RESPONSIVE DESIGN ===== */
+    
     @media (max-width: 768px) {
         .stats-container {
             grid-template-columns: repeat(2, 1fr);
@@ -678,59 +738,57 @@
             padding: 16px 20px;
         }
         
-                 .earnings-table {
-              min-width: 2000px;
-         }
+        .earnings-table,
+        .earnings-table-header {
+            min-width: 2000px;
+        }
 
-        /* Responsívne – na mobiloch je menej miesta, zmenšíme spacing */
+        /* Mobile spacing adjustments */
         .header { 
             padding-top: 10px; 
             padding-bottom: 8px; 
         }
+        
         .winners-container { 
             padding-bottom: 6px; 
         }
+        
+        /* Ensure consistent column widths on mobile */
+        .earnings-table col,
+        .earnings-table-header col {
+            width: auto !important;
+        }
     }
 
-         /* SORTABLE HEADERS */
-     .sortable-header {
-         cursor: pointer;
-         user-select: none;
-            /* position: relative; <- odstránené, spôsobovalo konflikt so sticky */
-         padding: 12px 16px !important;
-         min-height: 70px; /* zvýšená výška pre dva riadky textu */
-         background-color: #e3f2fd; /* jemne modrá farba pre všetky hlavičky */
-         transition: background-color 0.2s ease;
-         text-align: center !important; /* vycentrovaný text v hlavičke */
-         white-space: normal !important; /* umožní text na dva riadky */
-         line-height: 1.3; /* lepšie riadkovanie pre dva riadky */
-         vertical-align: middle; /* vycentruje text vertikálne */
-     }
-     
-     /* Right align specific column headers */
-     th[data-sort="market_cap"],
-     th[data-sort="market_cap_gain"],
-     th[data-sort="size"],
-     th[data-sort="price"],
-     th[data-sort="today"],
-     th[data-sort="eps_est"],
-     th[data-sort="eps_act"],
-     th[data-sort="eps_surprise"],
-     th[data-sort="revenue_est"],
-     th[data-sort="revenue_act"],
-     th[data-sort="revenue_surprise"] {
-         text-align: right !important;
-     }
-
-    .sortable-header:hover {
-          background-color: #e3f2fd !important; /* ešte jemnejšia modrá hover */
-          color: #374151 !important; /* tmavý text pre lepší kontrast */
+    /* ===== HEADER TEXT ALIGNMENT OVERRIDES ===== */
+    
+    /* Override text-align for specific header columns to match data alignment */
+    .earnings-table-header th[data-sort="market_cap"],
+    .earnings-table-header th[data-sort="market_cap_gain"],
+    .earnings-table-header th[data-sort="size"],
+    .earnings-table-header th[data-sort="price"],
+    .earnings-table-header th[data-sort="today"],
+    .earnings-table-header th[data-sort="eps_est"],
+    .earnings-table-header th[data-sort="eps_act"],
+    .earnings-table-header th[data-sort="eps_surprise"],
+    .earnings-table-header th[data-sort="revenue_est"],
+    .earnings-table-header th[data-sort="revenue_act"],
+    .earnings-table-header th[data-sort="revenue_surprise"],
+    .earnings-table-header th[data-sort="eps_guide"],
+    .earnings-table-header th[data-sort="eps_guide_surprise"],
+    .earnings-table-header th[data-sort="revenue_guide"],
+    .earnings-table-header th[data-sort="revenue_guide_surprise"] {
+        text-align: right !important;
     }
-
-    .sortable-header.active-sort {
-          background-color: #bbdefb !important; /* jemnejšia modrá pre aktívny sort */
-          color: #374151 !important; /* tmavý text pre lepší kontrast */
-          font-weight: 700;
+    
+    /* Company header stays left-aligned */
+    .earnings-table-header th[data-sort="company"] {
+        text-align: left !important;
+    }
+    
+    /* Notes header stays left-aligned */
+    .earnings-table-header th[data-sort="notes"] {
+        text-align: left !important;
     }
 
     /* SEARCH BAR STYLES */
