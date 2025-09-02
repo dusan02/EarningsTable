@@ -142,217 +142,165 @@
     </script>
     
     <style>
-    /* RESET - NO MOVEMENT */
+    /* ===== CSS VARIABLES ===== */
+    :root {
+        /* Colors */
+        --color-primary: #3b82f6;
+        --color-primary-dark: #2563eb;
+        --color-success: #10b981;
+        --color-success-dark: #059669;
+        --color-danger: #ef4444;
+        --color-danger-dark: #dc2626;
+        --color-warning: #f59e0b;
+        --color-warning-dark: #d97706;
+        --color-info: #3b82f6;
+        --color-info-dark: #1d4ed8;
+        
+        /* Neutral colors */
+        --color-white: #ffffff;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --color-gray-200: #e5e7eb;
+        --color-gray-300: #d1d5db;
+        --color-gray-400: #9ca3af;
+        --color-gray-500: #6b7280;
+        --color-gray-600: #4b5563;
+        --color-gray-700: #374151;
+        --color-gray-800: #1f2937;
+        --color-gray-900: #111827;
+        --color-black: #000000;
+        
+        /* Typography */
+        --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-family-heading: 'Montserrat', sans-serif;
+        --font-size-xs: 10px;
+        --font-size-sm: 12px;
+        --font-size-base: 14px;
+        --font-size-lg: 16px;
+        --font-size-xl: 18px;
+        --font-size-2xl: 24px;
+        --font-size-3xl: 31.5px;
+        --font-size-4xl: 48px;
+        
+        /* Spacing */
+        --spacing-1: 4px;
+        --spacing-2: 8px;
+        --spacing-3: 12px;
+        --spacing-4: 16px;
+        --spacing-5: 20px;
+        --spacing-6: 24px;
+        --spacing-8: 32px;
+        --spacing-10: 40px;
+        
+        /* Border radius */
+        --radius-sm: 4px;
+        --radius-md: 6px;
+        --radius-lg: 8px;
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        
+        /* Transitions */
+        --transition-fast: 0.15s ease;
+        --transition-normal: 0.2s ease;
+        --transition-slow: 0.3s ease;
+        
+        /* Layout */
+        --container-width: 70%;
+        --container-max-width: none;
+        --table-row-height: 60px;
+        --header-height: 60px;
+    }
+
+    /* ===== RESET & BASE STYLES ===== */
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
     }
 
+    html, body { 
+        overflow-y: auto; /* Use auto instead of scroll to prevent double scrollbars */
+    }
+
     body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: #ffffff;
-        color: #1a1a1a;
+        font-family: var(--font-family-primary);
+        background-color: var(--color-white);
+        color: var(--color-gray-900);
         line-height: 1.6;
         font-weight: 400;
         overflow-x: hidden;
     }
 
-    /* MAIN CONTENT CONTAINER - 80% width (10% margin on each side) */
+    /* ===== LAYOUT & CONTAINERS ===== */
     .main-container {
-        width: 80%;
-        max-width: none;
+        width: var(--container-width);
+        max-width: var(--container-max-width);
         margin: 0 auto;
         position: relative;
     }
 
-    /* ADVERTISEMENT AREAS - HIDDEN */
+    /* Advertisement areas - hidden */
     .ad-left, .ad-right {
         display: none;
     }
 
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 1200px) {
-        .main-container {
-            width: 85%;
-            max-width: none;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .main-container {
-            width: 90%;
-            max-width: none;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .main-container {
-            width: 95%;
-            max-width: none;
-        }
-    }
-
-    /* CSS VARIABLES - no longer needed for sticky positioning */
-
-    /* ===== GPT SOLUTION: SINGLE TABLE WITH STICKY THEAD ===== */
-    
-    /* Scroll container: this fixes "overflow" and alignment issues */
-    .table-scroll {
-        position: relative;
-        overflow: hidden;           /* žiadny horizontálny scroll */
-        width: 100%;                /* zabezpečí plnú šírku */
-        max-width: 100%;
-        background: #fff;
-        padding-bottom: 12px;
-    }
-
-    /* Single table for header and body */
-    .earnings-table {
-        width: 100%;                /* roztiahni na celú šírku kontajnera */
-        min-width: 100%;            /* zabezpečí minimálnu šírku */
-        transform-origin: top left; /* škálovanie od ľavého horného rohu */
-        table-layout: fixed;
-        border-collapse: collapse;
-        font-family: 'Inter', sans-serif;
-        font-size: 12.6px;
-        font-variant-numeric: tabular-nums;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    /* Table header - no longer sticky, positioned normally above table */
-    .earnings-table thead th {
-        position: relative;
-        z-index: 2;
-        background: #e3f2fd;        /* covers rows below */
-        /* style from your .sortable-header */
-        cursor: pointer;
-        user-select: none;
-        padding: 12px 8px;
-        line-height: 1.3;
-        white-space: normal;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #374151;
-        transition: background-color 0.2s ease;
-        box-sizing: border-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        vertical-align: middle;
-    }
-    
-    .earnings-table thead th:hover { 
-        background: #bbdefb; 
-    }
-
-    .earnings-table th,
-    .earnings-table td {
-        padding: 12px 8px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        vertical-align: middle;
-        border-bottom: 1px solid #f3f4f6;
-        box-sizing: border-box;
-    }
-
-    /* DATA TABLE SPECIFIC STYLES */
-    .earnings-table tbody {
-        font-size: 14px;
-    }
-
-    /* First row - no top border */
-    .earnings-table tbody tr:first-child td {
-        border-top: none;
-    }
-
-    /* Hover effect for data rows */
-    .earnings-table tbody tr:hover {
-        background-color: #f9fafb;
-    }
-
-    /* Text alignments (as you had) */
-    .earnings-table th:nth-child(1),
-    .earnings-table td:nth-child(1) { text-align: center; }
-    .earnings-table th:nth-child(2),
-    .earnings-table td:nth-child(2) { text-align: left; }
-    .earnings-table th:nth-child(n+3),
-    .earnings-table td:nth-child(n+3) { text-align: right; }
-
-    /* Company search input styling */
-    .company-search {
-        width: 120px;
-        padding: 6px 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        font-size: 10.8px;
-        font-weight: 600;
-        background: #fff;
-        color: #374151;
-        outline: none;
-    }
-
-    /* Prevent horizontal "micro-shifts" when scrollbar appears/disappears */
-    html, body { 
-        overflow-y: scroll; 
-    }
-
-    /* FIXED HEADER */
+    /* ===== HEADER STYLES ===== */
     .header {
-        background: #ffffff;
-        padding: 24px 0;
+        background: var(--color-white);
+        padding: var(--spacing-6) 0;
         position: sticky;
         top: 0;
         z-index: 100;
         width: 100%;
         text-align: center;
-        padding-top: 16px;
-        padding-bottom: 12px;
+        padding-top: var(--spacing-4);
+        padding-bottom: var(--spacing-3);
     }
 
     .header h1 {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 31.5px;
+        font-family: var(--font-family-heading);
+        font-size: var(--font-size-3xl);
         font-weight: 700;
         color: #1E3A8A;
-        margin-top: 32px;
-        margin-bottom: 24px;
+        margin-top: var(--spacing-8);
+        margin-bottom: var(--spacing-6);
         text-align: center;
     }
 
     .header .subtitle {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 18px;
-        color: #6b7280;
+        font-family: var(--font-family-primary);
+        font-size: var(--font-size-xl);
+        color: var(--color-gray-500);
         font-weight: 400;
         text-align: center;
-        margin-bottom: 0px;
+        margin-bottom: 0;
         padding-bottom: 0;
     }
 
-    /* WINNERS/LOSERS CARDS */
+    /* ===== WINNERS/LOSERS CARDS ===== */
     .winners-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 12px;
-        padding: 8px 0 8px 0;
-        background: #ffffff;
+        gap: var(--spacing-3);
+        padding: var(--spacing-2) 0;
+        background: var(--color-white);
         position: sticky;
-        top: var(--h-header);
+        top: var(--header-height);
         z-index: 90;
-        padding-bottom: 8px;
+        padding-bottom: var(--spacing-2);
     }
 
     .winner-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 8px;
+        background: var(--color-white);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2);
         text-align: center;
-        transition: all 0.2s ease;
+        transition: all var(--transition-normal);
         position: relative;
         overflow: hidden;
         min-height: 80px;
@@ -365,40 +313,40 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #10b981, #059669);
+        background: linear-gradient(90deg, var(--color-success), var(--color-success-dark));
     }
 
     .winner-card.green::before {
-        background: linear-gradient(90deg, #10b981, #059669);
+        background: linear-gradient(90deg, var(--color-success), var(--color-success-dark));
     }
 
     .winner-card.red::before {
-        background: linear-gradient(90deg, #ef4444, #dc2626);
+        background: linear-gradient(90deg, var(--color-danger), var(--color-danger-dark));
     }
 
     .winner-card.blue::before {
-        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        background: linear-gradient(90deg, var(--color-info), var(--color-info-dark));
     }
 
     .winner-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-xl);
     }
 
                      .winner-label {
                 font-size: 11.25px;
                 font-weight: 600;
-                color: #4b5563;
+        color: var(--color-gray-600);
          text-transform: uppercase;
          letter-spacing: 0.5px;
-         margin-bottom: 4px;
+        margin-bottom: var(--spacing-1);
      }
 
     .winner-ticker {
         font-size: 14.4px;
         font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 4px;
+        color: var(--color-gray-900);
+        margin-bottom: var(--spacing-1);
     }
 
     .winner-value {
@@ -407,249 +355,171 @@
     }
 
     .winner-value.positive {
-        color: #059669;
+        color: var(--color-success-dark);
     }
 
     .winner-value.negative {
-        color: #dc2626;
+        color: var(--color-danger-dark);
     }
 
     .winner-value.neutral {
-        color: #3b82f6;
+        color: var(--color-info);
     }
 
-    /* RESPONSIVE CARDS */
-    @media (max-width: 1400px) {
-        .winners-container {
-            grid-template-columns: repeat(6, 1fr);
-        }
+    /* ===== TABLE STYLES ===== */
+    /* Note: .table-scroll styles are now handled by .dual-table-wrapper */
+    /* The dual table structure provides its own scrolling behavior */
+
+    /* Note: .earnings-table styles are now handled by .earnings-table-left and .earnings-table-right */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: Table header styles are now handled by .earnings-table-left th and .earnings-table-right th */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: Table body styles are now handled by .earnings-table-left tbody and .earnings-table-right tbody */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: Table cell styles are now handled by .earnings-table-left th/td and .earnings-table-right th/td */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: Row selection styles are now handled by .earnings-table-left tbody tr.selected td and .earnings-table-right tbody tr.selected td */
+    /* The dual table structure provides separate styling for each part */
+
+    /* ===== TEXT ALIGNMENT RULES ===== */
+    /* Left table (Fixed columns) */
+    /* Column 1: # - Left aligned */
+    .earnings-table-left th:nth-child(1),
+    .earnings-table-left td:nth-child(1) { text-align: left !important; }
+    
+    /* Column 2: Ticker - Left aligned */
+    .earnings-table-left th:nth-child(2),
+    .earnings-table-left td:nth-child(2) { text-align: left !important; }
+    
+    /* Column 3: Company - Left aligned */
+    .earnings-table-left th:nth-child(3),
+    .earnings-table-left td:nth-child(3) { text-align: left !important; }
+    
+    /* Column 4: Size - Header centered, data centered */
+    .earnings-table-left th:nth-child(4),
+    .earnings-table-left td:nth-child(4) { text-align: center !important; }
+    
+    /* Column 5: Market Cap - Right aligned (numeric) */
+    .earnings-table-left th:nth-child(5),
+    .earnings-table-left td:nth-child(5) { text-align: right !important; }
+    
+    /* Column 6: Cap Diff - Right aligned (numeric) */
+    .earnings-table-left th:nth-child(6),
+    .earnings-table-left td:nth-child(6) { text-align: right !important; }
+    
+    /* Column 7: Price - Right aligned (numeric) */
+    .earnings-table-left th:nth-child(7),
+    .earnings-table-left td:nth-child(7) { text-align: right !important; }
+    
+    /* Column 8: Change - Right aligned (numeric) */
+    .earnings-table-left th:nth-child(8),
+    .earnings-table-left td:nth-child(8) { text-align: right !important; }
+    
+    /* Right table (Dynamic columns) */
+    /* All columns: Right aligned for numeric data */
+    .earnings-table-right th,
+    .earnings-table-right td { text-align: right !important; }
+    
+    /* Notes column (last column in guidance table) - Center aligned */
+    .earnings-table-right.guidance-table th:last-child,
+    .earnings-table-right.guidance-table td:last-child { text-align: center !important; }
+
+    /* ===== TICKER & COMPANY COLUMN STYLES ===== */
+    .ticker-cell {
+        font-weight: 700;
+        color: var(--color-gray-900);
+        font-size: 13px;
+        text-transform: uppercase;
+        text-align: center;
+        padding: var(--spacing-2);
+        background: var(--color-gray-50);
+        border-radius: var(--radius-sm);
+        min-width: 25px;
+        max-width: 25px;
     }
 
-    @media (max-width: 1000px) {
-        .winners-container {
-            grid-template-columns: repeat(4, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .winners-container {
-            grid-template-columns: repeat(2, 1fr);
-            padding: 16px 20px;
-        }
-    }
-
-    /* ===== UNIFIED TEXT ALIGNMENT FOR ALL COLUMNS ===== */
-    
-    /* Column 1: # - Centered */
-    .earnings-table th:nth-child(1),
-    .earnings-table td:nth-child(1) { text-align: center !important; }
-    
-    /* Column 2: Company - Left aligned */
-    .earnings-table th:nth-child(2),
-    .earnings-table td:nth-child(2) { text-align: left !important; }
-    
-    /* Columns 3-17: All numeric data - Right aligned */
-    .earnings-table th:nth-child(3), .earnings-table td:nth-child(3) { text-align: right !important; } /* Market Cap */
-    
-    .earnings-table th:nth-child(4), .earnings-table td:nth-child(4) { text-align: right !important; } /* Cap Diff */
-    
-    .earnings-table th:nth-child(5), .earnings-table td:nth-child(5) { text-align: right !important; } /* Size */
-    
-    .earnings-table th:nth-child(6), .earnings-table td:nth-child(6) { text-align: right !important; } /* Price */
-    
-    .earnings-table th:nth-child(7), .earnings-table td:nth-child(7) { text-align: right !important; } /* % Change */
-    
-    .earnings-table th:nth-child(8), .earnings-table td:nth-child(8) { text-align: right !important; } /* EPS Est */
-    
-    .earnings-table th:nth-child(9), .earnings-table td:nth-child(9) { text-align: right !important; } /* EPS Act */
-    
-    .earnings-table th:nth-child(10), .earnings-table td:nth-child(10) { text-align: right !important; } /* EPS Surp */
-    
-    .earnings-table th:nth-child(11), .earnings-table td:nth-child(11) { text-align: right !important; } /* Rev Est */
-    
-    .earnings-table th:nth-child(12), .earnings-table td:nth-child(12) { text-align: right !important; } /* Rev Act */
-    
-    .earnings-table th:nth-child(13), .earnings-table td:nth-child(13) { text-align: right !important; } /* Rev Surp */
-    
-    .earnings-table th:nth-child(14), .earnings-table td:nth-child(14) { text-align: right !important; } /* EPS Guide */
-    
-    .earnings-table th:nth-child(15), .earnings-table td:nth-child(15) { text-align: right !important; } /* Guide Surp EPS */
-    
-    .earnings-table th:nth-child(16), .earnings-table td:nth-child(16) { text-align: right !important; } /* Rev Guide */
-    
-    .earnings-table th:nth-child(17), .earnings-table td:nth-child(17) { text-align: right !important; } /* Guide Surp Rev */
-    
-    /* Column 18: Notes - Center aligned */
-    .earnings-table th:nth-child(18),
-    .earnings-table td:nth-child(18) { text-align: center !important; }
-
-    /* ===== NOTES ICON STYLES ===== */
-    
-    /* Notes icon container */
-    .notes-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        cursor: help;
-        font-family: 'Inter', sans-serif;
+    .company-cell {
         font-weight: 600;
-        font-size: 14px;
-        line-height: 1;
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    /* Gray icon - no notes */
-    .notes-icon.no-notes {
-        background-color: #e5e7eb;
-        color: #9ca3af;
-        border: 2px solid #d1d5db;
-    }
-
-    /* Green icon - has notes */
-    .notes-icon.has-notes {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 2px solid #16a34a;
-    }
-
-    /* Hover effects */
-    .notes-icon:hover {
-        transform: scale(1.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Tooltip styles */
-    .notes-tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #1f2937;
-        color: #f9fafb;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 1.4;
-        white-space: nowrap;
-        max-width: 300px;
+        color: var(--color-gray-900);
+        font-size: 13px;
+        text-align: left;
+        padding: var(--spacing-2);
         overflow: hidden;
         text-overflow: ellipsis;
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease;
-        pointer-events: none;
-        margin-bottom: 8px;
+        white-space: nowrap;
+        min-width: 75px;
+        max-width: 75px;
     }
 
-    /* Tooltip arrow */
-    .notes-tooltip::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 4px solid transparent;
-        border-top-color: #1f2937;
+    /* ===== COMPANY COLUMN STYLES ===== */
+    .company-header-container {
+        display: flex;
+        gap: var(--spacing-2);
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        max-width: 120px;
     }
 
-    /* Show tooltip on hover */
-    .notes-icon:hover .notes-tooltip {
-        opacity: 1;
-        visibility: visible;
+    .earnings-table-left th[data-sort="company"] {
+        overflow: hidden;
+        max-width: 120px;
+        width: 120px;
     }
 
-            /* ===== SORTABLE HEADER STYLES ===== */
-    
-    /* These styles are now handled by .earnings-table thead th above */
-    /* No need for separate .sortable-header class with single table structure */
-    
-    /* Active sort indicator - still needed for JavaScript */
-    .sortable-header.active-sort {
-        background-color: #bbdefb !important;
-        color: #374151 !important;
-        font-weight: 700;
+
+
+    .company-info {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
     }
 
-                 /* Company header obsah nesmie nafukovať šírku */
-         .company-header-container{
-           display:flex; gap:8px; align-items:center; justify-content:flex-start; width:100%;
-         }
-         
-                             /* Company stĺpec - zabezpečí správnu šírku */
-           th[data-sort="company"] {
-             overflow: hidden;
-             max-width: 120px;
-             width: 120px;
-           }
-                                   .company-search{
-            width:100px; max-width:120px;
-            padding:6px 8px;
-            border:1px solid #d1d5db; border-radius:4px;
-            font-size:11px; background:#fff; color:#374151; outline:none;
-          }
-        .company-search:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.1); }
-
-
-
-    .earnings-table tbody tr:hover {
-        background-color: #f9fafb;
+    .company-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-width: 0;
+        flex: 1;
+        width: 100%;
     }
-         
 
+    .company-name {
+        font-weight: 600;
+        color: var(--color-gray-900);
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+        max-width: 80px;
+    }
 
-         /* COMPANY INFO */
-     .company-info {
-         display: flex;
-         align-items: center;
-         width: 100%;
-         min-width: 0;
-         overflow: hidden;
-     }
+    .company-ticker {
+        font-weight: 600;
+        color: var(--color-gray-900);
+        font-size: 13px;
+        flex-shrink: 0;
+        min-width: 60px;
+        max-width: 60px;
+        margin-right: var(--spacing-3);
+        text-transform: uppercase;
+        text-align: left;
+    }
 
-         .company-details {
-         display: flex;
-         flex-direction: row;
-         align-items: center;
-         min-width: 0;
-         flex: 1;
-         width: 100%;
-     }
-
-     .company-name {
-         font-weight: 600;
-         color: #1a1a1a;
-         font-size: 13px;
-         overflow: hidden;
-         text-overflow: ellipsis;
-         white-space: nowrap;
-         flex: 1;
-         min-width: 0;
-         max-width: none;
-     }
-
-         .company-ticker {
-         font-weight: 600;
-         color: #1a1a1a;
-         font-size: 13px;
-         flex-shrink: 0;
-         min-width: 60px; /* zväčšené z 50px na 60px pre lepšiu čitateľnosť */
-         max-width: 60px; /* fixná maximálna šírka */
-         margin-right: 12px; /* zmenšené z 16px na 12px pre lepšie využitie priestoru */
-         text-transform: uppercase; /* ticker symboly budú veľkými písmenami */
-         text-align: left;
-     }
-
-    /* STATUS BADGES */
-    .status-badge {
-        padding: 4px 6px;
-        border-radius: 4px;
-        font-size: 10px;
+    /* ===== STATUS & SIZE BADGES ===== */
+    .status-badge,
+    .size-badge {
+        padding: var(--spacing-1) 6px;
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-xs);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -665,25 +535,12 @@
 
     .status-amc {
         background: #fef2f2;
-        color: #dc2626;
+        color: var(--color-danger-dark);
     }
 
     .status-tns {
         background: #fef3c7;
-        color: #d97706;
-    }
-
-    /* SIZE BADGES */
-    .size-badge {
-        padding: 4px 6px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-block;
-        text-align: center;
-        min-width: 40px;
+        color: var(--color-warning-dark);
     }
 
     .size-large {
@@ -693,49 +550,233 @@
 
     .size-mid {
         background: #fef3c7;
-        color: #d97706;
+        color: var(--color-warning-dark);
     }
 
     .size-small {
-        background: #f3f4f6;
-        color: #374151;
+        background: var(--color-gray-100);
+        color: var(--color-gray-700);
     }
 
     .size-mega {
         background: #dbeafe;
-        color: #1d4ed8;
+        color: var(--color-info-dark);
     }
 
-    /* PRICE CHANGES */
+    /* ===== PRICE CHANGES ===== */
     .price-up {
-        color: #059669;
+        color: var(--color-success-dark);
         font-weight: 600;
     }
 
     .price-down {
-        color: #dc2626;
+        color: var(--color-danger-dark);
         font-weight: 600;
     }
 
     .price-neutral {
-        color: #6b7280;
+        color: var(--color-gray-500);
     }
 
-    /* LOADING */
+    /* ===== NOTES ICON STYLES ===== */
+    .notes-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: help;
+        font-family: var(--font-family-primary);
+        font-weight: 600;
+        font-size: var(--font-size-base);
+        line-height: 1;
+        transition: all var(--transition-normal);
+        position: relative;
+    }
+
+    .notes-icon.no-notes {
+        background-color: var(--color-gray-200);
+        color: var(--color-gray-400);
+        border: 2px solid var(--color-gray-300);
+    }
+
+    .notes-icon.has-notes {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 2px solid var(--color-success);
+    }
+
+    .notes-icon:hover {
+        transform: scale(1.1);
+        box-shadow: var(--shadow-md);
+    }
+
+    .notes-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--color-gray-800);
+        color: var(--color-gray-50);
+        padding: var(--spacing-2) var(--spacing-3);
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+        line-height: 1.4;
+        white-space: nowrap;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+        pointer-events: none;
+        margin-bottom: var(--spacing-2);
+    }
+
+    .notes-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: var(--color-gray-800);
+    }
+
+    .notes-icon:hover .notes-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+
+            /* ===== SORTABLE HEADER STYLES ===== */
+    .earnings-table-left .sortable-header.active-sort,
+    .earnings-table-right .sortable-header.active-sort {
+        background-color: #bbdefb !important;
+        color: var(--color-gray-700) !important;
+        font-weight: 700;
+    }
+
+    /* ===== TOOLBAR STYLES ===== */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 6px 0 var(--spacing-2);
+        padding: 0 var(--spacing-5);
+    }
+
+    .toolbar-left {
+        display: flex;
+        gap: var(--spacing-2);
+        align-items: center;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .toolbar .company-search {
+        width: 250px;
+        padding: 6px var(--spacing-2);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
+        background: var(--color-white);
+        color: var(--color-gray-900);
+        transition: all var(--transition-normal);
+    }
+
+    .toolbar .company-search:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    .toolbar .company-search::placeholder {
+        color: var(--color-gray-400);
+    }
+
+    .btn {
+        font: 600 var(--font-size-sm)/1 var(--font-family-primary);
+        padding: 6px var(--spacing-2);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        background: var(--color-white);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        margin-right: var(--spacing-2);
+    }
+    
+    .btn:last-child {
+        margin-right: 0;
+    }
+    
+    /* Disable tooltips for toolbar buttons */
+    .toolbar .btn::before,
+    .toolbar .btn::after {
+        display: none !important;
+    }
+    
+    .toolbar .btn[title] {
+        position: relative;
+    }
+    
+    .toolbar .btn[title]:hover::after {
+        display: none !important;
+    }
+    
+    /* Additional tooltip suppression */
+    .toolbar .btn:hover {
+        position: relative;
+    }
+    
+    .toolbar .btn:hover::before,
+    .toolbar .btn:hover::after {
+        content: none !important;
+        display: none !important;
+    }
+
+    .btn:hover {
+        background: var(--color-gray-50);
+        border-color: var(--color-gray-400);
+    }
+
+    .btn.active {
+        background: #dcfce7;
+        border-color: var(--color-success);
+        color: #166534;
+    }
+
+    .btn.inactive {
+        background: var(--color-gray-100);
+        border-color: var(--color-gray-400);
+        border-width: 1px;
+        color: var(--color-gray-600);
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    /* Note: .hide-col is no longer used in the dual table structure */
+
+    /* ===== LOADING STYLES ===== */
     .loading {
         text-align: center;
-        padding: 60px 20px;
-        color: #6b7280;
+        padding: 60px var(--spacing-5);
+        color: var(--color-gray-500);
     }
 
     .loading .spinner {
         width: 40px;
         height: 40px;
-        border: 3px solid #f3f4f6;
-        border-top: 3px solid #3b82f6;
+        border: 3px solid var(--color-gray-100);
+        border-top: 3px solid var(--color-primary);
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin: 0 auto 16px;
+        margin: 0 auto var(--spacing-4);
     }
 
     @keyframes spin {
@@ -743,138 +784,1174 @@
         100% { transform: rotate(360deg); }
     }
 
+
+
     /* ===== RESPONSIVE DESIGN ===== */
-    
+    @media (max-width: 1400px) {
+        .winners-container {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .main-container {
+            width: 70%;
+            max-width: none;
+        }
+    }
+
+    @media (max-width: 1000px) {
+        .winners-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .company-search {
+            width: 80px;
+            max-width: 100px;
+        }
+        
+        .nav-list {
+            gap: var(--spacing-2);
+        }
+    }
+
     @media (max-width: 768px) {
-        .stats-container {
+        .main-container {
+            width: 70%;
+            max-width: none;
+        }
+        
+        .winners-container {
             grid-template-columns: repeat(2, 1fr);
-            padding: 16px 20px;
+            padding: var(--spacing-4) var(--spacing-5);
+            gap: var(--spacing-3);
         }
         
-        .table-container {
-            padding: 16px 20px;
-        }
-        
-        /* Mobile spacing adjustments */
         .header { 
             padding-top: 10px; 
-            padding-bottom: 8px; 
+            padding-bottom: var(--spacing-2); 
         }
         
         .winners-container { 
             padding-bottom: 6px; 
         }
+        
+        /* Adjust dual table layout for mobile */
+        .dual-table-wrapper {
+            flex-direction: column;
+        }
+        
+        .table-left-part {
+            flex: none;
+            width: 100%;
+            border-right: none;
+            border-bottom: 2px solid var(--color-gray-300);
+        }
+        
+        .table-right-part {
+            width: 100%;
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 10px;
+        }
+        
+        .company-search {
+            width: 70px;
+            max-width: 80px;
+            font-size: 9px;
+        }
     }
 
-    /* ===== HEADER TEXT ALIGNMENT OVERRIDES ===== */
+    @media (max-width: 480px) {
+        .main-container {
+            width: 70%;
+            max-width: none;
+        }
+        
+        .winners-container {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-2);
+        }
+        
+        .winner-card {
+            min-height: 50px;
+        }
+        
+        /* Adjust dual table layout for very small screens */
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 9px;
+        }
+        
+        .company-search {
+            width: 60px;
+            max-width: 70px;
+            font-size: 8px;
+        }
+    }
+
+    /* ===== UTILITY CLASSES ===== */
+    .flex-center {
+         display: flex;
+         align-items: center;
+        gap: var(--spacing-3);
+    }
+
+    /* Note: .scroll-indicator styles are no longer needed */
+    /* The dual table structure provides its own scrolling behavior */
+
+    /* Note: .company-header-flex styles are now handled by .company-header-wrapper */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: Text alignment styles are now handled by .earnings-table-left and .earnings-table-right */
+    /* The dual table structure provides separate styling for each part */
+
+    /* Note: .hidden and .visible styles are now handled by .guidance-table and .eps-revenue-table */
+    /* The dual table structure provides separate styling for each part */
+
+    /* ===== LOADING STATES ===== */
+    .loading-state {
+        display: none;
+    }
+
+    .loading-state.active {
+        display: block;
+    }
+
+    .table-container {
+        display: block;
+         width: 100%;
+        background: var(--color-white);
+        padding-bottom: var(--spacing-3);
+        /* Ensure proper scrolling behavior */
+        overflow: visible;
+     }
+
     
-    /* These are now handled by the unified text alignment rules above */
-    /* No need for separate header overrides with single table structure */
 
-    /* SEARCH BAR STYLES */
-    .company-header-container {
+    /* ===== IMPROVED COMPANY HEADER ===== */
+    .company-header-wrapper {
         display: flex;
-        flex-direction: row;
-        gap: 8px;
         align-items: center;
-        justify-content: center;
+        gap: var(--spacing-3);
+        width: 100%;
+        max-width: 120px;
+        overflow: hidden;
     }
 
-                   .company-search {
-          width: 180px;
-          max-width: 200px;
-          padding: 6px 8px;
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          font-size: 10.8px;
-          font-family: 'Inter', sans-serif;
-          background: white;
-          color: #374151;
-          outline: none;
-          transition: border-color 0.2s ease;
-          overflow: hidden;
-          text-overflow: ellipsis;
-      }
+    .company-header-title {
+         font-weight: 600;
+        color: var(--color-gray-700);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+    }
+
+    /* Note: .scroll-indicator styles are no longer needed in the dual table structure */
+
+    /* ===== IMPROVED TABLE HEADERS ===== */
+    /* Note: .table-header-cell styles are now handled by .earnings-table-left th and .earnings-table-right th */
+    /* The dual table structure provides separate styling for each part */
+
+    /* ===== IMPROVED TABLE ROWS ===== */
+    /* Note: .table-row and .table-cell styles are now handled by .earnings-table-left tbody tr and .earnings-table-right tbody tr */
+    /* The dual table structure provides separate styling for each part */
+
+    /* ===== IMPROVED WINNER CARDS ===== */
+    .winner-card {
+        background: var(--color-white);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2);
+        text-align: center;
+        transition: all var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+        min-height: 80px;
+        cursor: pointer;
+    }
+
+    .winner-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--color-success), var(--color-success-dark));
+        transition: height var(--transition-normal);
+    }
+
+    .winner-card:hover::before {
+        height: 6px;
+    }
+
+    .winner-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--color-gray-300);
+    }
+
+    .winner-card:active {
+        transform: translateY(-2px);
+    }
+
+    /* ===== IMPROVED BUTTONS ===== */
+    .btn {
+        font: 600 var(--font-size-sm)/1 var(--font-family-primary);
+        padding: 8px var(--spacing-3);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        background: var(--color-white);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left var(--transition-slow);
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn:hover {
+        background: var(--color-gray-50);
+        border-color: var(--color-gray-400);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn.active {
+        background: #dcfce7;
+        border-color: var(--color-success);
+        color: #166534;
+        box-shadow: 0 0 0 2px rgba(22, 101, 52, 0.1);
+    }
+
+    .btn.inactive {
+        background: var(--color-gray-100);
+        border-color: var(--color-gray-300);
+        color: var(--color-gray-400);
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* ===== IMPROVED SEARCH INPUT ===== */
+    .company-search {
+        width: 100px;
+        max-width: 120px;
+        padding: 8px var(--spacing-2);
+        border: 2px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        font-size: 11px;
+        background: var(--color-white);
+        color: var(--color-gray-700);
+        outline: none;
+        transition: all var(--transition-normal);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
 
     .company-search:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
-    .company-search::placeholder {
-        color: #9ca3af;
+
+
+    /* ===== IMPROVED NOTES ICON ===== */
+    .notes-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: help;
+        font-family: var(--font-family-primary);
+        font-weight: 600;
+        font-size: var(--font-size-base);
+        line-height: 1;
+        transition: all var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notes-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: currentColor;
+        opacity: 0.1;
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform var(--transition-normal);
+    }
+
+    .notes-icon:hover::before {
+        transform: scale(1);
+    }
+
+    .notes-icon.no-notes {
+        background-color: var(--color-gray-200);
+        color: var(--color-gray-400);
+        border: 2px solid var(--color-gray-300);
+    }
+
+    .notes-icon.has-notes {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 2px solid var(--color-success);
+    }
+
+    .notes-icon:hover {
+        transform: scale(1.15);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* ===== IMPROVED TOOLTIP ===== */
+    .notes-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background-color: var(--color-gray-800);
+        color: var(--color-gray-50);
+        padding: var(--spacing-3) var(--spacing-4);
+        border-radius: var(--radius-lg);
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+        line-height: 1.5;
+        white-space: normal;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+        pointer-events: none;
+        margin-bottom: var(--spacing-2);
+        box-shadow: var(--shadow-xl);
+        border: 1px solid var(--color-gray-700);
+    }
+
+    .notes-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--color-gray-800);
+    }
+
+    .notes-icon:hover .notes-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== IMPROVED RESPONSIVE DESIGN ===== */
+    @media (max-width: 1400px) {
+        .winners-container {
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--spacing-2);
+        }
+        
+        .winner-card {
+            min-height: 70px;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .main-container {
+            width: 85%;
+        }
+        
+        .company-search {
+            width: 90px;
+            max-width: 110px;
+        }
+        
+        /* Maintain dual table layout for smaller screens */
+        .table-left-part {
+            flex: 1; /* Maintain 50% width on smaller screens */
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 1000px) {
+        .winners-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .company-search {
+            width: 80px;
+            max-width: 100px;
+        }
+        
+        .nav-list {
+            gap: var(--spacing-2);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .main-container {
+            width: 90%;
+        }
+        
+        .winners-container {
+            grid-template-columns: repeat(2, 1fr);
+            padding: var(--spacing-4) var(--spacing-5);
+            gap: var(--spacing-3);
+        }
+        
+        .header { 
+            padding-top: 10px; 
+            padding-bottom: var(--spacing-2); 
+        }
+        
+        .winner-card {
+            min-height: 60px;
+            padding: var(--spacing-1);
+        }
+        
+        .winner-label {
+            font-size: 10px;
+        }
+        
+        .winner-ticker {
+            font-size: 12px;
+        }
+        
+        .winner-value {
+            font-size: 11px;
+        }
+        
+        /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
+        /* The dual table structure provides separate styling for each part */
+        
+        /* Adjust dual table layout for mobile */
+        .dual-table-wrapper {
+            flex-direction: column;
+        }
+        
+        .table-left-part {
+            flex: none;
+            width: 100%;
+            border-right: none;
+            border-bottom: 2px solid var(--color-gray-300);
+        }
+        
+        .table-right-part {
+            width: 100%;
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 10px;
+        }
+        
+        .company-search {
+            width: 70px;
+            max-width: 80px;
         font-size: 9px;
     }
  
-     /* FOOTER STYLES */
+        .btn {
+            padding: 6px var(--spacing-2);
+            font-size: 11px;
+        }
+        
      .footer {
-         background: #f8fafc;
-         border-top: 1px solid #e5e7eb;
-         padding: 40px 0 20px 0;
-         margin-top: 40px;
-         font-family: 'Inter', sans-serif;
-     }
- 
-           .footer-content {
-          display: flex;
+            padding: var(--spacing-6) var(--spacing-5) var(--spacing-4) var(--spacing-5);
+        }
+        
+        .nav-list {
           flex-direction: column;
-          align-items: center;
-          text-align: center;
-          max-width: 1400px;
-          margin: 0 auto;
-      }
- 
-           .footer-section h3 {
-          color: #6b7280;
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-      }
- 
-     .footer-section p {
-         color: #6b7280;
-         font-size: 14px;
-         line-height: 1.6;
+            gap: var(--spacing-1);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-container {
+            width: 95%;
+        }
+        
+        .winners-container {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-2);
+        }
+        
+        .winner-card {
+            min-height: 50px;
+        }
+        
+        /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
+        /* The dual table structure provides separate styling for each part */
+        
+        /* Adjust dual table layout for very small screens */
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 9px;
+        }
+        
+        .company-search {
+            width: 60px;
+            max-width: 70px;
+            padding: 4px 2px;
+            font-size: 9px;
+        }
+        
+        .btn {
+            padding: 4px var(--spacing-1);
+            font-size: 10px;
+        }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .slide-in {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+        .header,
+        .winners-container,
+        .toolbar,
+        /* Note: .scroll-indicator is no longer used in the dual table structure */
+        .footer {
+            display: none !important;
+        }
+        
+        .main-container {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        
+        .dual-table-wrapper {
+            display: block !important;
+            width: 100% !important;
+        }
+        
+        .table-left-part,
+        .table-right-part {
+            display: block !important;
+            width: 100% !important;
+            flex: none !important;
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            width: 100% !important;
+            font-size: 8px !important;
+            page-break-inside: avoid;
+        }
+        
+        .earnings-table-left th,
+        .earnings-table-left td,
+        .earnings-table-right th,
+        .earnings-table-right td {
+            padding: 2px 1px !important;
+            border: 0.5px solid #000 !important;
+        }
+        
+        /* Show only EPS & Revenue table in print for better readability */
+        .guidance-table {
+            display: none !important;
+        }
+        
+        .eps-revenue-table {
+            display: table !important;
+        }
+    }
+
+
+
+    /* ===== NAVIGATION STYLES ===== */
+    .main-navigation {
+        margin-top: var(--spacing-2);
+    }
+
+    .nav-list {
+        list-style: none;
+        display: flex;
+        gap: var(--spacing-4);
+        justify-content: center;
          margin: 0;
-     }
- 
-     .footer-bottom {
-         border-top: 1px solid #e5e7eb;
-         margin-top: 32px;
-         padding-top: 20px;
-         text-align: center;
-     }
- 
-     .footer-bottom p {
-         color: #9ca3af;
-         font-size: 12px;
-         margin: 0;
+        padding: 0;
+    }
+
+    .nav-list a {
+        color: var(--color-gray-500);
+        text-decoration: none;
          font-weight: 500;
-     }
- 
-     /* RESPONSIVE FOOTER */
+        transition: color var(--transition-normal);
+        padding: var(--spacing-1) var(--spacing-2);
+        border-radius: var(--radius-sm);
+    }
+
+    .nav-list a:hover {
+        color: var(--color-primary);
+        background-color: var(--color-gray-50);
+    }
+
+    .nav-list a:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* ===== LOADING TEXT STYLES ===== */
+    .loading-text {
+        color: var(--color-gray-500);
+        font-size: var(--font-size-base);
+        margin-top: var(--spacing-2);
+    }
+
+    /* ===== HEADER TEXT STYLES ===== */
+    .header-text {
+        display: inline-block;
+        transition: all var(--transition-normal);
+    }
+
+    .earnings-table-left th:hover .header-text,
+    .earnings-table-right th:hover .header-text {
+        transform: scale(1.05);
+    }
+
+    /* ===== DUAL TABLE STRUCTURE IMPLEMENTATION ===== */
+
+    /* ===== DUAL TABLE STRUCTURE IMPLEMENTATION ===== */
+    /* Container for the dual table layout */
+    .dual-table-wrapper {
+        display: flex;
+        width: 100%;
+        background: var(--color-white);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-md);
+        overflow: visible; /* Changed from hidden to visible to prevent double scrollbars */
+    }
+
+    /* Left Part: Fixed Columns (Always Visible) */
+    .table-left-part {
+        flex: 0 0 60%; /* 60% width - larger than right part */
+        background: var(--color-white);
+        border-right: 1px solid var(--color-gray-200);
+        position: relative;
+        z-index: 10;
+        min-width: 0; /* Allow shrinking */
+        overflow: visible; /* Ensure proper scrolling behavior */
+    }
+
+    /* Right Part: Dynamic Columns (Flexible width) */
+    .table-right-part {
+        flex: 0 0 40%; /* 40% width - smaller than left part */
+        background: var(--color-white);
+        min-width: 0; /* Allow shrinking */
+        overflow: visible; /* Ensure proper scrolling behavior */
+    }
+
+    /* Table styles for both parts */
+    .earnings-table-left,
+    .earnings-table-right {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-family-primary);
+        font-size: 12.6px;
+        font-variant-numeric: tabular-nums;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Left table specific styles */
+    .earnings-table-left {
+        table-layout: fixed;
+    }
+
+    /* Right table specific styles */
+    .earnings-table-right {
+        table-layout: fixed;
+    }
+
+    /* Ensure both tables have same row heights */
+    .earnings-table-left tbody tr,
+    .earnings-table-right tbody tr {
+        height: var(--table-row-height);
+    }
+
+    /* Synchronize hover effects between left and right parts */
+    .earnings-table-left tbody tr:hover,
+    .earnings-table-right tbody tr:hover {
+        background-color: var(--color-gray-50);
+    }
+
+    /* Ensure proper background inheritance */
+    .earnings-table-left tbody tr:nth-child(even),
+    .earnings-table-right tbody tr:nth-child(even) {
+        background-color: var(--color-gray-50);
+    }
+
+    .earnings-table-left tbody tr:nth-child(odd),
+    .earnings-table-right tbody tr:nth-child(odd) {
+        background-color: var(--color-white);
+    }
+
+    /* Hide guidance table by default */
+    .guidance-table {
+        display: none !important;
+    }
+
+    /* Show guidance table when active */
+    .guidance-table.active {
+        display: table !important;
+    }
+
+    /* Hide EPS & Revenue table when guidance is active */
+    .eps-revenue-table.hidden {
+        display: none !important;
+    }
+
+    /* ===== TABLE SYNCHRONIZATION ===== */
+    /* Ensure both tables have consistent styling */
+    .earnings-table-left th,
+    .earnings-table-right th {
+        background: #e3f2fd;
+        border-bottom: 2px solid var(--color-gray-300);
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        height: var(--table-row-height);
+        padding: var(--spacing-3) var(--spacing-2);
+        vertical-align: middle;
+        box-sizing: border-box;
+    }
+
+    .earnings-table-left th:hover,
+    .earnings-table-right th:hover {
+        background: #bbdefb;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Ensure consistent cell styling */
+    .earnings-table-left td,
+    .earnings-table-right td {
+        padding: var(--spacing-3) var(--spacing-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--color-gray-100);
+        border-right: 1px solid var(--color-gray-100);
+        box-sizing: border-box;
+        height: var(--table-row-height);
+        transition: all var(--transition-normal);
+    }
+
+    .earnings-table-left td:last-child,
+    .earnings-table-right td:last-child {
+        border-right: none;
+    }
+
+    /* Synchronize row hover effects */
+    .earnings-table-left tbody tr:hover td,
+    .earnings-table-right tbody tr:hover td {
+        background-color: var(--color-gray-50);
+        transform: translateX(2px);
+    }
+
+    /* Hover synchronization class */
+    .earnings-table-left tbody tr.hover-sync td,
+    .earnings-table-right tbody tr.hover-sync td {
+        background-color: var(--color-gray-50);
+        transform: translateX(2px);
+    }
+
+    /* ===== IMPROVED WINNER CARDS INTERACTIVITY ===== */
+    .winner-card:focus {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    .winner-card:focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* ===== IMPROVED BUTTON FOCUS STATES ===== */
+    .btn:focus {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    .btn:focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* ===== IMPROVED SEARCH INPUT FOCUS ===== */
+    .company-search:focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* ===== IMPROVED SCROLLBAR STYLES ===== */
+    /* Note: .table-scroll scrollbar styles are no longer needed */
+    /* The dual table structure provides its own scrolling behavior */
+
+    /* ===== IMPROVED ANIMATIONS ===== */
+    .winner-card {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .winner-card:nth-child(1) { animation-delay: 0.1s; }
+    .winner-card:nth-child(2) { animation-delay: 0.2s; }
+    .winner-card:nth-child(3) { animation-delay: 0.3s; }
+    .winner-card:nth-child(4) { animation-delay: 0.4s; }
+    .winner-card:nth-child(5) { animation-delay: 0.5s; }
+    .winner-card:nth-child(6) { animation-delay: 0.6s; }
+    .winner-card:nth-child(7) { animation-delay: 0.7s; }
+    .winner-card:nth-child(8) { animation-delay: 0.8s; }
+    .winner-card:nth-child(9) { animation-delay: 0.9s; }
+    .winner-card:nth-child(10) { animation-delay: 1.0s; }
+    .winner-card:nth-child(11) { animation-delay: 1.1s; }
+    .winner-card:nth-child(12) { animation-delay: 1.2s; }
+
+    /* ===== IMPROVED RESPONSIVE DESIGN ===== */
+    @media (max-width: 1400px) {
+        .winners-container {
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--spacing-2);
+        }
+        
+        .winner-card {
+            min-height: 70px;
+        }
+        
+        .caption-title {
+            font-size: var(--font-size-lg);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .main-container {
+            width: 85%;
+        }
+        
+        /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
+        /* The dual table structure provides separate styling for each part */
+        
+        .company-search {
+            width: 90px;
+            max-width: 110px;
+        }
+        
+        /* Adjust dual table layout for smaller screens */
+        .table-left-part {
+            flex: 0 0 60%; /* Maintain 60% width on smaller screens */
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 1000px) {
+        .winners-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .company-search {
+            width: 80px;
+            max-width: 100px;
+        }
+        
+        .nav-list {
+            gap: var(--spacing-2);
+        }
+    }
+
      @media (max-width: 768px) {
+        .main-container {
+            width: 90%;
+        }
+        
+        .winners-container {
+            grid-template-columns: repeat(2, 1fr);
+            padding: var(--spacing-4) var(--spacing-5);
+            gap: var(--spacing-3);
+        }
+        
+        .header { 
+            padding-top: 10px; 
+            padding-bottom: var(--spacing-2); 
+        }
+        
+        .winner-card {
+            min-height: 60px;
+            padding: var(--spacing-1);
+        }
+        
+        .winner-label {
+            font-size: 10px;
+        }
+        
+        .winner-ticker {
+            font-size: 12px;
+        }
+        
+        .winner-value {
+            font-size: 11px;
+        }
+        
+        /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
+        /* The dual table structure provides separate styling for each part */
+        
+        /* Adjust dual table layout for mobile */
+        .dual-table-wrapper {
+            flex-direction: column;
+        }
+        
+        .table-left-part {
+            flex: none;
+            width: 100%;
+            border-right: none;
+            border-bottom: 2px solid var(--color-gray-300);
+        }
+        
+        .table-right-part {
+            width: 100%;
+        }
+        
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 10px;
+        }
+        
+        .company-search {
+            width: 70px;
+            max-width: 80px;
+            font-size: 9px;
+        }
+        
+        .btn {
+            padding: 6px var(--spacing-2);
+            font-size: 11px;
+        }
+        
          .footer {
-             padding: 24px 20px 16px 20px;
-         }
-         
-         .footer-content {
-             text-align: center;
-         }
-         
-         .footer-section h3 {
-             font-size: 14px;
-         }
-         
-         .footer-section p {
-             font-size: 13px;
-         }
+            padding: var(--spacing-6) var(--spacing-5) var(--spacing-4) var(--spacing-5);
+        }
+        
+        .nav-list {
+            flex-direction: column;
+            gap: var(--spacing-1);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-container {
+            width: 95%;
+        }
+        
+        .winners-container {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-2);
+        }
+        
+        .winner-card {
+            min-height: 50px;
+        }
+        
+        /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
+        /* The dual table structure provides separate styling for each part */
+        
+        /* Adjust dual table layout for very small screens */
+        .earnings-table-left,
+        .earnings-table-right {
+            font-size: 9px;
+        }
+        
+        .company-search {
+            width: 60px;
+            max-width: 70px;
+            font-size: 8px;
+        }
+        
+        .btn {
+            padding: 4px var(--spacing-1);
+            font-size: 10px;
+        }
+    }
+
+    /* ===== HIGH CONTRAST MODE SUPPORT ===== */
+    @media (prefers-contrast: high) {
+        .winner-card {
+            border-width: 2px;
+        }
+        
+        .earnings-table-left th,
+        .earnings-table-left td,
+        .earnings-table-right th,
+        .earnings-table-right td {
+            border-width: 2px;
+            border-color: var(--color-black);
+     }
+
+     .btn {
+            border-width: 2px;
+        }
+    }
+
+    /* ===== REDUCED MOTION SUPPORT ===== */
+    @media (prefers-reduced-motion: reduce) {
+        .winner-card,
+        .btn,
+        .earnings-table-left th,
+        .earnings-table-left td,
+        .earnings-table-right th,
+        .earnings-table-right td,
+        .notes-icon {
+            animation: none;
+            transition: none;
+        }
+        
+        .scroll-indicator-icon {
+            animation: none;
+        }
+    }
+
+    /* ===== DARK MODE SUPPORT ===== */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --color-primary: #3b82f6;
+            --color-primary-hover: #2563eb;
+            --color-secondary: #64748b;
+            --color-secondary-hover: #475569;
+            --color-success: #10b981;
+            --color-success-hover: #059669;
+            --color-warning: #f59e0b;
+            --color-warning-hover: #d97706;
+            --color-danger: #ef4444;
+            --color-danger-hover: #dc2626;
+            --color-info: #06b6d4;
+            --color-info-hover: #0891b2;
+            --color-light: #1e293b;
+            --color-light-hover: #334155;
+            --color-dark: #f8fafc;
+            --color-dark-hover: #e2e8f0;
+            --color-gray-50: #0f172a;
+            --color-gray-100: #1e293b;
+            --color-gray-200: #334155;
+            --color-gray-300: #475569;
+            --color-gray-400: #64748b;
+            --color-gray-500: #94a3b8;
+            --color-gray-600: #cbd5e1;
+            --color-gray-700: #e2e8f0;
+            --color-gray-800: #f1f5f9;
+            --color-gray-900: #f8fafc;
+            --color-white: #0f172a;
+            --color-black: #f8fafc;
+            --color-background: #0f172a;
+            --color-surface: #1e293b;
+            --color-text: #f8fafc;
+            --color-text-muted: #cbd5e1;
+            --color-border: #334155;
+            --color-shadow: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Dark mode styles for dual table structure */
+        .earnings-table-left th,
+        .earnings-table-left td,
+        .earnings-table-right th,
+        .earnings-table-right td {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
+        
+        .earnings-table-left tbody tr:nth-child(even),
+        .earnings-table-right tbody tr:nth-child(even) {
+            background-color: var(--color-gray-50);
+        }
+        
+        .earnings-table-left tbody tr:hover,
+        .earnings-table-right tbody tr:hover,
+        .earnings-table-left tbody tr.hover-sync,
+        .earnings-table-right tbody tr.hover-sync {
+            background-color: var(--color-gray-100);
+        }
+    }
+
+
+
+    /* ===== ENHANCED FOCUS STATES ===== */
+    .earnings-table-left th:focus,
+    .earnings-table-left td:focus,
+    .earnings-table-right th:focus,
+    .earnings-table-right td:focus {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
      }
     </style>
 </head>
 <body>
+
+    
     <!-- Advertisement Areas -->
     <div class="ad-left" aria-label="Left Advertisement Area"></div>
     <div class="ad-right" aria-label="Right Advertisement Area"></div>
@@ -883,264 +1960,398 @@
     <div class="main-container">
         <!-- Header -->
         <header id="pageHeader" class="header" role="banner">
-                 <h1 class="earnings-title">EARNINGS TABLE</h1>
+        <h1 class="earnings-title" aria-label="Earnings Table Dashboard">EARNINGS TABLE</h1>
                   <p class="subtitle">Today's Earnings Dashboard</p>
-        <nav aria-label="Main navigation">
-            <ul style="display: none;">
-                <li><a href="#earnings-data">Earnings Data</a></li>
-                <li><a href="#market-stats">Market Statistics</a></li>
-            </ul>
-        </nav>
+
     </header>
 
     <!-- Main Content -->
-    <main role="main">
+    <main role="main" class="main-content">
         <!-- Winners/Losers Cards -->
-        <section id="market-stats" class="winners-container" aria-label="Market Statistics">
-        <!-- 4x MODRÉ KARTY -->
-        <div class="winner-card blue">
-                                    <div class="winner-label">MEGA + LARGE</div>
-            <div class="winner-ticker" id="largeCount">-</div>
-            <div class="winner-value neutral" id="largeValue">-</div>
+        <section id="market-stats" class="winners-container" aria-label="Market Statistics Dashboard">
+            <!-- Market Cap Categories -->
+                            <div class="winner-card blue" role="button" tabindex="0" aria-label="LARGE market cap companies">
+                    <div class="winner-label">LARGE +</div>
+                <div class="winner-ticker" id="largeCount" aria-label="Count of large companies">-</div>
+                <div class="winner-value neutral" id="largeValue" aria-label="Total market cap of large companies">-</div>
         </div>
-        <div class="winner-card blue">
+            
+            <div class="winner-card blue" role="button" tabindex="0" aria-label="Mid market cap companies">
             <div class="winner-label">Mid</div>
-            <div class="winner-ticker" id="midCount">-</div>
-            <div class="winner-value neutral" id="midValue">-</div>
+                <div class="winner-ticker" id="midCount" aria-label="Count of mid companies">-</div>
+                <div class="winner-value neutral" id="midValue" aria-label="Total market cap of mid companies">-</div>
         </div>
-        <div class="winner-card blue">
+            
+            <div class="winner-card blue" role="button" tabindex="0" aria-label="Small market cap companies">
             <div class="winner-label">Small</div>
-            <div class="winner-ticker" id="smallCount">-</div>
-            <div class="winner-value neutral" id="smallValue">-</div>
+                <div class="winner-ticker" id="smallCount" aria-label="Count of small companies">-</div>
+                <div class="winner-value neutral" id="smallValue" aria-label="Total market cap of small companies">-</div>
         </div>
-        <div class="winner-card blue">
+            
+            <div class="winner-card blue" role="button" tabindex="0" aria-label="Total market cap summary">
              <div class="winner-label">Total Cap</div>
-            <div class="winner-ticker" id="totalMarketCap">-</div>
-            <div class="winner-value neutral" id="totalMarketCapValue">-</div>
+                <div class="winner-ticker" id="totalMarketCap" aria-label="Total market cap">-</div>
+                <div class="winner-value neutral" id="totalMarketCapValue" aria-label="Total number of companies">-</div>
         </div>
 
-        <!-- 4x ZELENÉ KARTY -->
-                 <div class="winner-card green">
+            <!-- Price Performance Winners -->
+            <div class="winner-card green" role="button" tabindex="0" aria-label="Best price performer">
              <div class="winner-label">Price (%)</div>
-             <div class="winner-ticker" id="priceGainerTicker">-</div>
-             <div class="winner-value positive" id="priceGainerValue">-</div>
+                <div class="winner-ticker" id="priceGainerTicker" aria-label="Ticker of best price performer">-</div>
+                <div class="winner-value positive" id="priceGainerValue" aria-label="Price gain percentage">-</div>
          </div>
-                 <div class="winner-card green">
+            
+            <div class="winner-card green" role="button" tabindex="0" aria-label="Best market cap gainer">
              <div class="winner-label">Cap Diff</div>
-             <div class="winner-ticker" id="marketCapGainerTicker">-</div>
-             <div class="winner-value positive" id="marketCapGainerValue">-</div>
+                <div class="winner-ticker" id="marketCapGainerTicker" aria-label="Ticker of best market cap gainer">-</div>
+                <div class="winner-value positive" id="marketCapGainerValue" aria-label="Market cap gain">-</div>
          </div>
-        <div class="winner-card green">
+            
+            <div class="winner-card green" role="button" tabindex="0" aria-label="Best EPS beat">
             <div class="winner-label">EPS Beat</div>
-            <div class="winner-ticker" id="epsBeatTicker">-</div>
-            <div class="winner-value positive" id="epsBeatValue">-</div>
+                <div class="winner-ticker" id="epsBeatTicker" aria-label="Ticker of best EPS beat">-</div>
+                <div class="winner-value positive" id="epsBeatValue" aria-label="EPS beat percentage">-</div>
         </div>
-                 <div class="winner-card green">
+            
+            <div class="winner-card green" role="button" tabindex="0" aria-label="Best revenue beat">
              <div class="winner-label">Rev Beat</div>
-             <div class="winner-ticker" id="revenueBeatTicker">-</div>
-             <div class="winner-value positive" id="revenueBeatValue">-</div>
+                <div class="winner-ticker" id="revenueBeatTicker" aria-label="Ticker of best revenue beat">-</div>
+                <div class="winner-value positive" id="revenueBeatValue" aria-label="Revenue beat percentage">-</div>
          </div>
 
-        <!-- 4x ČERVENÉ KARTY -->
-                                   <div class="winner-card red">
+            <!-- Price Performance Losers -->
+            <div class="winner-card red" role="button" tabindex="0" aria-label="Worst price performer">
               <div class="winner-label">Price (%)</div>
-              <div class="winner-ticker" id="priceLoserTicker">-</div>
-              <div class="winner-value negative" id="priceLoserValue">-</div>
+                <div class="winner-ticker" id="priceLoserTicker" aria-label="Ticker of worst price performer">-</div>
+                <div class="winner-value negative" id="priceLoserValue" aria-label="Price loss percentage">-</div>
           </div>
-                 <div class="winner-card red">
+            
+            <div class="winner-card red" role="button" tabindex="0" aria-label="Worst market cap loser">
              <div class="winner-label">Cap Diff</div>
-             <div class="winner-ticker" id="marketCapLoserTicker">-</div>
-             <div class="winner-value negative" id="marketCapLoserValue">-</div>
+                <div class="winner-ticker" id="marketCapLoserTicker" aria-label="Ticker of worst market cap loser">-</div>
+                <div class="winner-value negative" id="marketCapLoserValue" aria-label="Market cap loss">-</div>
          </div>
-                 <div class="winner-card red">
+            
+            <div class="winner-card red" role="button" tabindex="0" aria-label="Worst EPS miss">
              <div class="winner-label">EPS Miss</div>
-             <div class="winner-ticker" id="epsMissTicker">-</div>
-             <div class="winner-value negative" id="epsMissValue">-</div>
+                <div class="winner-ticker" id="epsMissTicker" aria-label="Ticker of worst EPS miss">-</div>
+                <div class="winner-value negative" id="epsMissValue" aria-label="EPS miss percentage">-</div>
          </div>
-                                   <div class="winner-card red">
+            
+            <div class="winner-card red" role="button" tabindex="0" aria-label="Worst revenue miss">
               <div class="winner-label">Rev Miss</div>
-              <div class="winner-ticker" id="revenueMissTicker">-</div>
-              <div class="winner-value negative" id="revenueMissValue">-</div>
+                <div class="winner-ticker" id="revenueMissTicker" aria-label="Ticker of worst revenue miss">-</div>
+                <div class="winner-value negative" id="revenueMissValue" aria-label="Revenue miss percentage">-</div>
           </div>
         </section>
 
-        <!-- Caption -->
-        <div style="color: #6b7280; font-size: 18px; font-weight: 400; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 16px 0 8px 0;">
-            Today's Earnings Table
-            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;" id="marketStatusInfo">Loading market status...</div>
+
+
+        <!-- Column Groups Toolbar -->
+        <div class="toolbar" role="toolbar" aria-label="Column visibility controls">
+            <div class="toolbar-left">
+                <input type="text" id="companySearch" class="company-search" placeholder="Search companies..." aria-label="Search companies by name or ticker">
+            </div>
+            <div class="toolbar-right">
+                <button data-toggle="group-eps-rev" class="btn active">
+                    EPS & Revenue
+                </button>
+                <button data-toggle="group-guidance" class="btn">
+                    Guidance
+                </button>
+            </div>
         </div>
 
         <!-- Loading State -->
-        <div id="loading" class="loading" role="status" aria-live="polite">
+        <div id="loading" class="loading loading-state active" role="status" aria-live="polite">
             <div class="spinner" aria-hidden="true"></div>
-            <div>Loading earnings data...</div>
+            <div class="loading-text">Loading earnings data...</div>
         </div>
 
-        <!-- UNIFIED TABLE WITH STICKY THEAD -->
-        <section class="table-scroll" id="earnings-data" style="display:none;" aria-label="Earnings Data Table">
-            <table class="earnings-table" role="table" aria-label="Today's Earnings Data">
-<colgroup>
-     <col style="width:12px"> <!-- # -->
-     <col style="width:100px"> <!-- Company - optimalizované z 200px na 120px -->
-     <col style="width:35px"> <!-- Market Cap - zväčšené z 22px na 35px -->
-     <col style="width:35px"> <!-- Cap Diff - zväčšené z 22px na 35px -->
-     <col style="width:25px"> <!-- Size - zväčšené z 15px na 25px -->
-     <col style="width:25px"> <!-- Price - zväčšené z 15px na 25px -->
-     <col style="width:25px"> <!-- % Change - zväčšené z 15px na 25px -->
-     <col style="width:25px"> <!-- EPS Est - zväčšené z 15px na 25px -->
-     <col style="width:25px"> <!-- EPS Act - zväčšené z 15px na 25px -->
-     <col style="width:25px"> <!-- EPS Surp - zväčšené z 15px na 25px -->
-     <col style="width:35px"> <!-- Rev Est - zväčšené z 15px na 35px -->
-     <col style="width:35px"> <!-- Rev Act - zväčšené z 15px na 35px -->
-     <col style="width:30px"> <!-- Rev Surp - zväčšené z 15px na 25px -->
-     <col style="width:28px"> <!-- EPS Guide - zväčšené z 15px na 25px -->
-     <col style="width:35px"> <!-- Guide Surp EPS - zväčšené z 15px na 25px -->
-     <col style="width:35px"> <!-- Rev Guide - zväčšené z 15px na 35px -->
-     <col style="width:35px"> <!-- Guide Surp Rev - zväčšené z 15px na 25px -->
-     <col style="width:15px"> <!-- Notes - zväčšené z 10px na 15px -->
- </colgroup>
-
+        <!-- Earnings Data Table -->
+        <section class="table-container" id="earnings-data" aria-label="Earnings Data Table">
+            <!-- Table with two parts: left (fixed) and right (dynamic) -->
+            <div class="dual-table-wrapper">
+                <!-- Left Part: Fixed Columns (Always Visible) -->
+                <div class="table-left-part">
+                    <table class="earnings-table-left" role="table" aria-label="Fixed columns - Company and basic info">
+                                                 <colgroup>
+                             <col style="width:12px" aria-label="Rank column">
+                             <col style="width:25px" aria-label="Ticker column">
+                             <col style="width:75px" aria-label="Company column">
+                             <col style="width:25px" aria-label="Size column">
+                             <col style="width:35px" aria-label="Market Cap column">
+                             <col style="width:35px" aria-label="Cap Diff column">
+                             <col style="width:25px" aria-label="Price column">
+                             <col style="width:25px" aria-label="Change column">
+                         </colgroup>
                                  <thead>
                      <tr>
-                         <th class="sortable-header" data-sort="rank">#</th>
-                         <th class="sortable-header" data-sort="company">
-                             <div style="display:flex;align-items:center;gap:12px">
-                                 <span>Company</span>
-                                 <input type="text" id="companySearch" class="company-search" placeholder="Search...">
-                             </div>
-                         </th>
-                         <th class="sortable-header" data-sort="market_cap">Market Cap</th>
-                         <th class="sortable-header" data-sort="market_cap_gain">Cap Diff</th>
-                         <th class="sortable-header" data-sort="size">Size</th>
-                         <th class="sortable-header" data-sort="price">Price</th>
-                                                   <th class="sortable-header" data-sort="today">CHANGE</th>
-                         <th class="sortable-header" data-sort="eps_est">EPS Est</th>
-                         <th class="sortable-header" data-sort="eps_act">EPS Act</th>
-                         <th class="sortable-header" data-sort="eps_surprise">EPS Surp</th>
-                         <th class="sortable-header" data-sort="revenue_est">Rev Est</th>
-                         <th class="sortable-header" data-sort="revenue_act">Rev Act</th>
-                         <th class="sortable-header" data-sort="revenue_surprise">Rev Surp</th>
-                         <th class="sortable-header" data-sort="eps_guide">EPS Guide</th>
-                         <th class="sortable-header" data-sort="eps_guide_surprise">Guide Surp</th>
-                         <th class="sortable-header" data-sort="revenue_guide">Rev Guide</th>
-                         <th class="sortable-header" data-sort="revenue_guide_surprise">Guide Surp</th>
-                                                  <th class="sortable-header" data-sort="notes" style="text-align: center;">i</th>
+                                <th class="table-header-cell sortable-header" data-sort="rank" scope="col" aria-label="Sort by rank">
+                                    <span class="header-text">#</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="ticker" scope="col" aria-label="Sort by ticker">
+                                    <span class="header-text">Ticker</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="company" scope="col" aria-label="Sort by company name">
+                                    <span class="header-text">Company</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="size" scope="col" aria-label="Sort by company size">
+                                    <span class="header-text">Size</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="market_cap" scope="col" aria-label="Sort by market capitalization">
+                                    <span class="header-text">Market Cap</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="market_cap_gain" scope="col" aria-label="Sort by market cap difference">
+                                    <span class="header-text">Cap Diff</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="price" scope="col" aria-label="Sort by current price">
+                                    <span class="header-text">Price</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="today" scope="col" aria-label="Sort by price change percentage">
+                                    <span class="header-text">Change</span>
+                                </th>
                      </tr>
                  </thead>
-                <tbody id="tableBody"><!-- rows injected by JS --></tbody>
+                        <tbody id="tableBodyLeft" aria-label="Fixed columns data rows">
+                            <!-- Left part rows will be injected by JavaScript -->
+                        </tbody>
             </table>
-        </section>
-    </main>
- 
-           <!-- Footer -->
-      <footer class="footer" role="contentinfo">
-                     <div class="footer-content">
-               <div class="footer-section">
-                   <h3>Disclaimer</h3>
-                   <p>Data is for informational purposes only. We are not responsible for accuracy or completeness.<br>
-                   Not financial advice. Market data sourced from Polygon.io. Data may be delayed.<br>
-                   Investing involves risk. Past performance doesn't guarantee future results. Consult a financial advisor.</p>
+                </div>
+
+                <!-- Right Part: Dynamic Columns (Changes based on button selection) -->
+                <div class="table-right-part">
+                    <!-- EPS & Revenue Columns (Default Active) -->
+                    <table class="earnings-table-right eps-revenue-table" role="table" aria-label="EPS and Revenue columns">
+                        <colgroup>
+                            <col style="width:30px" aria-label="EPS Estimate column">
+                            <col style="width:30px" aria-label="EPS Actual column">
+                            <col style="width:30px" aria-label="EPS Surprise column">
+                            <col style="width:30px" aria-label="Revenue Estimate column">
+                            <col style="width:30px" aria-label="Revenue Actual column">
+                            <col style="width:30px" aria-label="Revenue Surprise column">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="table-header-cell sortable-header" data-sort="eps_est" scope="col" aria-label="Sort by EPS estimate">
+                                    <span class="header-text">EPS Est</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="eps_act" scope="col" aria-label="Sort by EPS actual">
+                                    <span class="header-text">EPS Act</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="eps_surprise" scope="col" aria-label="Sort by EPS surprise">
+                                    <span class="header-text">EPS Surp</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="revenue_est" scope="col" aria-label="Sort by revenue estimate">
+                                    <span class="header-text">Rev Est</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="revenue_act" scope="col" aria-label="Sort by revenue actual">
+                                    <span class="header-text">Rev Act</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="revenue_surprise" scope="col" aria-label="Sort by revenue surprise">
+                                    <span class="header-text">REV Surp</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyRightEpsRev" aria-label="EPS and Revenue data rows">
+                            <!-- EPS & Revenue rows will be injected by JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <!-- Guidance Columns (Hidden by Default) -->
+                    <table class="earnings-table-right guidance-table" role="table" aria-label="Guidance columns" style="display: none;">
+                        <colgroup>
+                            <col style="width:19%" aria-label="EPS Guidance column">
+                            <col style="width:20%" aria-label="EPS Guidance Surprise column">
+                            <col style="width:19%" aria-label="Revenue Guidance column">
+                            <col style="width:20%" aria-label="Revenue Guidance Surprise column">
+                            <col style="width:15%" aria-label="Notes column">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="table-header-cell sortable-header" data-sort="eps_guide" scope="col" aria-label="Sort by EPS guidance">
+                                    <span class="header-text">EPS Guide</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="eps_guide_surprise" scope="col" aria-label="Sort by EPS guidance surprise">
+                                    <span class="header-text">EPS Guide Surp</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="revenue_guide" scope="col" aria-label="Sort by revenue guidance">
+                                    <span class="header-text">Rev Guide</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="revenue_guide_surprise" scope="col" aria-label="Sort by revenue guidance surprise">
+                                    <span class="header-text">REV Guide Surp</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="notes" scope="col" aria-label="Sort by notes">
+                                    <span class="header-text text-center">Notes</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyRightGuidance" aria-label="Guidance data rows">
+                            <!-- Guidance rows will be injected by JavaScript -->
+                        </tbody>
+                    </table>
                </div>
            </div>
-          <div class="footer-bottom">
-              <p>&copy; 2024 Earnings Table. All rights reserved. | Data for informational purposes only | Not financial advice</p>
-          </div>
-      </footer>
+        </section>
+    </main>
+
+
     </div> <!-- End of main-container -->
 
          <script>
-     // Helper functions
-     
-     // Optimalizovaná funkcia pre skracovanie názvov spoločností
-     function getShortCompanyNameOptimized(fullName) {
-         if (!fullName) return '-';
-         
-         // Odstráni bežné prípony a prídavky
-         let shortName = fullName
-             .replace(/\s*Inc\.?/i, '')           // Inc, Inc.
-             .replace(/\s*Corp\.?/i, '')          // Corp, Corp.
-             .replace(/\s*Corporation/i, '')       // Corporation
-             .replace(/\s*LLC/i, '')               // LLC
-             .replace(/\s*Ltd\.?/i, '')           // Ltd, Ltd.
-             .replace(/\s*Limited/i, '')           // Limited
-             .replace(/\s*Company/i, '')           // Company
-             .replace(/\s*Co\.?/i, '')            // Co, Co.
-             .replace(/\s*Group/i, '')             // Group
-             .replace(/\s*Holdings/i, '')          // Holdings
-             .replace(/\s*International/i, '')     // International
-             .replace(/\s*Int'l/i, '')            // Int'l
-             .replace(/\s*American/i, '')          // American
-             .replace(/\s*Common/i, '')            // Common
-             .replace(/\s*Stock/i, '')             // Stock
-             .replace(/\s*Shares/i, '')            // Shares
-             .replace(/\s*Class\s+[A-Z]/i, '')    // Class A, Class B, atď.
-             .replace(/\s*Series\s+[A-Z]/i, '')   // Series A, Series B, atď.
-             .replace(/\s*Preferred/i, '')         // Preferred
-             .replace(/\s*Ordinary/i, '')          // Ordinary
-             .replace(/\s*Depositary/i, '')        // Depositary
-             .replace(/\s*Receipts/i, '')          // Receipts
-             .replace(/\s*Units/i, '')             // Units
-             .replace(/\s*Trust/i, '')             // Trust
-             .replace(/\s*Fund/i, '')              // Fund
-             .replace(/\s*ETF/i, '')               // ETF
-             .replace(/\s*REIT/i, '')              // REIT
-             .replace(/\s*MLP/i, '')               // MLP
-             .replace(/\s*Partnership/i, '')       // Partnership
-             .replace(/\s*Associates/i, '')        // Associates
-             .replace(/\s*Enterprises/i, '')       // Enterprises
-             .replace(/\s*Industries/i, '')        // Industries
-             .replace(/\s*Technologies/i, '')      // Technologies
-             .replace(/\s*Technology/i, '')        // Technology
-             .replace(/\s*Systems/i, '')           // Systems
-             .replace(/\s*Solutions/i, '')         // Solutions
-             .replace(/\s*Services/i, '')          // Services
-             .replace(/\s*Service/i, '')           // Service
-             .replace(/\s*Products/i, '')          // Products
-             .replace(/\s*Product/i, '')           // Product
-             .replace(/\s*Manufacturing/i, '')     // Manufacturing
-             .replace(/\s*Manufacturing/i, '')     // Manufacturing
-             .replace(/\s*&/g, '&')               // Zachová &
-             .replace(/\s+/g, ' ')                 // Viacero medzier na jednu
-             .trim();
-         
-         // Ak je názov stále príliš dlhý, skráti ho na maximálne 30 znakov
-         if (shortName.length > 30) {
-             shortName = shortName.substring(0, 27) + '...';
-         }
-         
-         return shortName || fullName.substring(0, 30);
-     }
+    // ===== EARNINGS TABLE APPLICATION =====
+    
+    // ===== CONFIGURATION =====
+    const CONFIG = {
+        REFRESH_INTERVAL: 5 * 60 * 1000, // 5 minutes
+        API_ENDPOINT: '/api/earnings-tickers-today.php',
+        TABLE_ROW_HEIGHT: 60,
+        MEGA_CAP_THRESHOLD: 100000000000, // $100 billion
+        COLUMN_GROUPS: {
+            'group-eps-rev': [8, 9, 10, 11, 12, 13],        // EPS Est/Act/Surp + Rev Est/Act/Surp
+            'group-guidance': [14, 15, 16, 17, 18],           // EPS Guide, Guide Surp, Rev Guide, Guide Surp + Notes
+        }
+    };
+
+    // ===== STATE MANAGEMENT =====
+    const AppState = {
+        earningsData: [],
+        currentSort: { field: 'market_cap', direction: 'desc' },
+        isLoading: false,
+        error: null
+    };
+
+    // ===== UTILITY FUNCTIONS =====
+    const Utils = {
+        // Number formatting
+        formatCurrency: (value) => {
+            if (!value || isNaN(value)) return '-';
+            const num = parseFloat(value);
+            if (num >= 1e12) return `$${(num / 1e12).toFixed(1)}T`;
+            if (num >= 1e9) return `$${(num / 1e9).toFixed(1)}B`;
+            if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
+            if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
+            return `$${num.toFixed(0)}`;
+        },
+
+        formatPrice: (value) => {
+            if (!value || isNaN(value)) return '-';
+            return `$${parseFloat(value).toFixed(2)}`;
+        },
+
+        formatPriceChange: (value) => {
+            if (!value || isNaN(value)) return '-';
+            const num = parseFloat(value);
+            const sign = num >= 0 ? '+' : '';
+            return `${sign}${num.toFixed(2)}%`;
+        },
+
+        formatEPS: (value) => {
+            if (!value || isNaN(value)) return '-';
+            const num = parseFloat(value);
+            return num >= 0 ? `$${num.toFixed(2)}` : `-$${Math.abs(num).toFixed(2)}`;
+        },
+
+        formatSurprise: (actual, estimate) => {
+            if (!actual || !estimate || isNaN(actual) || isNaN(estimate) || estimate === 0) return '-';
+            const surprise = ((actual - estimate) / Math.abs(estimate)) * 100;
+            const sign = surprise >= 0 ? '+' : '';
+            return `${sign}${surprise.toFixed(2)}%`;
+        },
+
+        formatMarketCapDiff: (value) => {
+            if (!value || isNaN(value)) return '-';
+            const num = parseFloat(value);
+            const sign = num >= 0 ? '' : '-';
+            const absNum = Math.abs(num);
+            
+            if (absNum >= 1e12) return `${sign}${(absNum / 1e12).toFixed(1)}T`;
+            if (absNum >= 1e9) return `${sign}${(absNum / 1e9).toFixed(1)}B`;
+            if (absNum >= 1e6) return `${sign}${(absNum / 1e6).toFixed(1)}M`;
+            if (absNum >= 1e3) return `${sign}${(absNum / 1e3).toFixed(1)}K`;
+            return `${sign}${absNum.toFixed(0)}`;
+        },
+
+        formatGuidePercent: (value) => {
+            if (!value || isNaN(value)) return '-';
+            const num = parseFloat(value);
+            const sign = num >= 0 ? '+' : '';
+            return `${sign}${num.toFixed(2)}%`;
+        },
+
+        // CSS class helpers
+        getDiffClass: (value) => {
+            if (!value || isNaN(value)) return '';
+            return parseFloat(value) >= 0 ? 'price-up' : 'price-down';
+        },
+
+        getPriceChangeClass: (value) => {
+            if (!value || isNaN(value)) return 'price-neutral';
+            const num = parseFloat(value);
+            if (num > 0) return 'price-up';
+            if (num < 0) return 'price-down';
+            return 'price-neutral';
+        },
+
+        getSurpriseClass: (actual, estimate) => {
+            if (!actual || !estimate || isNaN(actual) || isNaN(estimate) || estimate === 0) return '';
+            const surprise = ((actual - estimate) / Math.abs(estimate)) * 100;
+            return surprise >= 0 ? 'price-up' : 'price-down';
+        },
+
+        getGuideClass: (value) => {
+            if (!value || isNaN(value)) return '';
+            const num = parseFloat(value);
+            if (num > 0) return 'price-up';
+            if (num < 0) return 'price-down';
+            return '';
+        },
+
+        getSizeClass: (size) => {
+            if (!size) return 'size-small';
+            const upperSize = size.toUpperCase();
+            if (upperSize === 'LARGE') return 'size-large';
+            if (upperSize === 'MID') return 'size-mid';
+            if (upperSize === 'SMALL') return 'size-small';
+            return 'size-small';
+        },
 
 
 
+        // Numeric comparison with null handling
+        cmpNumericWithNullLast: (a, b, direction, field) => {
+            const aVal = parseFloat(a[field]);
+            const bVal = parseFloat(b[field]);
+            
+            if (isNaN(aVal) && isNaN(bVal)) return 0;
+            if (isNaN(aVal)) return 1;
+            if (isNaN(bVal)) return -1;
+            
+            return direction === 'asc' ? aVal - bVal : bVal - aVal;
+        },
 
+        // Surprise calculation
+        calculateSurprise: (actual, estimate) => {
+            if (!actual || !estimate || isNaN(actual) || isNaN(estimate) || estimate === 0) return null;
+            return ((actual - estimate) / Math.abs(estimate)) * 100;
+        }
+    };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Global variables for sorting
-    let currentSort = { field: 'market_cap', direction: 'desc' };
-    let earningsData = [];
-
-
-
-    // Sorting functions
-    function sortData(field, direction) {
-        earningsData.sort((a, b) => {
+    // ===== DATA SORTING =====
+    const DataSorter = {
+        sortData: (field, direction) => {
+            AppState.earningsData.sort((a, b) => {
             switch(field) {
                 case 'rank':
-                    // For rank sorting, we need to sort by market cap (since rank is based on market cap position)
-                    return cmpNumericWithNullLast(a, b, direction, 'market_cap');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'market_cap');
+                case 'ticker':
+                    const aTicker = (a.ticker || '').toLowerCase();
+                    const bTicker = (b.ticker || '').toLowerCase();
+                    if (direction === 'asc') {
+                        return aTicker.localeCompare(bTicker);
+                    } else {
+                        return bTicker.localeCompare(aTicker);
+                    }
                 case 'company':
                     const aName = (a.company_name || '').toLowerCase();
                     const bName = (b.company_name || '').toLowerCase();
@@ -1149,11 +2360,10 @@
                     } else {
                         return bName.localeCompare(aName);
                     }
-
                 case 'market_cap':
-                    return cmpNumericWithNullLast(a, b, direction, 'market_cap');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'market_cap');
                 case 'market_cap_gain':
-                    return cmpNumericWithNullLast(a, b, direction, 'market_cap_diff');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'market_cap_diff');
                 case 'size':
                     const aSize = a.size || '';
                     const bSize = b.size || '';
@@ -1163,53 +2373,43 @@
                         return bSize.localeCompare(aSize);
                     }
                 case 'price':
-                    return cmpNumericWithNullLast(a, b, direction, 'current_price');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'current_price');
                 case 'today':
-                    return cmpNumericWithNullLast(a, b, direction, 'price_change_percent');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'price_change_percent');
                 case 'eps_est':
-                    return cmpNumericWithNullLast(a, b, direction, 'eps_estimate');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'eps_estimate');
                 case 'eps_act':
-                    return cmpNumericWithNullLast(a, b, direction, 'eps_actual');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'eps_actual');
                 case 'eps_surprise':
-                    // Precalculate surprise values and use robust comparison
-                    const epsASurprise = calculateSurprise(a.eps_actual, a.eps_estimate);
-                    const epsBSurprise = calculateSurprise(b.eps_actual, b.eps_estimate);
-                    
-                    // Use the same logic as cmpNumericWithNullLast but with calculated values
-                    const epsNumA = isNaN(epsASurprise) ? null : epsASurprise;
-                    const epsNumB = isNaN(epsBSurprise) ? null : epsBSurprise;
-                    
-                    if (epsNumA === null && epsNumB === null) return 0;
-                    if (epsNumA === null) return 1;      // null/NaN values go to end
-                    if (epsNumB === null) return -1;     // null/NaN values go to end
-                    
-                    return direction === 'asc' ? epsNumA - epsNumB : epsNumB - epsNumA;
+                        const epsASurprise = Utils.calculateSurprise(a.eps_actual, a.eps_estimate);
+                        const epsBSurprise = Utils.calculateSurprise(b.eps_actual, b.eps_estimate);
+                        
+                        if (epsASurprise === null && epsBSurprise === null) return 0;
+                        if (epsASurprise === null) return 1;
+                        if (epsBSurprise === null) return -1;
+                        
+                        return direction === 'asc' ? epsASurprise - epsBSurprise : epsBSurprise - epsASurprise;
                 case 'revenue_est':
-                    return cmpNumericWithNullLast(a, b, direction, 'revenue_estimate');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_estimate');
                 case 'revenue_act':
-                    return cmpNumericWithNullLast(a, b, direction, 'revenue_actual');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_actual');
                 case 'revenue_surprise':
-                    // Precalculate surprise values and use robust comparison
-                    const aSurprise = calculateSurprise(a.revenue_actual, a.revenue_estimate);
-                    const bSurprise = calculateSurprise(b.revenue_actual, b.revenue_estimate);
-                    
-                    // Use the same logic as cmpNumericWithNullLast but with calculated values
-                    const numA = isNaN(aSurprise) ? null : aSurprise;
-                    const numB = isNaN(bSurprise) ? null : bSurprise;
-                    
-                    if (numA === null && numB === null) return 0;
-                    if (numA === null) return 1;      // null/NaN values go to end
-                    if (numB === null) return -1;     // null/NaN values go to end
-                    
-                    return direction === 'asc' ? numA - numB : numB - numA;
+                        const aSurprise = Utils.calculateSurprise(a.revenue_actual, a.revenue_estimate);
+                        const bSurprise = Utils.calculateSurprise(b.revenue_actual, b.revenue_estimate);
+                        
+                        if (aSurprise === null && bSurprise === null) return 0;
+                        if (aSurprise === null) return 1;
+                        if (bSurprise === null) return -1;
+                        
+                        return direction === 'asc' ? aSurprise - bSurprise : bSurprise - aSurprise;
                 case 'eps_guide':
-                    return cmpNumericWithNullLast(a, b, direction, 'eps_guide');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'eps_guide');
                 case 'eps_guide_surprise':
-                    return cmpNumericWithNullLast(a, b, direction, 'eps_guide_surprise');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'eps_guide_surprise');
                 case 'revenue_guide':
-                    return cmpNumericWithNullLast(a, b, direction, 'revenue_guide');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_guide');
                 case 'revenue_guide_surprise':
-                    return cmpNumericWithNullLast(a, b, direction, 'revenue_guide_surprise');
+                        return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_guide_surprise');
                 case 'notes':
                     const aNotes = (a.guidance_notes || '').toLowerCase();
                     const bNotes = (b.guidance_notes || '').toLowerCase();
@@ -1222,112 +2422,92 @@
                     return 0;
             }
         });
-    }
+        },
 
-
-
-    function updateSortIcons(field, direction) {
-        // Remove active class from all headers
-        document.querySelectorAll('.sortable-header').forEach(header => {
+        updateSortIcons: (field, direction) => {
+            document.querySelectorAll('.earnings-table-left .sortable-header, .earnings-table-right .sortable-header').forEach(header => {
             header.classList.remove('active-sort');
         });
         
-        // Add active class to current sort
         const header = document.querySelector(`[data-sort="${field}"]`);
         if (header) {
             header.classList.add('active-sort');
         }
-    }
+        },
 
-    function handleHeaderClick(event) {
+        handleHeaderClick: (event) => {
         const header = event.currentTarget;
         const field = header.getAttribute('data-sort');
         
-        // Toggle direction if same field, otherwise set to desc
-        if (currentSort.field === field) {
-            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            if (AppState.currentSort.field === field) {
+                AppState.currentSort.direction = AppState.currentSort.direction === 'asc' ? 'desc' : 'asc';
         } else {
-            currentSort.field = field;
-            currentSort.direction = 'desc';
+                AppState.currentSort.field = field;
+                AppState.currentSort.direction = 'desc';
+            }
+            
+            DataSorter.sortData(AppState.currentSort.field, AppState.currentSort.direction);
+            DataSorter.updateSortIcons(AppState.currentSort.field, AppState.currentSort.direction);
+            TableRenderer.renderTable();
+            
+            requestAnimationFrame(TableRenderer.fitTableToContainer);
         }
-        
-        // Sort data and update display
-        sortData(currentSort.field, currentSort.direction);
-        updateSortIcons(currentSort.field, currentSort.direction);
-        renderTable();
-        
-        // Fit table to container after sorting
-        requestAnimationFrame(fitTableToContainer);
-    }
+    };
 
-    function fitTableToContainer(){
-        const cont  = document.querySelector('.table-scroll');
-        const table = cont?.querySelector('.earnings-table');
-        if (!cont || !table) return;
-
-        // reset transform, zmeraj prirodzenú šírku
-        table.style.transform = 'none';
-        const tableW = table.scrollWidth;
-        const contW  = cont.clientWidth;
-
-        // mierka – nikdy nezväčšujeme, len zmenšujeme
-        const scale = Math.min(1, contW / tableW);
-
-        table.style.transform = `scale(${scale})`;
-
-        // uprav výšku kontajnera, aby neodrezalo spodok po scale
-        const rect = table.getBoundingClientRect();
-        cont.style.height = `${rect.height}px`;
-        
-        // Vždy roztiahni tabuľku na celú šírku kontajnera
-        table.style.width = '100%';
-        table.style.minWidth = '100%';
-    }
-
-    function renderTable() {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
-        
-        earningsData.forEach((item, index) => {
-            const row = document.createElement('tr');
+    // ===== TABLE RENDERING =====
+    const TableRenderer = {
+        renderTable: () => {
+            const tableBodyLeft = document.getElementById('tableBodyLeft');
+            const tableBodyRightEpsRev = document.getElementById('tableBodyRightEpsRev');
+            const tableBodyRightGuidance = document.getElementById('tableBodyRightGuidance');
             
-
+            if (!tableBodyLeft || !tableBodyRightEpsRev || !tableBodyRightGuidance) return;
             
-            // Check if company qualifies for MEGA tag (market cap >= $100 billion)
+            // Clear all table bodies
+            tableBodyLeft.innerHTML = '';
+            tableBodyRightEpsRev.innerHTML = '';
+            tableBodyRightGuidance.innerHTML = '';
+            
+            AppState.earningsData.forEach((item, index) => {
             const marketCap = parseFloat(item.market_cap) || 0;
-            const isMega = marketCap >= 100000000000; // $100 billion
-            const sizeClass = isMega ? 'size-mega' : getSizeClass(item.size);
+                const isMega = marketCap >= CONFIG.MEGA_CAP_THRESHOLD;
+                const sizeClass = isMega ? 'size-mega' : Utils.getSizeClass(item.size);
             const displaySize = isMega ? 'MEGA' : (item.size || '-');
-            
-            // Generate rank based on current position (index + 1)
             const currentRank = index + 1;
             
-                         row.innerHTML = `
-                 <td>${currentRank}</td>
-                                  <td>
-                      <div class="company-info">
-                          <div class="company-details">
-                              <div class="company-ticker">${item.ticker}</div>
-                                                             <div class="company-name">${item.company_name ? getShortCompanyNameOptimized(item.company_name) : '-'}</div>
-                          </div>
-                      </div>
-                  </td>
-
-                <td>${formatCurrency(item.market_cap)}</td>
-                <td class="${getDiffClass(item.market_cap_diff)}">${formatMarketCapDiff(item.market_cap_diff)}</td>
-                                 <td><span class="size-badge ${sizeClass}">${displaySize}</span></td>
-                <td>${formatPrice(item.current_price)}</td>
-                <td class="${getPriceChangeClass(item.price_change_percent)}">${formatPriceChange(item.price_change_percent)}</td>
-                <td>${formatEPS(item.eps_estimate)}</td>
-                <td>${formatEPS(item.eps_actual)}</td>
-                <td class="${getSurpriseClass(item.eps_actual, item.eps_estimate)}">${formatSurprise(item.eps_actual, item.eps_estimate)}</td>
-                <td>${formatCurrency(item.revenue_estimate)}</td>
-                <td>${formatCurrency(item.revenue_actual)}</td>
-                <td class="${getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
-                <td>${formatEPS(item.eps_guide)}</td>
-                <td class="${getGuideClass(item.eps_guide_surprise)}">${formatGuidePercent(item.eps_guide_surprise)}</td>
-                <td>${formatCurrency(item.revenue_guide)}</td>
-                <td class="${getGuideClass(item.revenue_guide_surprise)}">${formatGuidePercent(item.revenue_guide_surprise)}</td>
+                                 // Create left part row (fixed columns)
+                 const leftRow = document.createElement('tr');
+                 leftRow.innerHTML = `
+                     <td>${currentRank}</td>
+                     <td class="ticker-cell">${item.ticker}</td>
+                     <td class="company-cell">${item.company_name || '-'}</td>
+                     <td><span class="size-badge ${sizeClass}">${displaySize}</span></td>
+                     <td>${Utils.formatCurrency(item.market_cap)}</td>
+                     <td class="${Utils.getDiffClass(item.market_cap_diff)}">${Utils.formatMarketCapDiff(item.market_cap_diff)}</td>
+                     <td>${Utils.formatPrice(item.current_price)}</td>
+                     <td class="${Utils.getPriceChangeClass(item.price_change_percent)}">${Utils.formatPriceChange(item.price_change_percent)}</td>
+                 `;
+                tableBodyLeft.appendChild(leftRow);
+                
+                // Create EPS & Revenue row (right part)
+                const epsRevRow = document.createElement('tr');
+                epsRevRow.innerHTML = `
+                    <td>${Utils.formatEPS(item.eps_estimate)}</td>
+                    <td>${Utils.formatEPS(item.eps_actual)}</td>
+                    <td class="${Utils.getSurpriseClass(item.eps_actual, item.eps_estimate)}">${Utils.formatSurprise(item.eps_actual, item.eps_estimate)}</td>
+                    <td>${Utils.formatCurrency(item.revenue_estimate)}</td>
+                    <td>${Utils.formatCurrency(item.revenue_actual)}</td>
+                    <td class="${Utils.getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${Utils.formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+                `;
+                tableBodyRightEpsRev.appendChild(epsRevRow);
+                
+                // Create Guidance row (right part)
+                const guidanceRow = document.createElement('tr');
+                guidanceRow.innerHTML = `
+                    <td>${Utils.formatEPS(item.eps_guide)}</td>
+                    <td class="${Utils.getGuideClass(item.eps_guide_surprise)}">${Utils.formatGuidePercent(item.eps_guide_surprise)}</td>
+                    <td>${Utils.formatCurrency(item.revenue_guide)}</td>
+                    <td class="${Utils.getGuideClass(item.revenue_guide_surprise)}">${Utils.formatGuidePercent(item.revenue_guide_surprise)}</td>
                 <td>
                     <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
                         i
@@ -1335,27 +2515,97 @@
                     </div>
                 </td>
             `;
+                tableBodyRightGuidance.appendChild(guidanceRow);
+            });
+        },
+
+        fitTableToContainer: () => {
+            const container = document.querySelector('.table-container');
+            const leftTable = container?.querySelector('.earnings-table-left');
+            const rightTable = container?.querySelector('.earnings-table-right');
             
-            tableBody.appendChild(row);
-        });
-    }
+            if (!container || !leftTable || !rightTable) return;
 
-    // Add click event listeners to headers
-    function addSortListeners() {
-        // Hľadáme hlavičky v novom div elemente (nie v tabuľke s dátami)
-        document.querySelectorAll('.sortable-header').forEach(header => {
-            header.addEventListener('click', handleHeaderClick);
-        });
-    }
+            // Ensure both tables have the same height without setting container height
+            // This prevents double scrollbars
+            const leftRect = leftTable.getBoundingClientRect();
+            const rightRect = rightTable.getBoundingClientRect();
+            
+            // Instead of setting container height, ensure tables are properly synchronized
+            // The natural document flow will handle scrolling
+        },
 
+        addSortListeners: () => {
+            document.querySelectorAll('.earnings-table-left .sortable-header, .earnings-table-right .sortable-header').forEach(header => {
+                header.addEventListener('click', DataSorter.handleHeaderClick);
+            });
+        },
 
+        setupTableSynchronization: () => {
+            // Synchronize hover effects between left and right tables
+            const leftRows = document.querySelectorAll('.earnings-table-left tbody tr');
+            const rightEpsRevRows = document.querySelectorAll('.earnings-table-right.eps-revenue-table tbody tr');
+            const rightGuidanceRows = document.querySelectorAll('.earnings-table-right.guidance-table tbody tr');
+            
+            leftRows.forEach((leftRow, index) => {
+                // Add hover event to left row
+                leftRow.addEventListener('mouseenter', () => {
+                    if (rightEpsRevRows[index]) {
+                        rightEpsRevRows[index].classList.add('hover-sync');
+                    }
+                    if (rightGuidanceRows[index]) {
+                        rightGuidanceRows[index].classList.add('hover-sync');
+                    }
+                });
+                
+                leftRow.addEventListener('mouseleave', () => {
+                    if (rightEpsRevRows[index]) {
+                        rightEpsRevRows[index].classList.remove('hover-sync');
+                    }
+                    if (rightGuidanceRows[index]) {
+                        rightGuidanceRows[index].classList.remove('hover-sync');
+                    }
+                });
+                
+                // Add hover event to right rows
+                if (rightEpsRevRows[index]) {
+                    rightEpsRevRows[index].addEventListener('mouseenter', () => {
+                        leftRow.classList.add('hover-sync');
+                        if (rightGuidanceRows[index]) {
+                            rightGuidanceRows[index].classList.add('hover-sync');
+                        }
+                    });
+                    
+                    rightEpsRevRows[index].addEventListener('mouseleave', () => {
+                        leftRow.classList.remove('hover-sync');
+                        if (rightGuidanceRows[index]) {
+                            rightGuidanceRows[index].classList.remove('hover-sync');
+                        }
+                    });
+                }
+                
+                if (rightGuidanceRows[index]) {
+                    rightGuidanceRows[index].addEventListener('mouseenter', () => {
+                        leftRow.classList.add('hover-sync');
+                        if (rightEpsRevRows[index]) {
+                            rightEpsRevRows[index].classList.add('hover-sync');
+                        }
+                    });
+                    
+                    rightGuidanceRows[index].addEventListener('mouseleave', () => {
+                        leftRow.classList.remove('hover-sync');
+                        if (rightEpsRevRows[index]) {
+                            rightEpsRevRows[index].classList.remove('hover-sync');
+                        }
+                    });
+                }
+            });
+        }
+    };
 
-    // ---------- Pomocné funkcie ----------
-    const fmt = new Intl.NumberFormat('en-US');
-    const toUpper = v => (typeof v === 'string' ? v.toUpperCase() : v);
-
-    // ---------- 1) Veľkostné karty LARGE / MID / SMALL ----------
-    function computeSizeStats(data) {
+    // ===== STATISTICS CALCULATION =====
+    const Statistics = {
+        computeSizeStats: (data) => {
         const stats = {
             LARGE: { count: 0, cap: 0 },
             MID:   { count: 0, cap: 0 },
@@ -1363,9 +2613,9 @@
             TOTAL: { count: 0, cap: 0 },
         };
 
-        for (const it of data) {
-            const size = toUpper(it.size);
-            const mcap = Number(it.market_cap);
+            for (const item of data) {
+                const size = (item.size || '').toUpperCase();
+                const mcap = Number(item.market_cap);
             if (!isFinite(mcap) || mcap <= 0) continue;
 
             stats.TOTAL.count++;
@@ -1377,78 +2627,77 @@
             }
         }
         return stats;
-    }
+        },
 
-    function updateSizeCards(data) {
-        const s = computeSizeStats(data);
+        updateSizeCards: (data) => {
+            const stats = Statistics.computeSizeStats(data);
 
-        // počty
-        document.getElementById('largeCount').textContent = s.LARGE.count || 0;
-        document.getElementById('midCount').textContent   = s.MID.count   || 0;
-        document.getElementById('smallCount').textContent = s.SMALL.count || 0;
+            document.getElementById('largeCount').textContent = stats.LARGE.count || 0;
+            document.getElementById('midCount').textContent = stats.MID.count || 0;
+            document.getElementById('smallCount').textContent = stats.SMALL.count || 0;
 
-        // hodnoty (DRUHÝ RIADOK v kartách – bol prázdny)
-        document.getElementById('largeValue').textContent = formatCurrency(s.LARGE.cap);
-        document.getElementById('midValue').textContent   = formatCurrency(s.MID.cap);
-        document.getElementById('smallValue').textContent = formatCurrency(s.SMALL.cap);
+            document.getElementById('largeValue').textContent = Utils.formatCurrency(stats.LARGE.cap);
+            document.getElementById('midValue').textContent = Utils.formatCurrency(stats.MID.cap);
+            document.getElementById('smallValue').textContent = Utils.formatCurrency(stats.SMALL.cap);
 
-        // total
-        document.getElementById('totalMarketCap').textContent      = formatCurrency(s.TOTAL.cap);
-        document.getElementById('totalMarketCapValue').textContent = fmt.format(s.TOTAL.count) + ' tickers';
-    }
+            document.getElementById('totalMarketCap').textContent = Utils.formatCurrency(stats.TOTAL.cap);
+            document.getElementById('totalMarketCapValue').textContent = new Intl.NumberFormat('en-US').format(stats.TOTAL.count) + ' tickers';
+        },
 
-    // ---------- 2) Winners / Losers karty ----------
-    function firstValid(arr, sel, cmp) {
+        firstValid: (arr, selector, comparator) => {
         const list = arr
-            .map(sel)
+                .map(selector)
             .filter(v => v != null && isFinite(v));
         if (!list.length) return null;
-        return cmp(list);
-    }
+            return comparator(list);
+        },
 
-    function updateWinnersLosers(data) {
+        updateWinnersLosers: (data) => {
         // Price change %
         const up = data.filter(d => {
             const change = parseFloat(d.price_change_percent);
             return !isNaN(change) && isFinite(change);
         });
-        const priceBest = up.length ? up.reduce((a,b)=> {
+            
+            const priceBest = up.length ? up.reduce((a,b) => {
             const aChange = parseFloat(a.price_change_percent);
             const bChange = parseFloat(b.price_change_percent);
             return aChange > bChange ? a : b;
         }) : null;
-        const priceWorst = up.length ? up.reduce((a,b)=> {
+            
+            const priceWorst = up.length ? up.reduce((a,b) => {
             const aChange = parseFloat(a.price_change_percent);
             const bChange = parseFloat(b.price_change_percent);
             return aChange < bChange ? a : b;
         }) : null;
 
         document.getElementById('priceGainerTicker').textContent = priceBest?.ticker ?? '—';
-        document.getElementById('priceGainerValue').textContent  =
-            priceBest ? `${parseFloat(priceBest.price_change_percent).toFixed(2)}%` : '—';
+            document.getElementById('priceGainerValue').textContent = priceBest ? `${parseFloat(priceBest.price_change_percent).toFixed(2)}%` : '—';
         document.getElementById('priceLoserTicker').textContent = priceWorst?.ticker ?? '—';
-        document.getElementById('priceLoserValue').textContent  =
-            priceWorst ? `${parseFloat(priceWorst.price_change_percent).toFixed(2)}%` : '—';
+            document.getElementById('priceLoserValue').textContent = priceWorst ? `${parseFloat(priceWorst.price_change_percent).toFixed(2)}%` : '—';
 
-        // Market cap diff (ak existuje pole, inak preskoč)
+            // Market cap diff
         const mc = data.filter(d => {
             const diff = parseFloat(d.market_cap_diff);
             return !isNaN(diff) && isFinite(diff);
         });
-        const mcBest = mc.length ? mc.reduce((a,b)=> {
+            
+            const mcBest = mc.length ? mc.reduce((a,b) => {
             const aDiff = parseFloat(a.market_cap_diff);
             const bDiff = parseFloat(b.market_cap_diff);
             return aDiff > bDiff ? a : b;
         }) : null;
-        const mcWorst = mc.length ? mc.reduce((a,b)=> {
+            
+            const mcWorst = mc.length ? mc.reduce((a,b) => {
             const aDiff = parseFloat(a.market_cap_diff);
             const bDiff = parseFloat(b.market_cap_diff);
             return aDiff < bDiff ? a : b;
         }) : null;
+            
         document.getElementById('marketCapGainerTicker').textContent = mcBest?.ticker ?? '—';
-        document.getElementById('marketCapGainerValue').textContent  = mcBest ? formatMarketCapDiff(mcBest.market_cap_diff) : '—';
+            document.getElementById('marketCapGainerValue').textContent = mcBest ? Utils.formatMarketCapDiff(mcBest.market_cap_diff) : '—';
         document.getElementById('marketCapLoserTicker').textContent = mcWorst?.ticker ?? '—';
-        document.getElementById('marketCapLoserValue').textContent  = mcWorst ? formatMarketCapDiff(mcWorst.market_cap_diff) : '—';
+            document.getElementById('marketCapLoserValue').textContent = mcWorst ? Utils.formatMarketCapDiff(mcWorst.market_cap_diff) : '—';
 
         // EPS beat / miss (%)
         const eps = data.filter(d => {
@@ -1456,23 +2705,23 @@
             const estimate = parseFloat(d.eps_estimate);
             return !isNaN(actual) && !isNaN(estimate) && estimate !== 0;
         });
-        const epsBest = eps.length ? eps.reduce((a,b)=> {
-            const aSurprise = ((parseFloat(a.eps_actual) - parseFloat(a.eps_estimate)) / Math.abs(parseFloat(a.eps_estimate))) * 100;
-            const bSurprise = ((parseFloat(b.eps_actual) - parseFloat(b.eps_estimate)) / Math.abs(parseFloat(b.eps_estimate))) * 100;
+            
+            const epsBest = eps.length ? eps.reduce((a,b) => {
+                const aSurprise = Utils.calculateSurprise(a.eps_actual, a.eps_estimate);
+                const bSurprise = Utils.calculateSurprise(b.eps_actual, b.eps_estimate);
             return aSurprise > bSurprise ? a : b;
         }) : null;
-        const epsWorst = eps.length ? eps.reduce((a,b)=> {
-            const aSurprise = ((parseFloat(a.eps_actual) - parseFloat(a.eps_estimate)) / Math.abs(parseFloat(a.eps_estimate))) * 100;
-            const bSurprise = ((parseFloat(b.eps_actual) - parseFloat(b.eps_estimate)) / Math.abs(parseFloat(b.eps_estimate))) * 100;
+            
+            const epsWorst = eps.length ? eps.reduce((a,b) => {
+                const aSurprise = Utils.calculateSurprise(a.eps_actual, a.eps_estimate);
+                const bSurprise = Utils.calculateSurprise(b.eps_actual, b.eps_estimate);
             return aSurprise < bSurprise ? a : b;
         }) : null;
         
         document.getElementById('epsBeatTicker').textContent = epsBest?.ticker ?? '—';
-        document.getElementById('epsBeatValue').textContent  =
-            epsBest ? `+${((parseFloat(epsBest.eps_actual) - parseFloat(epsBest.eps_estimate)) / Math.abs(parseFloat(epsBest.eps_estimate)) * 100).toFixed(2)}%` : '—';
+            document.getElementById('epsBeatValue').textContent = epsBest ? `+${Utils.calculateSurprise(epsBest.eps_actual, epsBest.eps_estimate).toFixed(2)}%` : '—';
         document.getElementById('epsMissTicker').textContent = epsWorst?.ticker ?? '—';
-        document.getElementById('epsMissValue').textContent  =
-            epsWorst ? `${((parseFloat(epsWorst.eps_actual) - parseFloat(epsWorst.eps_estimate)) / Math.abs(parseFloat(epsWorst.eps_estimate)) * 100).toFixed(2)}%` : '—';
+            document.getElementById('epsMissValue').textContent = epsWorst ? `${Utils.calculateSurprise(epsWorst.eps_actual, epsWorst.eps_estimate).toFixed(2)}%` : '—';
 
         // Revenue beat / miss (%)
         const rev = data.filter(d => {
@@ -1480,151 +2729,72 @@
             const estimate = parseFloat(d.revenue_estimate);
             return !isNaN(actual) && !isNaN(estimate) && estimate !== 0;
         });
-        const revBest = rev.length ? rev.reduce((a,b)=> {
-            const aSurprise = ((parseFloat(a.revenue_actual) - parseFloat(a.revenue_estimate)) / Math.abs(parseFloat(a.revenue_estimate))) * 100;
-            const bSurprise = ((parseFloat(b.revenue_actual) - parseFloat(b.revenue_estimate)) / Math.abs(parseFloat(b.revenue_estimate))) * 100;
+            
+            const revBest = rev.length ? rev.reduce((a,b) => {
+                const aSurprise = Utils.calculateSurprise(a.revenue_actual, a.revenue_estimate);
+                const bSurprise = Utils.calculateSurprise(b.revenue_actual, b.revenue_estimate);
             return aSurprise > bSurprise ? a : b;
         }) : null;
-        const revWorst = rev.length ? rev.reduce((a,b)=> {
-            const aSurprise = ((parseFloat(a.revenue_actual) - parseFloat(a.revenue_estimate)) / Math.abs(parseFloat(a.revenue_estimate))) * 100;
-            const bSurprise = ((parseFloat(b.revenue_actual) - parseFloat(b.revenue_estimate)) / Math.abs(parseFloat(b.revenue_estimate))) * 100;
+            
+            const revWorst = rev.length ? rev.reduce((a,b) => {
+                const aSurprise = Utils.calculateSurprise(a.revenue_actual, a.revenue_estimate);
+                const bSurprise = Utils.calculateSurprise(b.revenue_actual, b.revenue_estimate);
             return aSurprise < bSurprise ? a : b;
         }) : null;
         
         document.getElementById('revenueBeatTicker').textContent = revBest?.ticker ?? '—';
-        document.getElementById('revenueBeatValue').textContent  =
-            revBest ? `+${((parseFloat(revBest.revenue_actual) - parseFloat(revBest.revenue_estimate)) / Math.abs(parseFloat(revBest.revenue_estimate)) * 100).toFixed(2)}%` : '—';
+            document.getElementById('revenueBeatValue').textContent = revBest ? `+${Utils.calculateSurprise(revBest.revenue_actual, revBest.revenue_estimate).toFixed(2)}%` : '—';
         document.getElementById('revenueMissTicker').textContent = revWorst?.ticker ?? '—';
-                 document.getElementById('revenueMissValue').textContent  =
-             revWorst ? `${((parseFloat(revWorst.revenue_actual) - parseFloat(revWorst.revenue_estimate)) / Math.abs(parseFloat(revWorst.revenue_estimate)) * 100).toFixed(2)}%` : '—';
-     }
+            document.getElementById('revenueMissValue').textContent = revWorst ? `${Utils.calculateSurprise(revWorst.revenue_actual, revWorst.revenue_estimate).toFixed(2)}%` : '—';
+        },
 
-     // ---------- 3) Market Status Update ----------
-     function updateMarketStatus(data) {
-         if (!data || data.length === 0) {
-             document.getElementById('marketStatusInfo').textContent = 'No data available';
-             return;
-         }
-         
-         // Analyze data sources
-         const sources = data.map(item => item.change_source).filter(Boolean);
-         const uniqueSources = [...new Set(sources)];
-         
-         let statusText = '';
-         
-         if (uniqueSources.includes('v3_trade')) {
-             statusText = 'Live trading data available';
-         } else if (uniqueSources.includes('snapshot_change')) {
-             statusText = 'Market data from Polygon snapshot';
-         } else if (uniqueSources.includes('quote_mid')) {
-             statusText = 'Extended hours quote data';
-         } else if (uniqueSources.includes('minute_close')) {
-             statusText = 'Minute-level price data';
-         } else {
-             statusText = 'Market closed - Previous close prices';
-         }
-         
-         document.getElementById('marketStatusInfo').textContent = statusText;
-     }
 
-    async function loadEarningsData() {
-        const loading = document.getElementById('loading');
-        const tableContainer = document.getElementById('earnings-data');
-        const tableBody = document.getElementById('tableBody');
+    };
 
-        try {
-            loading.style.display = 'block';
-            tableContainer.style.display = 'none';
-
-            const response = await fetch('/api/earnings-tickers-today.php');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to load data');
-            }
-
-            const earnings = data.data || [];
-            // Filter out companies without market cap or price data
-            const filteredEarnings = earnings.filter(item => {
-                const hasMarketCap = item.market_cap && parseFloat(item.market_cap) > 0;
-                const hasPrice = item.current_price && parseFloat(item.current_price) > 0;
-                return hasMarketCap && hasPrice;
-            });
-
-            // Check if we have any earnings data
-            if (filteredEarnings.length === 0) {
-                loading.innerHTML = `
-                    <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-                        <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #374151;">No Earnings Today</div>
-                        <div style="font-size: 16px; color: #6b7280; line-height: 1.5;">
-                            There are no earnings reports scheduled for today.<br>
-                            Check back tomorrow for the latest earnings data.
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            // Store data globally (without rank - rank will be generated in renderTable)
-            earningsData = filteredEarnings;
-
-            // Sort by Market Cap DESC initially
-            sortData('market_cap', 'desc');
-            updateSortIcons('market_cap', 'desc');
-
-            // Update cards with new robust functions
-            updateSizeCards(filteredEarnings);
-            updateWinnersLosers(filteredEarnings);
-            updateMarketStatus(filteredEarnings);
-
-            // Populate table
-            renderTable();
+    // ===== COLUMN TOGGLE FUNCTIONALITY =====
+    const ColumnToggle = {
+        toggleCols: (key) => {
+            const epsRevTable = document.querySelector('.eps-revenue-table');
+            const guidanceTable = document.querySelector('.guidance-table');
             
-            // Fit table to container after rendering
-            requestAnimationFrame(fitTableToContainer);
-
-            // Add sort listeners after table is rendered
-            addSortListeners();
-
-            loading.style.display = 'none';
-            tableContainer.style.display = 'block';
-
-             // Sticky heights no longer needed - table header is positioned normally
- 
-                          // Table displayed successfully
-
-        } catch (error) {
-            console.error('Error loading data:', error);
+            if (key === 'group-eps-rev') {
+                // Show EPS & Revenue table, hide Guidance table
+                epsRevTable.classList.remove('hidden');
+                guidanceTable.classList.remove('active');
+                guidanceTable.style.display = 'none';
+            } else if (key === 'group-guidance') {
+                // Show Guidance table, hide EPS & Revenue table
+                epsRevTable.classList.add('hidden');
+                guidanceTable.classList.add('active');
+                guidanceTable.style.display = 'table';
+            }
             
-            // Check if it's a network error or no data error
-            if (error.message.includes('Failed to fetch') || error.message.includes('HTTP error')) {
-                loading.innerHTML = `
-                    <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-                        <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #374151;">No Earnings Today</div>
-                        <div style="font-size: 16px; color: #6b7280; line-height: 1.5;">
-                            There are no earnings reports scheduled for today.<br>
-                            Check back tomorrow for the latest earnings data.
-                        </div>
-                    </div>
-                `;
+            // Update button states
+        document.querySelectorAll('.toolbar [data-toggle]').forEach(btn => {
+            const btnKey = btn.getAttribute('data-toggle');
+            if (btnKey === key) {
+                btn.classList.add('active');
+                btn.classList.remove('inactive');
             } else {
-                loading.innerHTML = `
-                    <div style="color: #dc2626; text-align: center;">
-                        <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
-                        <div>Error loading data: ${error.message}</div>
-                    </div>
-                `;
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
             }
-        }
-    }
+        });
+        },
 
-    // Search functionality
-    function setupSearch() {
+        setupColumnToggle: () => {
+        document.querySelectorAll('.toolbar [data-toggle]').forEach(btn => {
+                // Remove any title attribute to prevent tooltips
+                btn.removeAttribute('title');
+                btn.removeAttribute('aria-label');
+                btn.addEventListener('click', () => ColumnToggle.toggleCols(btn.getAttribute('data-toggle')));
+        });
+    }
+    };
+
+    // ===== SEARCH FUNCTIONALITY =====
+    const Search = {
+        setupSearch: () => {
         const searchInput = document.getElementById('companySearch');
         if (!searchInput) return;
 
@@ -1633,12 +2803,10 @@
             event.stopPropagation();
         });
 
-        // Prevent search input focus from triggering header sort
         searchInput.addEventListener('focus', function(event) {
             event.stopPropagation();
         });
 
-        // Prevent search input input from triggering header sort
         searchInput.addEventListener('input', function(event) {
             event.stopPropagation();
         });
@@ -1647,76 +2815,179 @@
             const searchTerm = this.value.toLowerCase().trim();
             
             if (searchTerm === '') {
-                // Show all rows if search is empty
-                document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
+                    // Show all rows in all tables
+                    document.querySelectorAll('.earnings-table-left tbody tr, .earnings-table-right tbody tr').forEach(row => {
                     row.style.display = '';
                 });
                 return;
             }
 
-            // Filter rows based on search term
-            document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
-                const companyCell = row.querySelector('td:nth-child(2)');
-                if (!companyCell) return;
-
-                const companyName = companyCell.querySelector('.company-name')?.textContent?.toLowerCase() || '';
-                const ticker = companyCell.querySelector('.company-ticker')?.textContent?.toLowerCase() || '';
+                // Search in left table (company info)
+                const leftRows = document.querySelectorAll('.earnings-table-left tbody tr');
+                const rightEpsRevRows = document.querySelectorAll('.earnings-table-right.eps-revenue-table tbody tr');
+                const rightGuidanceRows = document.querySelectorAll('.earnings-table-right.guidance-table tbody tr');
                 
-                const matches = companyName.includes(searchTerm) || ticker.includes(searchTerm);
-                row.style.display = matches ? '' : 'none';
+                leftRows.forEach((leftRow, index) => {
+                    const tickerCell = leftRow.querySelector('td:nth-child(2)'); // Ticker column
+                    const companyCell = leftRow.querySelector('td:nth-child(3)'); // Company column
+                    
+                    if (!tickerCell || !companyCell) return;
+
+                    const ticker = tickerCell.textContent?.toLowerCase() || '';
+                    const companyName = companyCell.textContent?.toLowerCase() || '';
+                    
+                    const matches = companyName.includes(searchTerm) || ticker.includes(searchTerm);
+                    
+                    // Show/hide corresponding rows in all tables
+                    leftRow.style.display = matches ? '' : 'none';
+                    
+                    if (rightEpsRevRows[index]) {
+                        rightEpsRevRows[index].style.display = matches ? '' : 'none';
+                    }
+                    
+                    if (rightGuidanceRows[index]) {
+                        rightGuidanceRows[index].style.display = matches ? '' : 'none';
+                    }
             });
         });
 
-        // Clear search when clicking on other sortable headers (okrem Company)
-        document.querySelectorAll('.sortable-header').forEach(header => {
+            // Clear search when clicking on other sortable headers (except Company)
+            document.querySelectorAll('.earnings-table-left .sortable-header, .earnings-table-right .sortable-header').forEach(header => {
             if (header.getAttribute('data-sort') !== 'company') {
                 header.addEventListener('click', function() {
                     searchInput.value = '';
-                    // Show all rows
-                    document.querySelectorAll('.earnings-table tbody tr').forEach(row => {
+                        document.querySelectorAll('.earnings-table-left tbody tr, .earnings-table-right tbody tr').forEach(row => {
                         row.style.display = '';
                     });
                 });
             }
         });
     }
+    };
 
+    // ===== DATA LOADING =====
+    const DataLoader = {
+        async loadEarningsData() {
+            const loading = document.getElementById('loading');
+            const tableContainer = document.getElementById('earnings-data');
+            const tableBodyLeft = document.getElementById('tableBodyLeft');
+            const tableBodyRightEpsRev = document.getElementById('tableBodyRightEpsRev');
+            const tableBodyRightGuidance = document.getElementById('tableBodyRightGuidance');
 
+            if (!loading || !tableContainer || !tableBodyLeft || !tableBodyRightEpsRev || !tableBodyRightGuidance) {
+                console.error('Required DOM elements not found');
+                return;
+            }
 
-    // Initialize when document is ready
-    $(document).ready(function() {
-           // Test if utilities are loaded
-           if (typeof getSizeClass === 'undefined') {
-               console.error('Utilities not loaded! getSizeClass is undefined');
+            try {
+                AppState.isLoading = true;
+                AppState.error = null;
+                
+                loading.style.display = 'block';
+
+                const response = await fetch(CONFIG.API_ENDPOINT);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load data');
+                }
+
+                const earnings = data.data || [];
+                const filteredEarnings = earnings.filter(item => {
+                    const hasMarketCap = item.market_cap && parseFloat(item.market_cap) > 0;
+                    const hasPrice = item.current_price && parseFloat(item.current_price) > 0;
+                    return hasMarketCap && hasPrice;
+                });
+
+                if (filteredEarnings.length === 0) {
+                    loading.innerHTML = `
+                        <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                            <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #374151;">No Earnings Today</div>
+                            <div style="font-size: 16px; color: #6b7280; line-height: 1.5;">
+                                There are no earnings reports scheduled for today.<br>
+                                Check back tomorrow for the latest earnings data.
+                            </div>
+                        </div>
+                    `;
                return;
            }
            
-        loadEarningsData();
-        setupSearch();
-        
-        // Fit table to container after initial load
-        window.addEventListener('resize', fitTableToContainer);
-           
-           // Sticky heights no longer needed - table header is positioned normally
-           
-           // Column width synchronization no longer needed with single table structure
-           
-           // Initialization complete
+                AppState.earningsData = filteredEarnings;
+
+                DataSorter.sortData('market_cap', 'desc');
+                DataSorter.updateSortIcons('market_cap', 'desc');
+
+                Statistics.updateSizeCards(filteredEarnings);
+                Statistics.updateWinnersLosers(filteredEarnings);
+
+                TableRenderer.renderTable();
+                requestAnimationFrame(TableRenderer.fitTableToContainer);
+                TableRenderer.addSortListeners();
+                TableRenderer.setupTableSynchronization();
+
+                loading.style.display = 'none';
+                
+                // Ensure proper table synchronization
+                requestAnimationFrame(() => {
+                    TableRenderer.fitTableToContainer();
+                });
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                AppState.error = error.message;
+                
+                if (error.message.includes('Failed to fetch') || error.message.includes('HTTP error')) {
+                    loading.innerHTML = `
+                        <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                            <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #374151;">No Earnings Today</div>
+                            <div style="font-size: 16px; color: #6b7280; line-height: 1.5;">
+                                There are no earnings reports scheduled for today.<br>
+                                Check back tomorrow for the latest earnings data.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    loading.innerHTML = `
+                        <div style="color: #dc2626; text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
+                            <div>Error loading data: ${error.message}</div>
+                        </div>
+                    `;
+                }
+            } finally {
+                AppState.isLoading = false;
+            }
+        }
+    };
+
+    // ===== APPLICATION INITIALIZATION =====
+    const App = {
+        init: function() {
+            DataLoader.loadEarningsData();
+            Search.setupSearch();
+            ColumnToggle.setupColumnToggle();
+            
+            window.addEventListener('resize', TableRenderer.fitTableToContainer);
+            
+            // Default show EPS & Revenue columns, hide Guidance
+            setTimeout(() => {
+                ColumnToggle.toggleCols('group-eps-rev');
+            }, 100);
+            
+            // Auto-refresh every 5 minutes
+            setInterval(DataLoader.loadEarningsData, CONFIG.REFRESH_INTERVAL);
+        }
+    };
+
+    // ===== JQUERY READY HANDLER =====
+    $(document).ready(function() {
+        App.init();
     });
-
-    // Column width synchronization no longer needed with single table structure
-
-    // Auto-refresh every 5 minutes
-    setInterval(loadEarningsData, 5 * 60 * 1000);
-
-         // ResizeObserver no longer needed - table header is positioned normally
-
-           // Sticky positioning is now handled with fixed CSS values
-
-
     </script>
-    
-    <!-- Utilities - Load after jQuery -->
-    <script src="js/utilities.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
