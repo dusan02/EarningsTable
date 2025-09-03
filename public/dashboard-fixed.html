@@ -651,6 +651,23 @@
         visibility: visible;
     }
 
+    /* ===== FISCAL PERIOD STYLES ===== */
+    .fiscal-period-cell {
+        text-align: center;
+        font-weight: 600;
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-2) var(--spacing-1);
+        border-right: 1px solid var(--color-gray-200);
+        color: var(--color-blue-600);
+        background-color: #eff6ff;
+    }
+
+    .fiscal-period-cell:hover {
+        background-color: var(--color-gray-50);
+        transform: scale(1.05);
+        transition: all var(--transition-normal);
+    }
+
             /* ===== SORTABLE HEADER STYLES ===== */
     .earnings-table-left .sortable-header.active-sort,
     .earnings-table-right .sortable-header.active-sort {
@@ -2091,9 +2108,9 @@
                              <col style="width:12px" aria-label="Rank column">
                              <col style="width:25px" aria-label="Ticker column">
                              <col style="width:75px" aria-label="Company column">
-                             <col style="width:25px" aria-label="Size column">
-                             <col style="width:35px" aria-label="Market Cap column">
-                             <col style="width:35px" aria-label="Cap Diff column">
+                             <col style="width:20px" aria-label="Size column">
+                             <col style="width:30px" aria-label="Market Cap column">
+                             <col style="width:25px" aria-label="Cap Diff column">
                              <col style="width:25px" aria-label="Price column">
                              <col style="width:25px" aria-label="Change column">
                          </colgroup>
@@ -2136,12 +2153,12 @@
                     <!-- EPS & Revenue Columns (Default Active) -->
                     <table class="earnings-table-right eps-revenue-table" role="table" aria-label="EPS and Revenue columns">
                         <colgroup>
-                            <col style="width:30px" aria-label="EPS Estimate column">
-                            <col style="width:30px" aria-label="EPS Actual column">
-                            <col style="width:30px" aria-label="EPS Surprise column">
-                            <col style="width:30px" aria-label="Revenue Estimate column">
-                            <col style="width:30px" aria-label="Revenue Actual column">
-                            <col style="width:30px" aria-label="Revenue Surprise column">
+                            <col style="width:28px" aria-label="EPS Estimate column">
+                            <col style="width:28px" aria-label="EPS Actual column">
+                            <col style="width:28px" aria-label="EPS Surprise column">
+                            <col style="width:28px" aria-label="Revenue Estimate column">
+                            <col style="width:28px" aria-label="Revenue Actual column">
+                            <col style="width:28px" aria-label="Revenue Surprise column">
                         </colgroup>
                         <thead>
                             <tr>
@@ -2161,7 +2178,7 @@
                                     <span class="header-text">Rev Act</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_surprise" scope="col" aria-label="Sort by revenue surprise">
-                                    <span class="header-text">REV Surp</span>
+                                    <span class="header-text">Rev Surp</span>
                                 </th>
                             </tr>
                         </thead>
@@ -2173,11 +2190,12 @@
                     <!-- Guidance Columns (Hidden by Default) -->
                     <table class="earnings-table-right guidance-table" role="table" aria-label="Guidance columns" style="display: none;">
                         <colgroup>
-                            <col style="width:19%" aria-label="EPS Guidance column">
-                            <col style="width:20%" aria-label="EPS Guidance Surprise column">
-                            <col style="width:19%" aria-label="Revenue Guidance column">
-                            <col style="width:20%" aria-label="Revenue Guidance Surprise column">
-                            <col style="width:15%" aria-label="Notes column">
+                            <col style="width:16%" aria-label="EPS Guidance column">
+                            <col style="width:22%" aria-label="EPS Guidance Surprise column">
+                            <col style="width:16%" aria-label="Revenue Guidance column">
+                            <col style="width:22%" aria-label="Revenue Guidance Surprise column">
+                            <col style="width:13.6%" aria-label="Fiscal Period column">
+                            <col style="width:10.8%" aria-label="Notes column">
                         </colgroup>
                         <thead>
                             <tr>
@@ -2191,7 +2209,10 @@
                                     <span class="header-text">Rev Guide</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_guide_surprise" scope="col" aria-label="Sort by revenue guidance surprise">
-                                    <span class="header-text">REV Guide Surp</span>
+                                    <span class="header-text">Rev Guide Surp</span>
+                                </th>
+                                <th class="table-header-cell sortable-header" data-sort="fiscal_period" scope="col" aria-label="Sort by fiscal period">
+                                    <span class="header-text">Period</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="notes" scope="col" aria-label="Sort by notes">
                                     <span class="header-text text-center">Notes</span>
@@ -2221,7 +2242,7 @@
         MEGA_CAP_THRESHOLD: 100000000000, // $100 billion
         COLUMN_GROUPS: {
             'group-eps-rev': [8, 9, 10, 11, 12, 13],        // EPS Est/Act/Surp + Rev Est/Act/Surp
-            'group-guidance': [14, 15, 16, 17, 18],           // EPS Guide, Guide Surp, Rev Guide, Guide Surp + Notes
+            'group-guidance': [14, 15, 16, 17, 18, 19],      // EPS Guide, Guide Surp, Rev Guide, Guide Surp + Period + Notes
         }
     };
 
@@ -2429,6 +2450,14 @@
                         return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_guide');
                 case 'revenue_guide_surprise':
                         return Utils.cmpNumericWithNullLast(a, b, direction, 'revenue_guide_surprise');
+                case 'fiscal_period':
+                    const aPeriod = (a.guidance_fiscal_period || '').toLowerCase();
+                    const bPeriod = (b.guidance_fiscal_period || '').toLowerCase();
+                    if (direction === 'asc') {
+                        return aPeriod.localeCompare(bPeriod);
+                    } else {
+                        return bPeriod.localeCompare(aPeriod);
+                    }
                 case 'notes':
                     const aNotes = (a.guidance_notes || '').toLowerCase();
                     const bNotes = (b.guidance_notes || '').toLowerCase();
@@ -2521,17 +2550,7 @@
                 tableBodyRightEpsRev.appendChild(epsRevRow);
                 
                 // Create Guidance row (right part)
-                // Debug logging for guidance surprise values
-                if (item.ticker === 'DKS' || item.ticker === 'DLTR') {
-                    console.log(`🔍 ${item.ticker} Guidance Debug:`, {
-                        eps_guide: item.eps_guide,
-                        eps_guide_surprise: item.eps_guide_surprise,
-                        eps_guide_basis: item.eps_guide_basis,
-                        revenue_guide: item.revenue_guide,
-                        revenue_guide_surprise: item.revenue_guide_surprise,
-                        revenue_guide_basis: item.revenue_guide_basis
-                    });
-                }
+
                 
                 const guidanceRow = document.createElement('tr');
                 guidanceRow.innerHTML = `
@@ -2539,13 +2558,14 @@
                     <td class="${item.eps_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}${item.eps_guide_extreme ? ' (Raw: ' + (item.eps_guide_surprise != null ? Number(item.eps_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.eps_guide_surprise, item.eps_guide_extreme)}</td>
                     <td>${Utils.formatCurrency(item.revenue_guide)}</td>
                     <td class="${item.revenue_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}${item.revenue_guide_extreme ? ' (Raw: ' + (item.revenue_guide_surprise != null ? Number(item.revenue_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.revenue_guide_surprise, item.revenue_guide_extreme)}</td>
-                <td>
-                    <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
-                        i
-                        ${item.guidance_notes ? `<div class="notes-tooltip">${item.guidance_notes}</div>` : ''}
-                    </div>
-                </td>
-            `;
+                    <td class="fiscal-period-cell">${item.guidance_fiscal_period && item.guidance_fiscal_year ? `${item.guidance_fiscal_period}/${item.guidance_fiscal_year}` : '-'}</td>
+                    <td>
+                        <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
+                            i
+                            ${item.guidance_notes ? `<div class="notes-tooltip">${item.guidance_notes}</div>` : ''}
+                        </div>
+                    </td>
+                `;
                 tableBodyRightGuidance.appendChild(guidanceRow);
             });
         },

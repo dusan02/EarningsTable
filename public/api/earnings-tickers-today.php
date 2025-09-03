@@ -81,17 +81,29 @@ try {
             FROM benzinga_guidance
             WHERE fiscal_period IN ('Q1','Q2','Q3','Q4','FY')
             AND fiscal_year IN (2024, 2025)
+            -- Only show guidance for companies that have earnings data for today
+            -- AND guidance is relevant for the current earnings period
+            AND ticker IN (
+                SELECT DISTINCT ticker COLLATE utf8mb4_general_ci
+                FROM EarningsTickersToday 
+                WHERE report_date = ?
+            )
+            -- Only show guidance that is relevant for today's earnings (not future periods)
+            AND (
+                (fiscal_year = YEAR(?) AND fiscal_period IN ('Q1','Q2','Q3','Q4'))
+                OR (fiscal_year = YEAR(?) - 1 AND fiscal_period IN ('Q4'))
+            )
         ) g ON g.ticker = e.ticker AND g.rn = 1
         WHERE e.report_date = ?
         GROUP BY e.ticker
         ORDER BY e.ticker
     ");
-    $stmt->execute([$date]);
+    $stmt->execute([$date, $date, $date, $date]);
     $earnings = $stmt->fetchAll();
     
     // Helper functions for validation
     function periodsMatch($guidance, $item) {
-        // For now, we'll use a simplified approach since EarningsTickersToday doesn't have fiscal periods
+        // Guidance is now only shown for companies with earnings data, so this is more reliable
         // In the future, when estimates have fiscal periods, we can add proper validation
         return true; // Allow fallback 2 for now, but log for monitoring
     }
@@ -119,17 +131,17 @@ try {
             $item['eps_guide'] !== null && 
             $item['eps_estimate'] !== null && 
             $item['eps_estimate'] != 0 &&
-            periodsMatch($item, $item) && // TODO: Fix when guidance data has fiscal periods
-            methodOk($item['guidance_eps_method'] ?? null, null) // No estimate method available yet
+            periodsMatch($item, $item) && 
+            methodOk($item['guidance_eps_method'] ?? null, null)
         ) {
-            // Fallback: guidance vs estimate
+            // Guidance vs estimate (now more reliable since guidance is only for companies with earnings)
             $item['eps_guide_surprise'] = (($item['eps_guide'] - $item['eps_estimate']) / $item['eps_estimate']) * 100;
             $item['eps_guide_basis'] = 'estimate';
             $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
             
             // Log potential mismatches for monitoring
             if ($item['eps_guide_extreme']) {
-                error_log("EXTREME EPS: {$item['ticker']} = {$item['eps_guide_surprise']}% (guidance: {$item['eps_estimate']}, estimate: {$item['eps_estimate']}) - basis: estimate");
+                error_log("EXTREME EPS: {$item['ticker']} = {$item['eps_guide_surprise']}% (guidance: {$item['eps_guide']}, estimate: {$item['eps_estimate']}) - basis: estimate");
             }
         } elseif (
             $item['eps_guide'] !== null && 
@@ -165,10 +177,10 @@ try {
             $item['revenue_guide'] !== null && 
             $item['revenue_estimate'] !== null && 
             $item['revenue_estimate'] != 0 &&
-            periodsMatch($item, $item) && // TODO: Fix when guidance data has fiscal periods
-            methodOk($item['guidance_revenue_method'] ?? null, null) // No estimate method available yet
+            periodsMatch($item, $item) && 
+            methodOk($item['guidance_revenue_method'] ?? null, null)
         ) {
-            // Fallback: guidance vs estimate
+            // Guidance vs estimate (now more reliable since guidance is only for companies with earnings)
             $item['revenue_guide_surprise'] = (($item['revenue_guide'] - $item['revenue_estimate']) / $item['revenue_estimate']) * 100;
             $item['revenue_guide_basis'] = 'estimate';
             $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
@@ -208,8 +220,9 @@ try {
         unset($item['previous_max_eps_guidance']);
         unset($item['previous_min_revenue_guidance']);
         unset($item['previous_max_revenue_guidance']);
-        unset($item['guidance_fiscal_period']);
-        unset($item['guidance_fiscal_year']);
+        // Keep fiscal period and year for dashboard display
+        // unset($item['guidance_fiscal_period']);
+        // unset($item['guidance_fiscal_year']);
         unset($item['guidance_eps_method']);
         unset($item['guidance_revenue_method']);
         unset($item['guidance_currency']);

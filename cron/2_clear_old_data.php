@@ -47,7 +47,9 @@ try {
 	// Counts before
 	$beforeMov = (int)$pdo->query("SELECT COUNT(*) FROM TodayEarningsMovements")->fetchColumn();
 	$beforeEtt = (int)$pdo->query("SELECT COUNT(*) FROM EarningsTickersToday")->fetchColumn();
-	echo "Before → TodayEarningsMovements: {$beforeMov}, EarningsTickersToday: {$beforeEtt}\n";
+	$beforeBg = (int)$pdo->query("SELECT COUNT(*) FROM benzinga_guidance")->fetchColumn();
+	$beforeEc = (int)$pdo->query("SELECT COUNT(*) FROM estimates_consensus")->fetchColumn();
+	echo "Before → TodayEarningsMovements: {$beforeMov}, EarningsTickersToday: {$beforeEtt}, benzinga_guidance: {$beforeBg}, estimates_consensus: {$beforeEc}\n";
 
 	// 1) Clear movements table (always per-day)
 	$pdo->exec("DELETE FROM TodayEarningsMovements");
@@ -59,6 +61,18 @@ try {
 	$delOld->execute([$nyDate, $nyDate]);
 	$afterEtt = (int)$pdo->query("SELECT COUNT(*) FROM EarningsTickersToday")->fetchColumn();
 	echo "🗂️  Pruned EarningsTickersToday → remaining (all dates): {$afterEtt}\n";
+
+	// 3) Clean benzinga_guidance table: completely clear all guidance data (daily system)
+	$pdo->exec("TRUNCATE TABLE benzinga_guidance");
+	$afterBg = (int)$pdo->query("SELECT COUNT(*) FROM benzinga_guidance")->fetchColumn();
+	echo "🧹 Completely cleared benzinga_guidance table → remaining: {$afterBg}\n";
+
+	// 4) Clean old estimates_consensus data: keep only current fiscal year (daily system)
+	$currentYear = (int)$nowNy->format('Y');
+	$delOldEc = $pdo->prepare("DELETE FROM estimates_consensus WHERE fiscal_year < ?");
+	$delOldEc->execute([$currentYear]);
+	$afterEc = (int)$pdo->query("SELECT COUNT(*) FROM estimates_consensus")->fetchColumn();
+	echo "📊 Cleaned estimates_consensus (older than current year) → remaining: {$afterEc}\n";
 
 	// Persist last-run state
 	file_put_contents($stateFile, $nyDate);

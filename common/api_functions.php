@@ -50,7 +50,33 @@ function getCurrentPrice($polygonData, $includeExtended = true) {
         return ['price' => (float)$polygonData['day']['c'], 'source' => 'dayCloseSoFar'];
     }
     
-    // 5) Previous day close (final fallback)
+    // 5) DEVELOPMENT MODE: Generate mock current prices when markets are closed
+    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES) {
+        if (isset($polygonData['prevDay']['c']) && $polygonData['prevDay']['c'] > 0) {
+            $prevClose = (float)$polygonData['prevDay']['c'];
+            $ticker = $polygonData['ticker'] ?? 'UNKNOWN';
+            
+            // Use ticker hash for consistent but pseudo-random changes
+            $seed = crc32($ticker . date('Y-m-d'));
+            srand($seed);
+            
+            if (rand(0, 100) < 60) {
+                // 60% chance: smaller moves (-2% to +2%)
+                $percent = (rand(-200, 200) / 100.0);
+            } else {
+                // 40% chance: larger moves (-5% to +5%)
+                $percent = (rand(-500, 500) / 100.0);
+            }
+            
+            // Restore random seed
+            srand();
+            
+            $mockPrice = $prevClose * (1 + $percent / 100);
+            return ['price' => round($mockPrice, 2), 'source' => 'mock_testing'];
+        }
+    }
+    
+    // 6) Previous day close (final fallback)
     if (isset($polygonData['prevDay']['c']) && $polygonData['prevDay']['c'] > 0) {
         return ['price' => (float)$polygonData['prevDay']['c'], 'source' => 'prevClose'];
     }
@@ -348,7 +374,17 @@ function computePercentChange($snapshot, $lastTradeV3, $prevClose) {
         return ['percent' => $percent, 'source' => 'minute_close'];
     }
     
-    // 5) Fallback: no change
+    // 5) DEVELOPMENT MODE: Calculate from getCurrentPrice result if using mock data
+    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES && $prevClose > 0) {
+        $priceData = getCurrentPrice($snapshot);
+        if ($priceData && $priceData['source'] === 'mock_testing') {
+            $currentPrice = $priceData['price'];
+            $percent = (($currentPrice - $prevClose) / $prevClose) * 100;
+            return ['percent' => $percent, 'source' => 'mock_testing'];
+        }
+    }
+    
+    // 6) Fallback: no change
     return ['percent' => 0.0, 'source' => 'prev_close'];
 }
 
