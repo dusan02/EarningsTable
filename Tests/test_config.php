@@ -6,7 +6,7 @@
 
 // Basic database connection for tests
 $dbHost = 'localhost';
-$dbName = 'earnings_db';
+$dbName = 'earnings_table';  // ✅ Opravené: používať earnings_table namiesto earnings_db
 $dbUser = 'root';
 $dbPass = '';
 

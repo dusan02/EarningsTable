@@ -29,7 +29,18 @@ $tests = [
         'test_security_headers.php' => 'Test security headers',
         'test_polygon_api.php' => 'Test Polygon API',
         'test_curl_multi_speed.php' => 'Test cURL performance',
-        'test_krok5_optimizations.php' => 'Test KROK 5 optimalizácií'
+        'test_krok5_optimizations.php' => 'Test KROK 5 optimalizácií',
+        // === NOVÉ GUIDANCE TESTS ===
+        'test_api_keys.php' => 'Test API kľúčov',
+        'test_benzinga_direct.php' => 'Test Benzinga API priamo',
+        'test_benzinga_guidance.php' => 'Test Benzinga guidance funkcionality',
+        'test_finnhub_data.php' => 'Test Finnhub API dát',
+        'test_guidance_instantiate.php' => 'Test guidance tried inštancovania',
+        'test_guidance_simple.php' => 'Test základnej guidance logiky',
+        'test_simple_db.php' => 'Test databázového pripojenia',
+        // === NOVÉ BENZINGA PIPELINE TESTS ===
+        'test_benzinga_pipeline.php' => 'Test Benzinga data pipeline (CRITICAL)',
+        'test_benzinga_issues.php' => 'Test Benzinga issues resolution (CRITICAL)'
     ],
     
     // === CRITICAL TEST SÚBORY (Kritické funkcionality) ===

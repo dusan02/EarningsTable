@@ -11,14 +11,46 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
+// DEBUG: Kill cache completely for testing
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 try {
+    // DEBUG: Check which database API is connected to
+    try {
+        $dbName = $pdo->query('SELECT DATABASE()')->fetchColumn();
+        error_log("API DB: " . $dbName);
+    } catch(Throwable $e) {
+        error_log("API DB err: " . $e->getMessage());
+    }
+    
     // Use US Eastern Time to match the cron jobs
     $timezone = new DateTimeZone('America/New_York');
     $usDate = new DateTime('now', $timezone);
     $date = $usDate->format('Y-m-d');
     
-    // Get today's tickers with guidance data (restored guidance JOIN)
+    // Get ALL tickers with earnings data, then LEFT JOIN with guidance (FIXED: prioritize earnings)
+    // --- DEBUG: vytiahni posledný guidance pre CRM tak, ako ho potrebuješ ---
+    $sqlDbg = "
+        SELECT
+            ticker,
+            fiscal_period,
+            fiscal_year,
+            CAST(estimated_eps_guidance AS DECIMAL(18,4))  AS eps_guide,
+            CAST(estimated_revenue_guidance AS DECIMAL(18,2)) AS revenue_guide
+        FROM benzinga_guidance
+        WHERE ticker = 'CRM'
+        AND fiscal_period IN ('Q1','Q2','Q3','Q4','FY','2H','3Q','1H','4Q')
+        AND fiscal_year IN (2024, 2025, 2026)
+        ORDER BY
+            CASE WHEN release_type='final' THEN 1 ELSE 2 END,
+            last_updated DESC
+        LIMIT 1
+    ";
+    $dbg = $pdo->query($sqlDbg)->fetch(PDO::FETCH_ASSOC);
+    error_log('CRM DEBUG GUIDANCE: ' . json_encode($dbg));
+    
     $stmt = $pdo->prepare("
         SELECT 
             e.ticker,
@@ -40,7 +72,7 @@ try {
             t.eps_actual,
             t.revenue_actual,
             t.updated_at,
-            -- Latest guidance data per ticker
+            -- Latest guidance data per ticker (LEFT JOIN from earnings)
             g.estimated_eps_guidance as eps_guide,
             g.eps_guide_vs_consensus_pct as eps_guide_surprise_consensus,
             g.estimated_revenue_guidance as revenue_guide,
@@ -78,19 +110,20 @@ try {
                     CASE WHEN release_type = 'final' THEN 1 ELSE 2 END,
                     last_updated DESC
                 ) as rn
-            FROM benzinga_guidance
-            WHERE fiscal_period IN ('Q1','Q2','Q3','Q4','FY')
-            AND fiscal_year IN (2024, 2025)
-            -- Only show guidance that is relevant for today's earnings (not future periods)
+            FROM benzinga_guidance g1
+            WHERE g1.fiscal_period IN ('Q1','Q2','Q3','Q4','FY','2H','3Q','1H','4Q')
+            AND g1.fiscal_year IN (2024, 2025, 2026)
+            -- ✅ Menej prísny filter: vyžaduje len akékoľvek guidance, nie nutne EPS AJ Revenue
             AND (
-                (fiscal_year = YEAR(?) AND fiscal_period IN ('Q1','Q2','Q3','Q4'))
-                OR (fiscal_year = YEAR(?) - 1 AND fiscal_period IN ('Q4'))
+                (g1.estimated_eps_guidance != '' AND g1.estimated_eps_guidance IS NOT NULL)
+                OR 
+                (g1.estimated_revenue_guidance != '' AND g1.estimated_revenue_guidance IS NOT NULL)
             )
-        ) g ON g.ticker = e.ticker AND g.rn = 1
+        ) g ON e.ticker = g.ticker AND g.rn = 1
         WHERE e.report_date = ?
         ORDER BY e.ticker
     ");
-    $stmt->execute([$date, $date, $date]);
+    $stmt->execute([$date]);
     $earnings = $stmt->fetchAll();
     
     // Helper functions for validation

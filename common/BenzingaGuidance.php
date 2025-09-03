@@ -8,8 +8,10 @@
  * - Ukladanie do benzinga_guidance tabuľky
  */
 
-require_once __DIR__ . '/../config.php';
-require_once dirname(__DIR__) . '/common/BenzingaGuidance.php';
+// Load config only if not already loaded
+if (!defined('DB_NAME')) {
+    require_once __DIR__ . '/../config.php';
+}
 require_once dirname(__DIR__) . '/common/UnifiedValidator.php';
 
 class BenzingaGuidance {
@@ -152,24 +154,42 @@ class BenzingaGuidance {
         // Mapovanie Benzinga Corporate Guidance API JSON polí na stĺpce tabuľky
         $mapped = [
             'ticker' => $guidance['ticker'] ?? null,
-            'estimated_eps_guidance' => $this->parseNumeric($guidance['estimated_eps_guidance'] ?? null),
-            'estimated_revenue_guidance' => $this->parseNumeric($guidance['estimated_revenue_guidance'] ?? null),
+            'company_name' => $guidance['company_name'] ?? null,
+            'date' => $guidance['date'] ?? $this->date,
+            'time' => $guidance['time'] ?? null,
             'fiscal_period' => $guidance['fiscal_period'] ?? null,
             'fiscal_year' => $this->parseNumeric($guidance['fiscal_year'] ?? null),
-            'importance' => $this->parseNumeric($guidance['importance'] ?? null),
-            'max_eps_guidance' => $this->parseNumeric($guidance['max_eps_guidance'] ?? null),
-            'max_revenue_guidance' => $this->parseNumeric($guidance['max_revenue_guidance'] ?? null),
-            'min_eps_guidance' => $this->parseNumeric($guidance['min_eps_guidance'] ?? null),
-            'min_revenue_guidance' => $this->parseNumeric($guidance['min_revenue_guidance'] ?? null),
-            'notes' => $guidance['notes'] ?? null,
-            'previous_max_eps_guidance' => $this->parseNumeric($guidance['previous_max_eps_guidance'] ?? null),
-            'previous_max_revenue_guidance' => $this->parseNumeric($guidance['previous_max_revenue_guidance'] ?? null),
-            'previous_min_eps_guidance' => $this->parseNumeric($guidance['previous_min_eps_guidance'] ?? null),
-            'previous_min_revenue_guidance' => $this->parseNumeric($guidance['previous_min_revenue_guidance'] ?? null),
+            'release_type' => $guidance['release_type'] ?? 'official',
+            'positioning' => $guidance['positioning'] ?? 'primary',
+            'importance' => $this->parseNumeric($guidance['importance'] ?? 1),
             
-            // NOVÉ STĹPCE
+            // EPS Guidance s normalizáciou
+            'estimated_eps_guidance' => $this->parseNumeric($guidance['estimated_eps_guidance'] ?? null),
+            'min_eps_guidance' => $this->parseNumeric($guidance['min_eps_guidance'] ?? null),
+            'max_eps_guidance' => $this->parseNumeric($guidance['max_eps_guidance'] ?? null),
+            'eps_method' => $guidance['eps_method'] ?? 'gaap',
+            
+            // Revenue Guidance s normalizáciou jednotiek
+            'estimated_revenue_guidance' => UnifiedValidator::normalizeRevenueUnits($guidance['estimated_revenue_guidance'] ?? null),
+            'min_revenue_guidance' => UnifiedValidator::normalizeRevenueUnits($guidance['min_revenue_guidance'] ?? null),
+            'max_revenue_guidance' => UnifiedValidator::normalizeRevenueUnits($guidance['max_revenue_guidance'] ?? null),
+            'revenue_method' => $guidance['revenue_method'] ?? 'gaap',
+            
+            // Previous guidance
+            'previous_min_eps_guidance' => $this->parseNumeric($guidance['previous_min_eps_guidance'] ?? null),
+            'previous_max_eps_guidance' => $this->parseNumeric($guidance['previous_max_eps_guidance'] ?? null),
+            'previous_min_revenue_guidance' => UnifiedValidator::normalizeRevenueUnits($guidance['previous_min_revenue_guidance'] ?? null),
+            'previous_max_revenue_guidance' => UnifiedValidator::normalizeRevenueUnits($guidance['previous_max_revenue_guidance'] ?? null),
+            
+            // Consensus comparison
             'eps_guide_vs_consensus_pct' => $this->calculateEpsGuideVsConsensus($guidance),
             'revenue_guide_vs_consensus_pct' => $this->calculateRevenueGuideVsConsensus($guidance),
+            
+            // Metadata
+            'currency' => $guidance['currency'] ?? 'USD',
+            'notes' => $guidance['notes'] ?? null,
+            'benzinga_id' => $guidance['id'] ?? null,
+            'last_updated' => $guidance['last_updated'] ?? date('Y-m-d H:i:s'),
         ];
         
         // Validácia - musí mať aspoň ticker
@@ -256,6 +276,9 @@ class BenzingaGuidance {
                         echo "       - {$issue}\n";
                     }
                     echo "    🚫 Skipping insertion due to validation issues\n";
+                    
+                    // Log rejected guidance to failures table
+                    $this->logGuidanceFailure($guidance, implode('; ', $validationIssues));
                     $errors++;
                 }
             } catch (Exception $e) {
@@ -284,13 +307,13 @@ class BenzingaGuidance {
         
         global $pdo;
         
-        // Build batch INSERT SQL
+        // Build batch INSERT SQL - používať len stĺpce, ktoré existujú v tabuľke
         $columns = [
-            'ticker', 'estimated_eps_guidance', 'estimated_revenue_guidance',
-            'fiscal_period', 'fiscal_year', 'importance', 'max_eps_guidance',
-            'max_revenue_guidance', 'min_eps_guidance', 'min_revenue_guidance',
-            'notes', 'previous_max_eps_guidance', 'previous_max_revenue_guidance',
-            'previous_min_eps_guidance', 'previous_min_revenue_guidance',
+            'ticker', 'fiscal_period', 'fiscal_year', 'importance',
+            'estimated_eps_guidance', 'min_eps_guidance', 'max_eps_guidance',
+            'estimated_revenue_guidance', 'min_revenue_guidance', 'max_revenue_guidance',
+            'notes', 'previous_min_eps_guidance', 'previous_max_eps_guidance',
+            'previous_min_revenue_guidance', 'previous_max_revenue_guidance',
             'eps_guide_vs_consensus_pct', 'revenue_guide_vs_consensus_pct'
         ];
         
@@ -308,23 +331,20 @@ class BenzingaGuidance {
         
         $sql = "INSERT INTO benzinga_guidance (" . implode(', ', $columns) . ") VALUES " . implode(', ', $placeholders) . "
                 ON DUPLICATE KEY UPDATE
-                estimated_eps_guidance = VALUES(estimated_eps_guidance),
-                estimated_revenue_guidance = VALUES(estimated_revenue_guidance),
-                fiscal_period = VALUES(fiscal_period),
-                fiscal_year = VALUES(fiscal_year),
                 importance = VALUES(importance),
-                max_eps_guidance = VALUES(max_eps_guidance),
-                max_revenue_guidance = VALUES(max_revenue_guidance),
+                estimated_eps_guidance = VALUES(estimated_eps_guidance),
                 min_eps_guidance = VALUES(min_eps_guidance),
+                max_eps_guidance = VALUES(max_eps_guidance),
+                estimated_revenue_guidance = VALUES(estimated_revenue_guidance),
                 min_revenue_guidance = VALUES(min_revenue_guidance),
-                notes = VALUES(notes),
-                previous_max_eps_guidance = VALUES(previous_max_eps_guidance),
-                previous_max_revenue_guidance = VALUES(previous_max_revenue_guidance),
+                max_revenue_guidance = VALUES(max_revenue_guidance),
                 previous_min_eps_guidance = VALUES(previous_min_eps_guidance),
+                previous_max_eps_guidance = VALUES(previous_max_eps_guidance),
                 previous_min_revenue_guidance = VALUES(previous_min_revenue_guidance),
+                previous_max_revenue_guidance = VALUES(previous_max_revenue_guidance),
                 eps_guide_vs_consensus_pct = VALUES(eps_guide_vs_consensus_pct),
                 revenue_guide_vs_consensus_pct = VALUES(revenue_guide_vs_consensus_pct),
-                updated_at = CURRENT_TIMESTAMP";
+                notes = VALUES(notes)";
         
         try {
             $stmt = $pdo->prepare($sql);
@@ -365,20 +385,35 @@ class BenzingaGuidance {
     
     /**
      * Validuje guidance dáta pred vložením do databázy
-     * Používa UnifiedValidator pre konzistentnú validáciu
+     * Používa UnifiedValidator v lenient móde - bez hard dropov
      */
     private function validateGuidanceData($guidance) {
-        // Použiť UnifiedValidator pre kompletnú validáciu
-        $validation = UnifiedValidator::validateGuidanceRecord($guidance);
+        // Použiť novú lenient validáciu
+        [$ok, $result] = UnifiedValidator::validateGuidance($guidance, [
+            'mode' => 'lenient',
+            'tolerance' => 0.15 // 15% tolerancia
+        ]);
         
-        if (!$validation['valid']) {
-            echo "    ⚠️  Validation issues for {$guidance['ticker']}:\n";
-            foreach ($validation['issues'] as $issue) {
-                echo "       - {$issue}\n";
-            }
+        if (!$ok) {
+            echo "    ❌ Hard validation failed for {$guidance['ticker']}: {$result}\n";
+            return [$result]; // Hard failure
         }
         
-        return $validation['issues'];
+        // Ak existujú varovania, zaloguj ako INFO, ale neodmietaj
+        if (!empty($result['_warnings'])) {
+            echo "    ⚠️  Soft warnings for {$guidance['ticker']}:\n";
+            foreach ($result['_warnings'] as $warning) {
+                echo "       - {$warning}\n";
+            }
+            // Log warning do failures table pre tracking
+            $this->logGuidanceFailure($guidance, 'Soft warnings: ' . implode('; ', $result['_warnings']));
+        }
+        
+        // Update guidance data with normalized values
+        $guidance = array_merge($guidance, $result);
+        unset($guidance['_warnings']); // Remove internal warnings
+        
+        return []; // No validation issues - proceed with insert
     }
     
     /**
@@ -433,6 +468,28 @@ class BenzingaGuidance {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($guidance);
         return true;
+    }
+    
+    /**
+     * Loguje odmietnuté guidance dáta do failures tabuľky
+     */
+    private function logGuidanceFailure($guidance, $reason) {
+        try {
+            global $pdo;
+            
+            $sql = "INSERT INTO guidance_import_failures (ticker, payload, reason) VALUES (?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                $guidance['ticker'] ?? 'UNKNOWN',
+                json_encode($guidance),
+                $reason
+            ]);
+            
+            echo "      📝 Logged failure for {$guidance['ticker']}: {$reason}\n";
+            
+        } catch (Exception $e) {
+            echo "      ⚠️  Failed to log guidance failure: " . $e->getMessage() . "\n";
+        }
     }
     
     /**

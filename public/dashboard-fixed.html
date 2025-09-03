@@ -3409,6 +3409,15 @@
                     throw new Error(data.message || 'Failed to load data');
                 }
 
+                // DEBUG: Check CRM data specifically
+                const crm = data.data?.find(x => x.ticker === 'CRM');
+                console.log('CRM FE DEBUG:', crm);
+                if (crm) {
+                    console.log('CRM eps_guide:', crm.eps_guide);
+                    console.log('CRM revenue_guide:', crm.revenue_guide);
+                    console.log('CRM guidance_fiscal_period:', crm.guidance_fiscal_period);
+                }
+
                 const earnings = data.data || [];
                 const filteredEarnings = earnings.filter(item => {
                     const hasMarketCap = item.market_cap && parseFloat(item.market_cap) > 0;

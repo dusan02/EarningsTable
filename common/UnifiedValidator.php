@@ -50,10 +50,10 @@ class UnifiedValidator {
     }
     
     /**
-     * Validuje EPS guidance (-100 až +100)
+     * Validuje EPS guidance (rozšírený rozsah -50 až +200)
      */
     public static function validateEpsGuidance($eps, $minEps = null, $maxEps = null) {
-        $validation = self::validateNumeric($eps, -100, 100, true);
+        $validation = self::validateNumeric($eps, -50, 200, true);
         
         if (!$validation['valid']) {
             return $validation;
@@ -65,13 +65,24 @@ class UnifiedValidator {
         
         $issues = $validation['issues'];
         
-        // Kontrola min/max rozsahov ak sú nastavené
+        // Kontrola min/max rozsahov ak sú nastavené - menej prísna pre guidance
+        if ($minEps !== null && $maxEps !== null && $minEps > $maxEps) {
+            $issues[] = "Invalid EPS range: min_eps_guidance {$minEps} > max_eps_guidance {$maxEps}";
+        }
+        
+        // Povoliť mierne odchýlky od min/max (5% tolerancia)
         if ($minEps !== null && $eps < $minEps) {
-            $issues[] = "EPS guidance {$eps} below min_eps_guidance {$minEps}";
+            $tolerance = abs($minEps) * 0.05; // 5% tolerancia
+            if ($eps < ($minEps - $tolerance)) {
+                $issues[] = "EPS guidance {$eps} significantly below min_eps_guidance {$minEps}";
+            }
         }
         
         if ($maxEps !== null && $eps > $maxEps) {
-            $issues[] = "EPS guidance {$eps} above max_eps_guidance {$maxEps}";
+            $tolerance = abs($maxEps) * 0.05; // 5% tolerancia
+            if ($eps > ($maxEps + $tolerance)) {
+                $issues[] = "EPS guidance {$eps} significantly above max_eps_guidance {$maxEps}";
+            }
         }
         
         return [
@@ -82,10 +93,10 @@ class UnifiedValidator {
     }
     
     /**
-     * Validuje Revenue guidance (pozitívne hodnoty)
+     * Validuje Revenue guidance (rozšírený rozsah 0 až 1e13)
      */
     public static function validateRevenueGuidance($revenue, $minRevenue = null, $maxRevenue = null) {
-        $validation = self::validateNumeric($revenue, 0, null, true);
+        $validation = self::validateNumeric($revenue, 0, 1e13, true);
         
         if (!$validation['valid']) {
             return $validation;
@@ -97,13 +108,24 @@ class UnifiedValidator {
         
         $issues = $validation['issues'];
         
-        // Kontrola min/max rozsahov ak sú nastavené
+        // Kontrola min/max rozsahov ak sú nastavené - menej prísna pre guidance
+        if ($minRevenue !== null && $maxRevenue !== null && $minRevenue > $maxRevenue) {
+            $issues[] = "Invalid Revenue range: min_revenue_guidance {$minRevenue} > max_revenue_guidance {$maxRevenue}";
+        }
+        
+        // Povoliť mierne odchýlky od min/max (5% tolerancia)
         if ($minRevenue !== null && $revenue < $minRevenue) {
-            $issues[] = "Revenue guidance {$revenue} below min_revenue_guidance {$minRevenue}";
+            $tolerance = abs($minRevenue) * 0.05; // 5% tolerancia
+            if ($revenue < ($minRevenue - $tolerance)) {
+                $issues[] = "Revenue guidance {$revenue} significantly below min_revenue_guidance {$minRevenue}";
+            }
         }
         
         if ($maxRevenue !== null && $revenue > $maxRevenue) {
-            $issues[] = "Revenue guidance {$revenue} above max_revenue_guidance {$maxRevenue}";
+            $tolerance = abs($maxRevenue) * 0.05; // 5% tolerancia
+            if ($revenue > ($maxRevenue + $tolerance)) {
+                $issues[] = "Revenue guidance {$revenue} significantly above max_revenue_guidance {$maxRevenue}";
+            }
         }
         
         return [
@@ -111,6 +133,87 @@ class UnifiedValidator {
             'issues' => $issues,
             'value' => $revenue
         ];
+    }
+
+    // ========================================
+    // LENIENT GUIDANCE VALIDATION - NEW
+    // ========================================
+    
+    const GUIDANCE_DEFAULT_TOLERANCE = 0.15; // 15%
+    
+    /**
+     * Validuje guidance dáta v lenient móde - bez hard dropov kvôli min/max odchýlke
+     */
+    public static function validateGuidance($guidance, $opts = []) {
+        $mode = $opts['mode'] ?? 'lenient'; // 'strict' | 'lenient'
+        $tol = isset($opts['tolerance']) ? (float)$opts['tolerance'] : self::GUIDANCE_DEFAULT_TOLERANCE;
+        
+        // --- normalize numbers ---
+        $epsLow = isset($guidance['min_eps_guidance']) ? (float)$guidance['min_eps_guidance'] : null;
+        $epsHigh = isset($guidance['max_eps_guidance']) ? (float)$guidance['max_eps_guidance'] : null;
+        $epsMid = isset($guidance['estimated_eps_guidance']) ? (float)$guidance['estimated_eps_guidance'] : null;
+        
+        if ($epsMid === null && $epsLow !== null && $epsHigh !== null) {
+            $epsMid = ($epsLow + $epsHigh) / 2.0;
+        } elseif ($epsMid === null && $epsLow !== null) {
+            $epsMid = $epsLow;
+        } elseif ($epsMid === null && $epsHigh !== null) {
+            $epsHigh = $epsMid;
+        }
+        
+        $revLow = isset($guidance['min_revenue_guidance']) ? self::normalizeRevenueUnits($guidance['min_revenue_guidance']) : null;
+        $revHigh = isset($guidance['max_revenue_guidance']) ? self::normalizeRevenueUnits($guidance['max_revenue_guidance']) : null;
+        $revMid = isset($guidance['estimated_revenue_guidance']) ? self::normalizeRevenueUnits($guidance['estimated_revenue_guidance']) : null;
+        
+        if ($revMid === null && $revLow !== null && $revHigh !== null) {
+            $revMid = ($revLow + $revHigh) / 2.0;
+        } elseif ($revMid === null && $revLow !== null) {
+            $revMid = $revLow;
+        } elseif ($revMid === null && $revHigh !== null) {
+            $revMid = $revHigh;
+        }
+        
+        // --- hard sanity checks (always-on) ---
+        if (($epsLow !== null && abs($epsLow) > 500) || ($epsHigh !== null && abs($epsHigh) > 500) || ($epsMid !== null && abs($epsMid) > 500)) {
+            return [false, 'EPS out of sane bounds (>500)'];
+        }
+        if (($revLow !== null && $revLow < 0) || ($revHigh !== null && $revHigh < 0) || ($revMid !== null && $revMid < 0)) {
+            return [false, 'Revenue negative'];
+        }
+        if (($revLow !== null && $revLow > 1e13) || ($revHigh !== null && $revHigh > 1e13) || ($revMid !== null && $revMid > 1e13)) {
+            return [false, 'Revenue out of sane bounds (>1e13)'];
+        }
+        
+        // Auto-swap low/high if inverted
+        if ($epsLow !== null && $epsHigh !== null && $epsLow > $epsHigh) {
+            [$epsLow, $epsHigh] = [$epsHigh, $epsLow];
+        }
+        if ($revLow !== null && $revHigh !== null && $revLow > $revHigh) {
+            [$revLow, $revHigh] = [$revHigh, $revLow];
+        }
+        
+        // --- soft checks (only WARN in lenient mode) ---
+        $warns = [];
+        $softCheck = function($mid, $low, $high, $label) use ($tol, &$warns) {
+            if ($mid === null || ($low === null && $high === null)) return;
+            if ($low !== null && $mid < (1 - $tol) * $low) $warns[] = "{$label} mid << low by > tol";
+            if ($high !== null && $mid > (1 + $tol) * $high) $warns[] = "{$label} mid >> high by > tol";
+        };
+        
+        $softCheck($epsMid, $epsLow, $epsHigh, 'EPS');
+        $softCheck($revMid, $revLow, $revHigh, 'REV');
+        
+        // in strict mode, warnings fail; in lenient, just return with warns
+        if (!empty($warns) && $mode === 'strict') {
+            return [false, 'Guidance outside tolerance: ' . implode('; ', $warns)];
+        }
+        
+        // return normalized payload + warnings (caller môže zalogovať)
+        return [true, [
+            'min_eps_guidance' => $epsLow, 'max_eps_guidance' => $epsHigh, 'estimated_eps_guidance' => $epsMid,
+            'min_revenue_guidance' => $revLow, 'max_revenue_guidance' => $revHigh, 'estimated_revenue_guidance' => $revMid,
+            '_warnings' => $warns,
+        ]];
     }
     
     /**
@@ -123,6 +226,35 @@ class UnifiedValidator {
         
         $difference = (($guide - $consensus) / abs($consensus)) * 100;
         return round($difference, 4);
+    }
+    
+    /**
+     * Normalizuje jednotky revenue guidance (B/M/K -> USD)
+     */
+    public static function normalizeRevenueUnits($revenue) {
+        if (empty($revenue)) {
+            return null;
+        }
+        
+        $revenue = strtoupper(trim($revenue));
+        
+        // Remove currency symbols and commas
+        $revenue = preg_replace('/[$,]/', '', $revenue);
+        
+        // Check for units
+        if (strpos($revenue, 'B') !== false) {
+            $value = (float) str_replace('B', '', $revenue);
+            return $value * 1e9; // Billion
+        } elseif (strpos($revenue, 'M') !== false) {
+            $value = (float) str_replace('M', '', $revenue);
+            return $value * 1e6; // Million
+        } elseif (strpos($revenue, 'K') !== false) {
+            $value = (float) str_replace('K', '', $revenue);
+            return $value * 1e3; // Thousand
+        } else {
+            // Assume USD
+            return (float) $revenue;
+        }
     }
     
     // ========================================
@@ -288,7 +420,7 @@ class UnifiedValidator {
         
         // Validácia fiscal period
         if (isset($guidance['fiscal_period'])) {
-            $validPeriods = ['Q1', 'Q2', 'Q3', 'Q4', 'Y'];
+            $validPeriods = ['Q1', 'Q2', 'Q3', 'Q4', 'FY'];
             if (!in_array($guidance['fiscal_period'], $validPeriods)) {
                 $issues[] = "Invalid fiscal period: {$guidance['fiscal_period']}";
             }
