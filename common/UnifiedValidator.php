@@ -228,9 +228,9 @@ class UnifiedValidator {
     public static function detectPathTraversalPattern($input) {
         $patterns = [
             'unix' => '/\.\.\//',
-            'windows' => '/\.\.\\/',
+            'windows' => '/\.\.\\\\/',
             'absolute' => '/^\/(etc|var|usr|home|root)/i',
-            'drive' => '/^[a-z]:\\/i'
+            'drive' => '/^[a-z]:\\/i/'
         ];
         
         foreach ($patterns as $type => $pattern) {

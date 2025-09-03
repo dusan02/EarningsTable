@@ -14,6 +14,7 @@ class SecurityLogger {
     private $alertManager;
     private $logRotator;
     private $threatDetector;
+    private $stats;
     
     /**
      * Konštruktor
@@ -27,6 +28,7 @@ class SecurityLogger {
         $this->alertManager = new AlertManager();
         $this->logRotator = new LogRotator($this->logDir);
         $this->threatDetector = new ThreatDetector();
+        $this->stats = ['security_events' => 0, 'event_types' => []];
     }
     
     /**
@@ -43,8 +45,6 @@ class SecurityLogger {
      * Loguje security udalosť
      */
     public function logSecurityEvent($event, $data = []) {
-        $this->logger->logSecurityEvent($event, $data);
-        
         // Update local stats
         $this->stats['security_events']++;
         $this->stats['event_types'][$event] = ($this->stats['event_types'][$event] ?? 0) + 1;

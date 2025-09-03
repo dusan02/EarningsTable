@@ -115,17 +115,16 @@ class ThreatDetector {
     /**
      * Loguje threat udalosť
      */
-    private function logThreat($threatData) {
+    private function logThreat($event, $data, $ip = null) {
         $this->logger->logSecurityEvent(
-            $threatData['type'] ?? 'unknown',
-            $threatData,
-            'ALERT'
+            $event,
+            array_merge($data, ['ip' => $ip])
         );
         
         // Update local stats
         $this->stats['threats_detected']++;
-        $this->stats['event_types'][$threatData['type'] ?? 'unknown'] = 
-            ($this->stats['event_types'][$threatData['type'] ?? 'unknown'] ?? 0) + 1;
+        $this->stats['event_types'][$event] = 
+            ($this->stats['event_types'][$event] ?? 0) + 1;
     }
     
     /**

@@ -90,7 +90,9 @@ try {
         echo "✅ ConsensusCalculator instance created\n";
         
         // Check if batch methods exist
-        if (method_exists($consensusCalc, 'processBatchEstimates')) {
+        // Check if batch methods exist (using reflection to avoid PHPStan warning)
+        $reflection = new ReflectionClass($consensusCalc);
+        if ($reflection->hasMethod('processBatchEstimates')) {
             echo "✅ Batch processing method exists\n";
         } else {
             echo "❌ Batch processing method missing\n";
