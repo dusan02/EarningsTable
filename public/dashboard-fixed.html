@@ -467,6 +467,30 @@
     .earnings-table-left th:nth-child(6),
     .earnings-table-left td:nth-child(6) { text-align: right !important; }
     
+    /* Additional specific rules for Market Cap and Cap Diff headers to ensure right alignment */
+    .earnings-table-left th[data-sort="market_cap"],
+    .earnings-table-left th[data-sort="market_cap_gain"] {
+        text-align: right !important;
+    }
+    
+    /* Force right alignment for Market Cap and Cap Diff columns with higher specificity */
+    .earnings-table-left thead th:nth-child(5),
+    .earnings-table-left thead th:nth-child(6) {
+        text-align: right !important;
+    }
+    
+    /* Ensure table cells for Market Cap and Cap Diff are also right-aligned */
+    .earnings-table-left tbody td:nth-child(5),
+    .earnings-table-left tbody td:nth-child(6) {
+        text-align: right !important;
+    }
+    
+    /* Additional specificity for table cells */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left tbody td:nth-child(5),
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left tbody td:nth-child(6) {
+        text-align: right !important;
+    }
+    
     /* Column 7: Price - Right aligned (numeric) */
     .earnings-table-left th:nth-child(7),
     .earnings-table-left td:nth-child(7) { text-align: right !important; }
@@ -1802,6 +1826,12 @@
         box-sizing: border-box;
         text-align: left;                     /* default left alignment */
     }
+    
+    /* Market Cap and Cap Diff columns - force right alignment */
+    .earnings-table-left thead th:nth-child(5),
+    .earnings-table-left thead th:nth-child(6) {
+        text-align: right !important;
+    }
 
     /* Center the Period column header specifically - must override unified styling */
     .guidance-table thead th[data-sort="fiscal_period"] {
@@ -1816,6 +1846,38 @@
     /* Maximum specificity for Period column data cells */
     body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table tbody tr td.fiscal-period-cell {
         text-align: center !important;
+    }
+    
+    /* Override default left alignment for Market Cap and Cap Diff headers with maximum specificity */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th[data-sort="market_cap"],
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th[data-sort="market_cap_gain"] {
+        text-align: right !important;
+    }
+    
+    /* Additional override for Market Cap and Cap Diff headers using nth-child selectors */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(5),
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(6) {
+        text-align: right !important;
+    }
+    
+    /* Ensure the span elements within Market Cap and Cap Diff headers maintain right alignment */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(5) .header-text,
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(6) .header-text {
+        text-align: right !important;
+        display: block !important;
+    }
+    
+    /* Force the table element itself to have right alignment for Market Cap and Cap Diff columns */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left th:nth-child(5),
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left th:nth-child(6) {
+        text-align: right !important;
+    }
+    
+    /* Override any inherited text alignment for Market Cap and Cap Diff headers */
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(5),
+    body .main-container .dual-table-wrapper .table-left-part table.earnings-table-left thead th:nth-child(6) {
+        text-align: right !important;
+        text-align-last: right !important;
     }
 
     .earnings-table-left th:hover,
@@ -2221,7 +2283,7 @@
     .earnings-table-left td:nth-child(6), /* Market Cap Diff column */
     .earnings-table-left td:nth-child(7), /* Current Price column */
     .earnings-table-left td:nth-child(8) { /* Price Change column */
-        text-align: center !important;
+        text-align: right !important;
     }
 
     /* Right align EPS & Revenue columns */
@@ -2446,16 +2508,16 @@
                                     <span class="header-text">Size</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="market_cap" scope="col" aria-label="Sort by market capitalization">
-                                    <span class="header-text">Market Cap</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Market Cap</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="market_cap_gain" scope="col" aria-label="Sort by market cap difference">
-                                    <span class="header-text">Cap Diff</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Cap Diff</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="price" scope="col" aria-label="Sort by current price">
-                                    <span class="header-text">Price</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Price</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="today" scope="col" aria-label="Sort by price change percentage">
-                                    <span class="header-text">Change</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Change</span>
                                 </th>
                      </tr>
                  </thead>
@@ -2480,22 +2542,22 @@
                         <thead>
                             <tr>
                                 <th class="table-header-cell sortable-header" data-sort="eps_est" scope="col" aria-label="Sort by EPS estimate">
-                                    <span class="header-text">EPS Est</span>
+                                    <span class="header-text" style="text-align: right; display: block;">EPS Est</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="eps_act" scope="col" aria-label="Sort by EPS actual">
-                                    <span class="header-text">EPS Act</span>
+                                    <span class="header-text" style="text-align: right; display: block;">EPS Act</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="eps_surprise" scope="col" aria-label="Sort by EPS surprise">
-                                    <span class="header-text">EPS Surp</span>
+                                    <span class="header-text" style="text-align: right; display: block;">EPS Surp</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_est" scope="col" aria-label="Sort by revenue estimate">
-                                    <span class="header-text">Rev Est</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Rev Est</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_act" scope="col" aria-label="Sort by revenue actual">
-                                    <span class="header-text">Rev Act</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Rev Act</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_surprise" scope="col" aria-label="Sort by revenue surprise">
-                                    <span class="header-text">Rev Surp</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Rev Surp</span>
                                 </th>
                             </tr>
                         </thead>
@@ -2517,16 +2579,16 @@
                         <thead>
                             <tr>
                                 <th class="table-header-cell sortable-header" data-sort="eps_guide" scope="col" aria-label="Sort by EPS guidance">
-                                    <span class="header-text">EPS Guide</span>
+                                    <span class="header-text" style="text-align: right; display: block;">EPS Guide</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="eps_guide_surprise" scope="col" aria-label="Sort by EPS guidance surprise">
-                                    <span class="header-text">EPS G Surp</span>
+                                    <span class="header-text" style="text-align: right; display: block;">EPS G Surp</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_guide" scope="col" aria-label="Sort by revenue guidance">
-                                    <span class="header-text">Rev Guide</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Rev Guide</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="revenue_guide_surprise" scope="col" aria-label="Sort by revenue guidance surprise">
-                                    <span class="header-text">Rev G Surp</span>
+                                    <span class="header-text" style="text-align: right; display: block;">Rev G Surp</span>
                                 </th>
                                 <th class="table-header-cell sortable-header" data-sort="fiscal_period" scope="col" aria-label="Sort by fiscal period">
                                     <span class="header-text">Period</span>
@@ -2554,7 +2616,7 @@
     // ===== CONFIGURATION =====
     const CONFIG = {
         REFRESH_INTERVAL: 5 * 60 * 1000, // 5 minutes
-        API_ENDPOINT: '/api/earnings-tickers-today.php',
+        API_ENDPOINT: 'api/earnings-tickers-today.php',
         TABLE_ROW_HEIGHT: 60,
         MEGA_CAP_THRESHOLD: 100000000000, // $100 billion
         COLUMN_GROUPS: {
@@ -2839,6 +2901,9 @@
     // ===== TABLE RENDERING =====
     const TableRenderer = {
         renderTable: () => {
+            console.log('🔄 TableRenderer.renderTable() started');
+            console.log('📊 AppState.earningsData length:', AppState.earningsData.length);
+            
             const tableBodyLeft = document.getElementById('tableBodyLeft');
             const tableBodyRightEpsRev = document.getElementById('tableBodyRightEpsRev');
             const tableBodyRightGuidance = document.getElementById('tableBodyRightGuidance');
@@ -2918,6 +2983,13 @@
                     </td>
                 `;
                 tableBodyRightGuidance.appendChild(guidanceRow);
+            });
+            
+            console.log('✅ Table rendering completed');
+            console.log('📊 Rows rendered:', {
+                left: tableBodyLeft.children.length,
+                epsRev: tableBodyRightEpsRev.children.length,
+                guidance: tableBodyRightGuidance.children.length
             });
             
             // Synchronize row heights after rendering
@@ -3340,7 +3412,9 @@
                 const earnings = data.data || [];
                 const filteredEarnings = earnings.filter(item => {
                     const hasMarketCap = item.market_cap && parseFloat(item.market_cap) > 0;
-                    const hasPrice = item.current_price && parseFloat(item.current_price) > 0;
+                    // Use current_price if available, otherwise use previous_close as fallback
+                    const hasPrice = (item.current_price && parseFloat(item.current_price) > 0) || 
+                                   (item.previous_close && parseFloat(item.previous_close) > 0);
                     return hasMarketCap && hasPrice;
                 });
 

@@ -103,7 +103,7 @@ function getPolygonBatchQuote($tickers) {
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',
-            'timeout' => 30,
+            'timeout' => 60, // Increased from 30s to 60s for better stability
             'header' => [
                 'User-Agent: EarningsTable/1.0',
                 'Accept: application/json'
@@ -111,12 +111,35 @@ function getPolygonBatchQuote($tickers) {
         ]
     ]);
     
-    $response = file_get_contents($url, false, $context);
-    $endTime = microtime(true);
+    // Retry logic for better reliability
+    $maxAttempts = 3;
+    $attempt = 1;
+    
+    while ($attempt <= $maxAttempts) {
+        echo "  🔄 Attempt {$attempt}/{$maxAttempts} for Polygon batch API...\n";
+        
+        $response = file_get_contents($url, false, $context);
+        $endTime = microtime(true);
+        
+        if ($response !== false) {
+            break; // Success, exit retry loop
+        }
+        
+        echo "  ❌ Attempt {$attempt} failed\n";
+        
+        if ($attempt < $maxAttempts) {
+            $delay = $attempt * 2; // Progressive delay: 2s, 4s, 6s
+            echo "  ⏳ Waiting {$delay}s before retry...\n";
+            sleep($delay);
+        }
+        
+        $attempt++;
+    }
     
     if ($response === false) {
-        logApiError('Polygon', $url, 'Failed to fetch response', [
-            'tickers' => $tickers
+        logApiError('Polygon', $url, 'Failed to fetch response after ' . $maxAttempts . ' attempts', [
+            'tickers' => $tickers,
+            'attempts' => $maxAttempts
         ]);
         return false;
     }
@@ -127,11 +150,15 @@ function getPolygonBatchQuote($tickers) {
     echo "🔍 POLYGON BATCH API:\n";
     echo "  📊 Response size: " . number_format($responseSize) . " bytes (" . round($responseSize / 1024 / 1024, 2) . " MB)\n";
     echo "  ⏱️  Time: {$timeToFirstByte}ms\n";
+    echo "  ✅ Attempts: {$attempt}\n";
     
     $data = json_decode($response, true);
     
     if (!isset($data['tickers'])) {
         echo "❌ No 'tickers' key in response\n";
+        if (isset($data['error'])) {
+            echo "  📋 Error: " . $data['error'] . "\n";
+        }
         return false;
     }
     
@@ -495,7 +522,7 @@ function executeParallelRequests($urls, $maxConcurrent = 5) {
         curl_setopt_array($handle, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 60, // Increased from 30s to 60s for better stability
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_USERAGENT => 'EarningsTable/1.0',
             CURLOPT_HTTPHEADER => ['Accept: application/json'],

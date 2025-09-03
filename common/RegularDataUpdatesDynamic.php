@@ -10,7 +10,8 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/error_handler.php';
 require_once __DIR__ . '/Lock.php';
-require_once __DIR__ . '/api_functions.php';
+require_once __DIR__ . '/UnifiedApiWrapper.php';
+require_once __DIR__ . '/UnifiedLogger.php';
 require_once __DIR__ . '/Finnhub.php';
 require_once __DIR__ . '/HistoricalDataManager.php';
 
@@ -21,6 +22,7 @@ class RegularDataUpdatesDynamic {
     private $lock;
     private $config;
     private $metrics;
+    private $apiWrapper; // Add UnifiedApiWrapper instance
     
     // Data storage
     private $existingTickers = [];
@@ -40,6 +42,8 @@ class RegularDataUpdatesDynamic {
         $this->lock = new Lock('regular_data_updates_dynamic');
         $this->config = new DynamicUpdateConfig();
         $this->metrics = new DynamicUpdateMetrics();
+        $this->apiWrapper = new UnifiedApiWrapper();
+        $this->logger = new UnifiedLogger();
     }
     
     /**
@@ -198,40 +202,58 @@ class RegularDataUpdatesDynamic {
             
             $chunkStart = microtime(true);
             
-            // Get snapshot data
+            // Get snapshot data with better error handling
             $batchData = $this->retryOperation(
-                fn() => getPolygonBatchQuote($tickerChunk),
+                fn() => $this->apiWrapper->getPolygonBatchQuote($tickerChunk),
                 maxAttempts: $this->config->get('max_retry_attempts'),
                 delay: $this->config->get('retry_delay')
             );
             
             // Get last trades from V3 API for better extended hours data
             $lastTradesData = $this->retryOperation(
-                fn() => getPolygonBatchLastTrades($tickerChunk),
+                fn() => $this->apiWrapper->getPolygonBatchLastTrades($tickerChunk),
                 maxAttempts: $this->config->get('max_retry_attempts'),
                 delay: $this->config->get('retry_delay')
             );
             
             $chunkDuration = round(microtime(true) - $chunkStart, 2);
             
-            if ($batchData) {
+            if ($batchData && !empty($batchData)) {
                 $this->processPolygonBatchData($batchData, $lastTradesData);
                 $successfulCalls++;
                 $this->metrics->recordApiCall('polygon', $chunkDuration, true);
+                $this->logger->logApiPerformance('polygon', $chunkDuration, true, 'batch_quote');
+                echo "  ✅ Chunk " . ($index + 1) . " processed successfully in {$chunkDuration}s\n";
             } else {
                 $this->metrics->recordApiCall('polygon', $chunkDuration, false);
+                $this->logger->logApiPerformance('polygon', $chunkDuration, false, 'batch_quote');
+                echo "  ❌ Chunk " . ($index + 1) . " failed, using fallback data\n";
+                
+                // Use fallback data for this chunk
+                $this->processFallbackDataForChunk($tickerChunk);
             }
             
             $totalPolygonCalls++;
             
-            // Rate limiting
+            // Rate limiting with adaptive delay
             if ($index < count($chunks) - 1) {
-                sleep($this->config->get('rate_limit_delay'));
+                $delay = $this->config->get('rate_limit_delay');
+                if ($chunkDuration > 30) { // If chunk took more than 30s, increase delay
+                    $delay *= 2;
+                    echo "  ⏳ Increasing delay to " . ($delay * 1000) . "ms due to slow API response\n";
+                }
+                sleep($delay);
             }
         }
         
         echo "✅ Updated prices for " . count($this->priceUpdates) . " tickers in {$totalPolygonCalls} API calls\n";
         echo "✅ Successful API calls: {$successfulCalls}/{$totalPolygonCalls}\n";
+        
+        // FALLBACK: If no prices were updated, use fallback mechanism
+        if (count($this->priceUpdates) === 0) {
+            echo "⚠️  No prices updated, triggering fallback mechanism...\n";
+            $this->processFallbackData();
+        }
         
         $this->phaseTimes['polygon_data'] = round(microtime(true) - $phaseStart, 2);
     }
@@ -240,6 +262,13 @@ class RegularDataUpdatesDynamic {
      * Spracovanie Polygon batch dát s robustnou logikou pre % CHANGE - UPRAVENÉ
      */
     private function processPolygonBatchData($batchData, $lastTradesData = null) {
+        // FALLBACK: If Polygon API failed, use previous_close as fallback
+        if (empty($batchData)) {
+            echo "⚠️  Polygon API failed, using fallback mechanism...\n";
+            $this->processFallbackData();
+            return;
+        }
+        
         // batchData is already ticker-keyed array from getPolygonBatchQuote
         foreach ($batchData as $ticker => $result) {
             // Use historical previous_close from database instead of current prevDay.c
@@ -258,12 +287,12 @@ class RegularDataUpdatesDynamic {
             $lastTradeV3 = $lastTradesData[$ticker] ?? null;
             
             // Use robust percent change calculation
-            $percentChangeData = computePercentChange($result, $lastTradeV3, $previousClose);
+            $percentChangeData = $this->apiWrapper->computePercentChange($result, $lastTradeV3, $previousClose);
             $priceChangePercent = $percentChangeData['percent'];
             $changeSource = $percentChangeData['source'];
             
             // Get current price using existing logic
-            $priceData = getCurrentPrice($result);
+            $priceData = $this->apiWrapper->getCurrentPrice($result);
             
             // FALLBACK: If no current price, use historical previous_close from database
             if ($priceData === null || $priceData['price'] <= 0) {
@@ -293,6 +322,74 @@ class RegularDataUpdatesDynamic {
     }
     
     /**
+     * Fallback mechanism keď Polygon API zlyhá
+     */
+    private function processFallbackData() {
+        echo "🔄 Processing fallback data for all tickers...\n";
+        
+        foreach ($this->existingTickers as $ticker) {
+            // Get previous_close from database
+            global $pdo;
+            $stmt = $pdo->prepare("SELECT previous_close FROM TodayEarningsMovements WHERE ticker = ?");
+            $stmt->execute([$ticker]);
+            $result = $stmt->fetch();
+            
+            if ($result && $result['previous_close'] > 0) {
+                $previousClose = $result['previous_close'];
+                
+                // Use previous_close as current_price (fallback)
+                $currentPrice = $previousClose;
+                $priceChangePercent = 0.0; // No change
+                
+                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=0%\n";
+                
+                $this->priceUpdates[$ticker] = [
+                    'current_price' => $currentPrice,
+                    'previous_close' => $previousClose,
+                    'price_change_percent' => $priceChangePercent,
+                    'price_source' => 'fallback',
+                    'change_source' => 'fallback'
+                ];
+            }
+        }
+        
+        echo "✅ Fallback processing completed for " . count($this->priceUpdates) . " tickers\n";
+    }
+
+    /**
+     * Fallback mechanism pre konkrétny chunk tickerov
+     */
+    private function processFallbackDataForChunk($tickerChunk) {
+        echo "🔄 Processing fallback data for chunk of tickers...\n";
+        foreach ($tickerChunk as $ticker) {
+            // Get previous_close from database
+            global $pdo;
+            $stmt = $pdo->prepare("SELECT previous_close FROM TodayEarningsMovements WHERE ticker = ?");
+            $stmt->execute([$ticker]);
+            $result = $stmt->fetch();
+            
+            if ($result && $result['previous_close'] > 0) {
+                $previousClose = $result['previous_close'];
+                
+                // Use previous_close as current_price (fallback)
+                $currentPrice = $previousClose;
+                $priceChangePercent = 0.0; // No change
+                
+                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=0%\n";
+                
+                $this->priceUpdates[$ticker] = [
+                    'current_price' => $currentPrice,
+                    'previous_close' => $previousClose,
+                    'price_change_percent' => $priceChangePercent,
+                    'price_source' => 'fallback',
+                    'change_source' => 'fallback'
+                ];
+            }
+        }
+        echo "✅ Fallback processing completed for chunk of tickers\n";
+    }
+    
+    /**
      * Fáza 4: Výpočet Market Cap Diff
      */
     private function calculateMarketCapDiff() {
@@ -316,18 +413,23 @@ class RegularDataUpdatesDynamic {
             $marketCap = $currentData['market_cap'];
             $previousClose = $currentData['previous_close'];
             $currentPrice = $priceData['current_price'];
+            $priceChangePercent = $priceData['price_change_percent'];
             
-            // Calculate market cap diff
+            // Calculate market cap diff using the price_change_percent from priceUpdates
             if ($marketCap && $previousClose > 0 && $currentPrice > 0) {
-                $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
-                $marketCapDiff = ($priceChangePercent / 100) * $marketCap;
-                $marketCapDiffBillions = $marketCapDiff / 1000000000;
-                
-                $this->marketCapDiffUpdates[$ticker] = [
-                    'market_cap_diff' => $marketCapDiff,
-                    'market_cap_diff_billions' => $marketCapDiffBillions
-                ];
-                $marketCapDiffCount++;
+                // Use the price_change_percent that was already calculated (including fallback)
+                if ($priceChangePercent !== null) {
+                    $marketCapDiff = ($priceChangePercent / 100) * $marketCap;
+                    $marketCapDiffBillions = $marketCapDiff / 1000000000;
+                    
+                    $this->marketCapDiffUpdates[$ticker] = [
+                        'market_cap_diff' => $marketCapDiff,
+                        'market_cap_diff_billions' => $marketCapDiffBillions
+                    ];
+                    $marketCapDiffCount++;
+                    
+                    echo "✅ {$ticker}: Market Cap Diff = {$marketCapDiffBillions}B (change: {$priceChangePercent}%)\n";
+                }
             }
         }
         
@@ -365,30 +467,19 @@ class RegularDataUpdatesDynamic {
     }
     
     /**
-     * Fáza 5: Batch databázové aktualizácie
+     * Fáza 5: Batch databázové aktualizácie - OPTIMALIZOVANÉ
      */
     private function batchDatabaseUpdates() {
         $phaseStart = microtime(true);
-        echo "\n=== STEP 5: BATCH DATABASE UPDATES ===\n";
+        echo "\n=== STEP 5: BATCH DATABASE UPDATES (OPTIMIZED) ===\n";
         
         global $pdo;
         
         $totalUpdates = 0;
         
-        // Prepare batch update statement
-        $updateStmt = $pdo->prepare("
-            UPDATE TodayEarningsMovements 
-            SET 
-                current_price = ?,
-                price_change_percent = ?,
-                change_source = ?,
-                eps_actual = ?,
-                revenue_actual = ?,
-                market_cap_diff = ?,
-                market_cap_diff_billions = ?,
-                updated_at = NOW()
-            WHERE ticker = ?
-        ");
+        // Prepare batch update data
+        $updateData = [];
+        $tickersToUpdate = [];
         
         foreach ($this->existingTickers as $ticker) {
             $actualData = $this->actualUpdates[$ticker] ?? null;
@@ -407,31 +498,86 @@ class RegularDataUpdatesDynamic {
             $newPriceChangePercent = $priceData['price_change_percent'] ?? $current['price_change_percent'];
             $newMarketCapDiff = $marketCapDiffData['market_cap_diff'] ?? $current['market_cap_diff'];
             $newMarketCapDiffBillions = $marketCapDiffData['market_cap_diff_billions'] ?? $current['market_cap_diff_billions'];
-            
-            // Get change source
             $newChangeSource = $priceData['change_source'] ?? $current['change_source'];
             
-            // Only update if there are changes
+            // Only include if there are changes
             if ($this->hasChanges($current, $newEpsActual, $newRevenueActual, $newCurrentPrice, 
                                  $newPriceChangePercent, $newMarketCapDiff, $newMarketCapDiffBillions, $newChangeSource)) {
                 
-                $updateStmt->execute([
-                    $newCurrentPrice,
-                    $newPriceChangePercent,
-                    $newChangeSource,
-                    $newEpsActual,
-                    $newRevenueActual,
-                    $newMarketCapDiff,
-                    $newMarketCapDiffBillions,
-                    $ticker
-                ]);
-                $totalUpdates++;
+                $updateData[] = [
+                    'ticker' => $ticker,
+                    'current_price' => $newCurrentPrice,
+                    'price_change_percent' => $newPriceChangePercent,
+                    'change_source' => $newChangeSource,
+                    'eps_actual' => $newEpsActual,
+                    'revenue_actual' => $newRevenueActual,
+                    'market_cap_diff' => $newMarketCapDiff,
+                    'market_cap_diff_billions' => $newMarketCapDiffBillions
+                ];
+                $tickersToUpdate[] = $ticker;
             }
         }
         
-        echo "✅ Updated {$totalUpdates} records in database\n";
+        if (empty($updateData)) {
+            echo "✅ No records need updating\n";
+            $this->phaseTimes['database_updates'] = round(microtime(true) - $phaseStart, 2);
+            return;
+        }
+        
+        echo "🔄 Updating " . count($updateData) . " records using batch operation...\n";
+        
+        // Batch UPDATE using CASE statements
+        $this->executeBatchUpdate($pdo, $updateData);
+        
+        $totalUpdates = count($updateData);
+        echo "✅ Batch updated {$totalUpdates} records in database\n";
         
         $this->phaseTimes['database_updates'] = round(microtime(true) - $phaseStart, 2);
+    }
+    
+    /**
+     * Vykoná batch UPDATE pomocou CASE statements
+     */
+    private function executeBatchUpdate($pdo, $updateData) {
+        if (empty($updateData)) return;
+        
+        // Build CASE statements for each column
+        $caseStatements = [];
+        $params = [];
+        
+        // Prepare CASE statements for each field
+        $fields = ['current_price', 'price_change_percent', 'change_source', 'eps_actual', 'revenue_actual', 'market_cap_diff', 'market_cap_diff_billions'];
+        
+        foreach ($fields as $field) {
+            $caseSql = "{$field} = CASE ticker ";
+            foreach ($updateData as $data) {
+                $caseSql .= "WHEN ? THEN ? ";
+                $params[] = $data['ticker'];
+                $params[] = $data[$field];
+            }
+            $caseSql .= "ELSE {$field} END";
+            $caseStatements[] = $caseSql;
+        }
+        
+        // Build final SQL
+        $placeholders = str_repeat('?,', count($updateData) - 1) . '?';
+        $sql = "
+            UPDATE TodayEarningsMovements 
+            SET " . implode(', ', $caseStatements) . ",
+                updated_at = NOW()
+            WHERE ticker IN ($placeholders)
+        ";
+        
+        // Add ticker parameters for WHERE clause
+        foreach ($updateData as $data) {
+            $params[] = $data['ticker'];
+        }
+        
+        // Execute batch update
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        
+        echo "  🚀 Batch UPDATE executed with " . count($params) . " parameters\n";
     }
     
     /**
@@ -532,10 +678,14 @@ class RegularDataUpdatesDynamic {
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 $result = $operation();
-                if ($result) return $result;
+                
+                // Check if result is valid (not null, not false, can be empty array)
+                if ($result !== null && $result !== false) {
+                    return $result;
+                }
                 
                 if ($attempt < $maxAttempts) {
-                    echo "⚠️  Attempt {$attempt} failed, retrying in " . ($delay/1000) . "s...\n";
+                    echo "⚠️  Attempt {$attempt} failed (null/false result), retrying in " . ($delay/1000) . "s...\n";
                     usleep($delay * 1000);
                 }
                 
@@ -554,8 +704,8 @@ class RegularDataUpdatesDynamic {
  */
 class DynamicUpdateConfig {
     private $settings = [
-        'polygon_batch_limit' => 100,
-        'rate_limit_delay' => 1,
+        'polygon_batch_limit' => 25, // Reduced from 35 to 25 for better API stability
+        'rate_limit_delay' => 0.2, // 200ms delay (increased from 100ms for better API stability)
         'max_retry_attempts' => 3,
         'retry_delay' => 1000
     ];
@@ -601,3 +751,4 @@ class DynamicUpdateMetrics {
     }
 }
 ?>
+

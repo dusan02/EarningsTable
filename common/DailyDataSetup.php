@@ -112,7 +112,27 @@ class DailyDataSetup {
     private function dataFetching() {
         echo "\n=== PHASE 2: DATA FETCHING ===\n";
         
-        $this->fetchPolygonBatchData();
+        // Get Polygon batch data with retry logic
+        echo "🔍 Fetching Polygon batch data for " . count($this->todayTickers) . " tickers...\n";
+        
+        $polygonStart = microtime(true);
+        $polygonBatchData = $this->retryOperation(
+            fn() => getPolygonBatchQuote($this->todayTickers),
+            maxAttempts: 3,
+            delay: 2000
+        );
+        
+        if (empty($polygonBatchData)) {
+            echo "⚠️  Polygon API failed, using fallback mechanism...\n";
+            $this->processPolygonFallback();
+        } else {
+            echo "✅ Polygon batch data fetched successfully\n";
+            $this->polygonBatchData = $polygonBatchData;
+        }
+        
+        $polygonDuration = round(microtime(true) - $polygonStart, 2);
+        echo "⏱️  Polygon API time: {$polygonDuration}s\n";
+        
         $this->fetchPolygonDetailsData();
     }
     
@@ -153,7 +173,9 @@ class DailyDataSetup {
             $urls[$ticker] = $url;
         }
         
-        // Execute parallel requests
+        echo "  🔄 Executing " . count($urls) . " parallel requests...\n";
+        
+        // Execute parallel requests with better error handling
         $results = executeParallelRequests($urls);
         
         // Process results
@@ -168,16 +190,78 @@ class DailyDataSetup {
                     $successfulDetails++;
                 } else {
                     $failedDetails++;
+                    echo "  ⚠️  No results for {$ticker}\n";
                 }
             } else {
                 $failedDetails++;
-                echo "⚠️  Failed to get details for {$ticker}: " . $result['error'] . "\n";
+                echo "  ❌ Failed to get details for {$ticker}: " . $result['error'] . "\n";
             }
         }
         
         $this->phaseTimes['polygon_details'] = round(microtime(true) - $phaseStart, 2);
         echo "✅ Polygon ticker details completed in {$this->phaseTimes['polygon_details']}s (PARALLEL)\n";
         echo "✅ Successful: {$successfulDetails}, Failed: {$failedDetails}\n";
+        
+        // If too many failed, use fallback
+        if ($failedDetails > count($this->todayTickers) * 0.5) { // More than 50% failed
+            echo "⚠️  High failure rate, using fallback for failed tickers...\n";
+            $this->processDetailsFallback();
+        }
+    }
+    
+    /**
+     * Fallback mechanism keď Polygon API zlyhá
+     */
+    private function processPolygonFallback() {
+        echo "🔄 Processing Polygon fallback data...\n";
+        
+        // Create empty data structures for fallback
+        $this->polygonBatchData = [];
+        $this->polygonDetailsData = [];
+        
+        // For each ticker, create minimal fallback data
+        foreach ($this->todayTickers as $ticker) {
+            // Fallback batch data (minimal)
+            $this->polygonBatchData[$ticker] = [
+                'prevDay' => ['c' => null], // Will be filled from database later
+                'lastTrade' => ['p' => null, 't' => null],
+                'lastQuote' => ['bp' => null, 'ap' => null],
+                'min' => ['c' => null],
+                'session' => ['c' => null]
+            ];
+            
+            // Fallback details data (minimal)
+            $this->polygonDetailsData[$ticker] = [
+                'market_cap' => null,
+                'name' => $ticker, // Use ticker as fallback name
+                'shares_outstanding' => null
+            ];
+        }
+        
+        echo "✅ Polygon fallback data created for " . count($this->todayTickers) . " tickers\n";
+        echo "⚠️  Note: Some data will be filled from database or historical sources\n";
+    }
+
+    /**
+     * Fallback mechanism pre zlyhanie získavania detailov pre tickery
+     */
+    private function processDetailsFallback() {
+        echo "🔄 Processing Polygon details fallback data...\n";
+        
+        // Create empty data structures for fallback
+        $this->polygonDetailsData = [];
+        
+        // For each ticker, create minimal fallback data
+        foreach ($this->todayTickers as $ticker) {
+            $this->polygonDetailsData[$ticker] = [
+                'market_cap' => null,
+                'name' => $ticker, // Use ticker as fallback name
+                'shares_outstanding' => null
+            ];
+        }
+        
+        echo "✅ Polygon details fallback data created for " . count($this->todayTickers) . " tickers\n";
+        echo "⚠️  Note: Some data will be filled from database or historical sources\n";
     }
     
     /**
