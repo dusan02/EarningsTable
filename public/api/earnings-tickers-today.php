@@ -18,7 +18,7 @@ try {
     $usDate = new DateTime('now', $timezone);
     $date = $usDate->format('Y-m-d');
     
-    // Get today's tickers with guidance data (using subquery to get latest guidance per ticker)
+    // Get today's tickers with guidance data (restored guidance JOIN)
     $stmt = $pdo->prepare("
         SELECT 
             e.ticker,
@@ -81,13 +81,6 @@ try {
             FROM benzinga_guidance
             WHERE fiscal_period IN ('Q1','Q2','Q3','Q4','FY')
             AND fiscal_year IN (2024, 2025)
-            -- Only show guidance for companies that have earnings data for today
-            -- AND guidance is relevant for the current earnings period
-            AND ticker IN (
-                SELECT DISTINCT ticker COLLATE utf8mb4_general_ci
-                FROM EarningsTickersToday 
-                WHERE report_date = ?
-            )
             -- Only show guidance that is relevant for today's earnings (not future periods)
             AND (
                 (fiscal_year = YEAR(?) AND fiscal_period IN ('Q1','Q2','Q3','Q4'))
@@ -95,10 +88,9 @@ try {
             )
         ) g ON g.ticker = e.ticker AND g.rn = 1
         WHERE e.report_date = ?
-        GROUP BY e.ticker
         ORDER BY e.ticker
     ");
-    $stmt->execute([$date, $date, $date, $date]);
+    $stmt->execute([$date, $date, $date]);
     $earnings = $stmt->fetchAll();
     
     // Helper functions for validation
