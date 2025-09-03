@@ -9,8 +9,8 @@ echo "======================\n\n";
 
 // 1. Načítaj potrebné súbory
 echo "1. Načítavam súbory...\n";
-require_once 'config/env_loader.php';
-require_once 'config/security_headers.php';
+require_once __DIR__ . '/../config/env_loader.php';
+require_once __DIR__ . '/../config/security_headers.php';
 
 if (!class_exists('SecurityHeaders')) {
     echo "❌ SecurityHeaders trieda nenájdená\n";

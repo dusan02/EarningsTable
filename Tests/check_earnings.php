@@ -1,19 +1,19 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/test_config.php';
 
 echo "Checking EarningsTickersToday table...\n\n";
 
 try {
     // Check total count
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM EarningsTickersToday");
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM earningstickerstoday");
     $totalCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    echo "Total records in EarningsTickersToday: $totalCount\n\n";
+    echo "Total records in earningstickerstoday: $totalCount\n\n";
     
     if ($totalCount > 0) {
         // Check recent dates
         $stmt = $pdo->query("
             SELECT report_date, COUNT(*) as count 
-            FROM EarningsTickersToday 
+            FROM earningstickerstoday 
             GROUP BY report_date 
             ORDER BY report_date DESC 
             LIMIT 5
@@ -33,7 +33,7 @@ try {
             
             $stmt = $pdo->prepare("
                 SELECT ticker, report_time, eps_actual, revenue_actual
-                FROM EarningsTickersToday 
+                FROM earningstickerstoday 
                 WHERE report_date = ?
                 ORDER BY ticker ASC
                 LIMIT 10

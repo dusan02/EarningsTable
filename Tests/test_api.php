@@ -4,7 +4,7 @@
  */
 
 // Include the API file directly
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/test_config.php';
 
 echo "Testing API endpoint...\n\n";
 
@@ -16,16 +16,16 @@ try {
     
     echo "Date: $date\n\n";
     
-    // Check EarningsTickersToday
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM EarningsTickersToday WHERE report_date = ?");
+    // Check earningstickerstoday
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM earningstickerstoday WHERE report_date = ?");
     $stmt->execute([$date]);
     $earningsCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    echo "EarningsTickersToday count: $earningsCount\n";
+    echo "earningstickerstoday count: $earningsCount\n";
     
-    // Check TodayEarningsMovements
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM TodayEarningsMovements");
+    // Check todayearningsmovements
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM todayearningsmovements");
     $movementsCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-    echo "TodayEarningsMovements count: $movementsCount\n\n";
+    echo "todayearningsmovements count: $movementsCount\n\n";
     
     // Test the main query
     $stmt = $pdo->prepare("
@@ -38,8 +38,8 @@ try {
             COALESCE(m.size, 'Unknown') as size,
             COALESCE(m.price_change_percent, 0) as price_change_percent,
             e.report_time
-        FROM EarningsTickersToday e
-        LEFT JOIN TodayEarningsMovements m ON e.ticker = m.ticker
+        FROM earningstickerstoday e
+        LEFT JOIN todayearningsmovements m ON e.ticker = m.ticker
         WHERE e.report_date = ?
         ORDER BY m.market_cap DESC, e.ticker ASC
         LIMIT 10
