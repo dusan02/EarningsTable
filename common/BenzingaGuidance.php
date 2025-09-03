@@ -9,6 +9,8 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once dirname(__DIR__) . '/common/BenzingaGuidance.php';
+require_once dirname(__DIR__) . '/common/UnifiedValidator.php';
 
 class BenzingaGuidance {
     private $apiKey;
@@ -229,7 +231,7 @@ class BenzingaGuidance {
     }
     
     /**
-     * Uloží guidance dáta do databázy
+     * Uloží guidance dáta do databázy - OPTIMALIZOVANÉ s batch INSERT
      */
     public function saveGuidanceData($guidanceData) {
         if (empty($guidanceData)) {
@@ -237,98 +239,146 @@ class BenzingaGuidance {
             return 0;
         }
         
-        echo "💾 Saving " . count($guidanceData) . " guidance records to database...\n";
+        echo "💾 Saving " . count($guidanceData) . " guidance records using batch operation...\n";
         
-        $savedCount = 0;
+        // Validate all data first
+        $validData = [];
         $errors = 0;
         
         foreach ($guidanceData as $guidance) {
             try {
-                if ($this->saveGuidanceRecord($guidance)) {
-                    $savedCount++;
+                $validationIssues = $this->validateGuidanceData($guidance);
+                if (empty($validationIssues)) {
+                    $validData[] = $guidance;
                 } else {
-                    // Validation failed, count as error
+                    echo "    ⚠️  Validation issues for {$guidance['ticker']}:\n";
+                    foreach ($validationIssues as $issue) {
+                        echo "       - {$issue}\n";
+                    }
+                    echo "    🚫 Skipping insertion due to validation issues\n";
                     $errors++;
                 }
             } catch (Exception $e) {
-                echo "    ❌ Failed to save {$guidance['ticker']}: " . $e->getMessage() . "\n";
+                echo "    ❌ Failed to validate {$guidance['ticker']}: " . $e->getMessage() . "\n";
                 $errors++;
             }
         }
+        
+        if (empty($validData)) {
+            echo "❌ No valid guidance data to save\n";
+            return 0;
+        }
+        
+        // Execute batch INSERT
+        $savedCount = $this->executeBatchInsert($validData);
         
         echo "✅ Guidance data save completed: {$savedCount} saved, {$errors} errors\n";
         return $savedCount;
     }
     
     /**
+     * Vykoná batch INSERT pre všetky guidance záznamy
+     */
+    private function executeBatchInsert($validData) {
+        if (empty($validData)) return 0;
+        
+        global $pdo;
+        
+        // Build batch INSERT SQL
+        $columns = [
+            'ticker', 'estimated_eps_guidance', 'estimated_revenue_guidance',
+            'fiscal_period', 'fiscal_year', 'importance', 'max_eps_guidance',
+            'max_revenue_guidance', 'min_eps_guidance', 'min_revenue_guidance',
+            'notes', 'previous_max_eps_guidance', 'previous_max_revenue_guidance',
+            'previous_min_eps_guidance', 'previous_min_revenue_guidance',
+            'eps_guide_vs_consensus_pct', 'revenue_guide_vs_consensus_pct'
+        ];
+        
+        $placeholders = [];
+        $params = [];
+        
+        foreach ($validData as $guidance) {
+            $rowPlaceholders = [];
+            foreach ($columns as $column) {
+                $rowPlaceholders[] = '?';
+                $params[] = $guidance[$column] ?? null;
+            }
+            $placeholders[] = '(' . implode(', ', $rowPlaceholders) . ')';
+        }
+        
+        $sql = "INSERT INTO benzinga_guidance (" . implode(', ', $columns) . ") VALUES " . implode(', ', $placeholders) . "
+                ON DUPLICATE KEY UPDATE
+                estimated_eps_guidance = VALUES(estimated_eps_guidance),
+                estimated_revenue_guidance = VALUES(estimated_revenue_guidance),
+                fiscal_period = VALUES(fiscal_period),
+                fiscal_year = VALUES(fiscal_year),
+                importance = VALUES(importance),
+                max_eps_guidance = VALUES(max_eps_guidance),
+                max_revenue_guidance = VALUES(max_revenue_guidance),
+                min_eps_guidance = VALUES(min_eps_guidance),
+                min_revenue_guidance = VALUES(min_revenue_guidance),
+                notes = VALUES(notes),
+                previous_max_eps_guidance = VALUES(previous_max_eps_guidance),
+                previous_max_revenue_guidance = VALUES(previous_max_revenue_guidance),
+                previous_min_eps_guidance = VALUES(previous_min_eps_guidance),
+                previous_min_revenue_guidance = VALUES(previous_min_revenue_guidance),
+                eps_guide_vs_consensus_pct = VALUES(eps_guide_vs_consensus_pct),
+                revenue_guide_vs_consensus_pct = VALUES(revenue_guide_vs_consensus_pct),
+                updated_at = CURRENT_TIMESTAMP";
+        
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            
+            $affectedRows = $stmt->rowCount();
+            echo "  🚀 Batch INSERT executed with " . count($params) . " parameters\n";
+            echo "  📊 Affected rows: {$affectedRows}\n";
+            
+            return $affectedRows;
+            
+        } catch (Exception $e) {
+            echo "  ❌ Batch INSERT failed: " . $e->getMessage() . "\n";
+            // Fallback to individual inserts if batch fails
+            return $this->fallbackIndividualInserts($validData);
+        }
+    }
+    
+    /**
+     * Fallback na individuálne INSERT ak batch zlyhá
+     */
+    private function fallbackIndividualInserts($validData) {
+        echo "  🔄 Falling back to individual inserts...\n";
+        
+        $savedCount = 0;
+        foreach ($validData as $guidance) {
+            try {
+                if ($this->saveGuidanceRecord($guidance)) {
+                    $savedCount++;
+                }
+            } catch (Exception $e) {
+                echo "    ❌ Failed to save {$guidance['ticker']}: " . $e->getMessage() . "\n";
+            }
+        }
+        
+        return $savedCount;
+    }
+    
+    /**
      * Validuje guidance dáta pred vložením do databázy
-     * Zabráni constraint chybám chk_eps_in_range a chk_rev_in_range
+     * Používa UnifiedValidator pre konzistentnú validáciu
      */
     private function validateGuidanceData($guidance) {
-        $issues = [];
+        // Použiť UnifiedValidator pre kompletnú validáciu
+        $validation = UnifiedValidator::validateGuidanceRecord($guidance);
         
-        // Validácia EPS guidance
-        if (isset($guidance['estimated_eps_guidance']) && $guidance['estimated_eps_guidance'] !== null) {
-            $eps = $guidance['estimated_eps_guidance'];
-            
-            // Kontrola rozsahu EPS (-100 až +100)
-            if ($eps < -100 || $eps > 100) {
-                $issues[] = "EPS guidance {$eps} outside allowed range (-100 to +100)";
-            }
-            
-            // Kontrola, či je EPS medzi min a max (ak sú nastavené)
-            if (isset($guidance['min_eps_guidance']) && $guidance['min_eps_guidance'] !== null) {
-                if ($eps < $guidance['min_eps_guidance']) {
-                    $issues[] = "EPS guidance {$eps} below min_eps_guidance {$guidance['min_eps_guidance']}";
-                }
-            }
-            
-            if (isset($guidance['max_eps_guidance']) && $guidance['max_eps_guidance'] !== null) {
-                if ($eps > $guidance['max_eps_guidance']) {
-                    $issues[] = "EPS guidance {$eps} above max_eps_guidance {$guidance['max_eps_guidance']}";
-                }
+        if (!$validation['valid']) {
+            echo "    ⚠️  Validation issues for {$guidance['ticker']}:\n";
+            foreach ($validation['issues'] as $issue) {
+                echo "       - {$issue}\n";
             }
         }
         
-        // Validácia Revenue guidance
-        if (isset($guidance['estimated_revenue_guidance']) && $guidance['estimated_revenue_guidance'] !== null) {
-            $revenue = $guidance['estimated_revenue_guidance'];
-            
-            // Kontrola, či je revenue pozitívne
-            if ($revenue < 0) {
-                $issues[] = "Revenue guidance {$revenue} is negative";
-            }
-            
-            // Kontrola, či je revenue medzi min a max (ak sú nastavené)
-            if (isset($guidance['min_revenue_guidance']) && $guidance['min_revenue_guidance'] !== null) {
-                if ($revenue < $guidance['min_revenue_guidance']) {
-                    $issues[] = "Revenue guidance {$revenue} below min_revenue_guidance {$guidance['min_revenue_guidance']}";
-                }
-            }
-            
-            if (isset($guidance['max_revenue_guidance']) && $guidance['max_revenue_guidance'] !== null) {
-                if ($revenue > $guidance['max_revenue_guidance']) {
-                    $issues[] = "Revenue guidance {$revenue} above max_revenue_guidance {$guidance['max_revenue_guidance']}";
-                }
-            }
-        }
-        
-        // Validácia percentuálnych hodnôt
-        if (isset($guidance['eps_guide_vs_consensus_pct']) && $guidance['eps_guide_vs_consensus_pct'] !== null) {
-            $epsPct = $guidance['eps_guide_vs_consensus_pct'];
-            if ($epsPct < -1000 || $epsPct > 1000) {
-                $issues[] = "EPS vs consensus percent {$epsPct}% outside reasonable range (-1000% to +1000%)";
-            }
-        }
-        
-        if (isset($guidance['revenue_guide_vs_consensus_pct']) && $guidance['revenue_guide_vs_consensus_pct'] !== null) {
-            $revPct = $guidance['revenue_guide_vs_consensus_pct'];
-            if ($revPct < -1000 || $revPct > 1000) {
-                $issues[] = "Revenue vs consensus percent {$revPct}% outside reasonable range (-1000% to +1000%)";
-            }
-        }
-        
-        return $issues;
+        return $validation['issues'];
     }
     
     /**

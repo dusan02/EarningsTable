@@ -4,21 +4,22 @@
  * Správa bezpečnostných alertov
  */
 
+require_once __DIR__ . '/../common/UnifiedLogger.php';
+
 class AlertManager {
-    private $alertThresholds;
-    private $alertCache;
+    private $logger;
+    private $alerts;
+    private $thresholds;
     
     public function __construct() {
-        $this->alertThresholds = [
-            'failed_login' => 5,      // 5 neúspešných prihlásení za 15 minút
-            'api_abuse' => 100,       // 100 API volaní za minútu
-            'sql_injection' => 1,     // 1 pokus o SQL injection
-            'xss_attempt' => 1,       // 1 pokus o XSS
-            'file_access' => 50,      // 50 prístupov k súborom za minútu
-            'error_rate' => 20        // 20 chýb za 5 minút
+        $this->logger = new UnifiedLogger();
+        $this->alerts = [];
+        $this->thresholds = [
+            'sql_injection' => 3,
+            'xss_attempt' => 5,
+            'path_traversal' => 2,
+            'brute_force' => 10
         ];
-        
-        $this->alertCache = [];
     }
     
     /**
@@ -28,25 +29,25 @@ class AlertManager {
         $key = $event . '_' . $ip;
         $currentTime = time();
         
-        if (!isset($this->alertCache[$key])) {
-            $this->alertCache[$key] = [];
+        if (!isset($this->alerts[$key])) {
+            $this->alerts[$key] = [];
         }
         
         // Pridanie udalosti
-        $this->alertCache[$key][] = $currentTime;
+        $this->alerts[$key][] = $currentTime;
         
         // Vyčistenie starých udalostí
-        $this->alertCache[$key] = array_filter(
-            $this->alertCache[$key],
+        $this->alerts[$key] = array_filter(
+            $this->alerts[$key],
             function($time) use ($currentTime) {
                 return ($currentTime - $time) < 900; // 15 minút
             }
         );
         
         // Skontrolovanie threshold
-        if (isset($this->alertThresholds[$event])) {
-            $threshold = $this->alertThresholds[$event];
-            $count = count($this->alertCache[$key]);
+        if (isset($this->thresholds[$event])) {
+            $threshold = $this->thresholds[$event];
+            $count = count($this->alerts[$key]);
             
             if ($count >= $threshold) {
                 $this->triggerAlert($event, $ip, $count);
@@ -63,16 +64,10 @@ class AlertManager {
             'event' => $event,
             'ip' => $ip,
             'count' => $count,
-            'threshold' => $this->alertThresholds[$event] ?? 0
+            'threshold' => $this->thresholds[$event] ?? 0
         ];
         
-        $alertFile = __DIR__ . '/../../logs/security/alerts.log';
-        $alertLine = json_encode($alertData) . "\n";
-        
-        file_put_contents($alertFile, $alertLine, FILE_APPEND | LOCK_EX);
-        
-        // Tu by sa mohol pridať email alert alebo iné notifikácie
-        $this->sendNotification($alertData);
+        $this->logger->logSecurityIssue("Security alert triggered: " . json_encode($alertData), $alertData);
     }
     
     /**
@@ -81,7 +76,7 @@ class AlertManager {
     private function sendNotification($alertData) {
         // Implementácia notifikácií (email, SMS, Slack, atď.)
         // Pre teraz len logujeme cez centralizovaný error handler
-        logSecurityIssue("Security alert triggered: " . json_encode($alertData), $alertData);
+        // Tu by sa mohol pridať email alert alebo iné notifikácie
     }
 }
 ?>

@@ -10,6 +10,7 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/UnifiedValidator.php';
 
 class ConsensusCalculator {
     private $pdo;
@@ -20,14 +21,10 @@ class ConsensusCalculator {
     
     /**
      * Vypočíta rozdiel % medzi guidance a konsenzom
+     * Používa UnifiedValidator pre konzistentné výpočty
      */
     private function calculateDeltaPercent($guide, $consensus) {
-        if ($guide === null || $consensus === null || $consensus == 0) {
-            return null;
-        }
-        
-        $difference = (($guide - $consensus) / abs($consensus)) * 100;
-        return round($difference, 4);
+        return UnifiedValidator::calculateDeltaPercent($guide, $consensus);
     }
     
     /**
@@ -310,6 +307,74 @@ class ConsensusCalculator {
             echo "❌ CRITICAL ERROR: " . $e->getMessage() . "\n";
             exit(1);
         }
+    }
+
+    /**
+     * Batch processing pre estimates consensus updates
+     */
+    public function processBatchEstimates($tickers, $fiscalPeriods) {
+        echo "🔄 Processing batch estimates for " . count($tickers) . " tickers...\n";
+        
+        $batchSize = 10; // Process 10 tickers at a time
+        $chunks = array_chunk($tickers, $batchSize);
+        $totalProcessed = 0;
+        $totalAdded = 0;
+        $totalUpdated = 0;
+        
+        foreach ($chunks as $index => $chunk) {
+            echo "  Processing chunk " . ($index + 1) . "/" . count($chunks) . " (" . count($chunk) . " tickers)...\n";
+            
+            $chunkStart = microtime(true);
+            $chunkResults = $this->processChunkEstimates($chunk, $fiscalPeriods);
+            
+            $totalProcessed += $chunkResults['processed'];
+            $totalAdded += $chunkResults['added'];
+            $totalUpdated += $chunkResults['updated'];
+            
+            $chunkTime = round(microtime(true) - $chunkStart, 2);
+            echo "    ✅ Chunk completed in {$chunkTime}s\n";
+            
+            // Rate limiting between chunks
+            if ($index < count($chunks) - 1) {
+                usleep(100000); // 100ms delay
+            }
+        }
+        
+        echo "✅ Batch processing completed: {$totalProcessed} processed, {$totalAdded} added, {$totalUpdated} updated\n";
+        
+        return [
+            'total_processed' => $totalProcessed,
+            'total_added' => $totalAdded,
+            'total_updated' => $totalUpdated
+        ];
+    }
+    
+    /**
+     * Spracovanie jedného chunku tickerov
+     */
+    private function processChunkEstimates($tickers, $fiscalPeriods) {
+        $processed = 0;
+        $added = 0;
+        $updated = 0;
+        
+        foreach ($tickers as $ticker) {
+            $result = $this->processTickerEstimates($ticker, $fiscalPeriods);
+            
+            if ($result['processed']) {
+                $processed++;
+                if ($result['action'] === 'added') {
+                    $added++;
+                } elseif ($result['action'] === 'updated') {
+                    $updated++;
+                }
+            }
+        }
+        
+        return [
+            'processed' => $processed,
+            'added' => $added,
+            'updated' => $updated
+        ];
     }
 }
 ?>

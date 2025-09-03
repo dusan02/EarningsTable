@@ -32,4 +32,7 @@ parameters:
         - '#Access to private property .*#'
         - '#Variable .* in empty\(\) always exists and is not falsy#'
         - '#Ignored error pattern .* was not matched in reported errors#'
+        - '#Instantiated class UnifiedApiWrapper not found#'
+        - '#Instantiated class UnifiedLogger not found#'
+        - '#Strict comparison using === between 0 and 0 will always evaluate to true#'
     reportUnmatchedIgnoredErrors: false

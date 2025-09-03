@@ -250,7 +250,7 @@ class RegularDataUpdatesDynamic {
         echo "✅ Successful API calls: {$successfulCalls}/{$totalPolygonCalls}\n";
         
         // FALLBACK: If no prices were updated, use fallback mechanism
-        if (count($this->priceUpdates) === 0) {
+        if (empty($this->priceUpdates)) {
             echo "⚠️  No prices updated, triggering fallback mechanism...\n";
             $this->processFallbackData();
         }

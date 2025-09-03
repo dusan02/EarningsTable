@@ -27,29 +27,40 @@ class LogRotator {
     }
     
     /**
-     * Rotácia konkrétneho súboru
+     * Rotuje konkrétny log súbor
      */
     private function rotateFile($logFile) {
-        $baseName = basename($logFile, '.log');
-        $dirName = dirname($logFile);
+        $baseName = basename($logFile);
+        $extension = pathinfo($baseName, PATHINFO_EXTENSION);
+        $nameWithoutExt = pathinfo($baseName, PATHINFO_FILENAME);
         
-        // Posun existujúcich rotovaných súborov
+        // Presun existujúce rotované súbory
         for ($i = $this->maxFiles - 1; $i >= 1; $i--) {
-            $oldFile = $dirName . '/' . $baseName . '.' . $i . '.log';
-            $newFile = $dirName . '/' . $baseName . '.' . ($i + 1) . '.log';
+            $oldFile = $this->logDir . '/' . $nameWithoutExt . '.' . $i . '.' . $extension;
+            $newFile = $this->logDir . '/' . $nameWithoutExt . '.' . ($i + 1) . '.' . $extension;
             
             if (file_exists($oldFile)) {
-                rename($oldFile, $newFile);
+                if ($i == $this->maxFiles - 1) {
+                    unlink($oldFile); // Vymaž najstarší
+                } else {
+                    rename($oldFile, $newFile);
+                }
             }
         }
         
-        // Rotácia hlavného súboru
-        $rotatedFile = $dirName . '/' . $baseName . '.1.log';
+        // Premenuj aktuálny log súbor
+        $rotatedFile = $this->logDir . '/' . $nameWithoutExt . '.1.' . $extension;
         rename($logFile, $rotatedFile);
         
-        // Vytvorenie nového prázdneho súboru
+        // Vytvor nový prázdny log súbor
         touch($logFile);
         chmod($logFile, 0644);
+        
+        // Loguj rotáciu
+        $this->logger->info("Log file rotated: {$baseName}", [
+            'original_size' => filesize($rotatedFile),
+            'max_size' => $this->maxFileSize
+        ], 'maintenance');
     }
     
     /**

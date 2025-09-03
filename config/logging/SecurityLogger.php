@@ -40,36 +40,19 @@ class SecurityLogger {
     }
     
     /**
-     * Loguje bezpečnostné udalosti
+     * Loguje security udalosť
      */
-    public function log($level, $event, $data = [], $ip = null) {
-        $ip = $ip ?? $this->getClientIP();
-        $timestamp = date('Y-m-d H:i:s');
-        $sessionId = session_id() ?? 'no-session';
+    public function logSecurityEvent($event, $data = []) {
+        $this->logger->logSecurityEvent($event, $data);
         
-        $logEntry = [
-            'timestamp' => $timestamp,
-            'level' => $level,
-            'event' => $event,
-            'ip' => $ip,
-            'session_id' => $sessionId,
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-            'data' => $data
-        ];
+        // Update local stats
+        $this->stats['security_events']++;
+        $this->stats['event_types'][$event] = ($this->stats['event_types'][$event] ?? 0) + 1;
         
-        // Zapíš do príslušného log súboru
-        $logFile = $this->logDir . $level . '.log';
-        $logLine = json_encode($logEntry) . "\n";
-        
-        file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
-        
-        // Skontroluj alerting
-        $this->alertManager->checkAlerting($level, $event, $ip);
-        
-        // Skontroluj hrozby
-        $this->threatDetector->analyzeEvent($event, $data, $ip);
-        
-        return true;
+        // Check if IP should be blocked
+        if (isset($data['ip_address'])) {
+            $this->checkIpBlocking($data['ip_address'], $event);
+        }
     }
     
     /**

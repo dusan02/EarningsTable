@@ -4,11 +4,15 @@
  * Detekcia hrozieb a analýza bezpečnostných udalostí
  */
 
+require_once __DIR__ . '/../common/UnifiedLogger.php';
+
 class ThreatDetector {
+    private $logger;
     private $stats;
     private $threatPatterns;
     
     public function __construct() {
+        $this->logger = new UnifiedLogger();
         $this->stats = [
             'total_events' => 0,
             'threats_detected' => 0,
@@ -61,23 +65,30 @@ class ThreatDetector {
     
     /**
      * Kontrola či je udalosť hrozbou
+     * Používa UnifiedValidator pre konzistentnú detekciu
      */
     private function isThreat($event, $data) {
-        // Kontrola podľa typu udalosti
-        if (in_array($event, ['sql_injection', 'xss_attempt'])) {
-            return true;
+        // SQL injection detekcia
+        if (isset($data['query'])) {
+            $sqlDetection = UnifiedValidator::detectSqlPattern($data['query']);
+            if ($sqlDetection['detected']) {
+                return true;
+            }
         }
         
-        // Kontrola dát pre vzory hrozieb
-        foreach ($data as $value) {
-            if (is_string($value)) {
-                foreach ($this->threatPatterns as $threatType => $patterns) {
-                    foreach ($patterns as $pattern) {
-                        if (stripos($value, $pattern) !== false) {
-                            return true;
-                        }
-                    }
-                }
+        // XSS detekcia
+        if (isset($data['input'])) {
+            $xssDetection = UnifiedValidator::detectXssPattern($data['input']);
+            if ($xssDetection['detected']) {
+                return true;
+            }
+        }
+        
+        // Path traversal detekcia
+        if (isset($data['path'])) {
+            $pathDetection = UnifiedValidator::detectPathTraversalPattern($data['path']);
+            if ($pathDetection['detected']) {
+                return true;
             }
         }
         
@@ -102,21 +113,19 @@ class ThreatDetector {
     }
     
     /**
-     * Logovanie hrozby
+     * Loguje threat udalosť
      */
-    private function logThreat($event, $data, $ip) {
-        $threatData = [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'event' => $event,
-            'ip' => $ip,
-            'data' => $data,
-            'severity' => $this->getThreatSeverity($event)
-        ];
+    private function logThreat($threatData) {
+        $this->logger->logSecurityEvent(
+            $threatData['type'] ?? 'unknown',
+            $threatData,
+            'ALERT'
+        );
         
-        $threatFile = __DIR__ . '/../../logs/security/threats.log';
-        $threatLine = json_encode($threatData) . "\n";
-        
-        file_put_contents($threatFile, $threatLine, FILE_APPEND | LOCK_EX);
+        // Update local stats
+        $this->stats['threats_detected']++;
+        $this->stats['event_types'][$threatData['type'] ?? 'unknown'] = 
+            ($this->stats['event_types'][$threatData['type'] ?? 'unknown'] ?? 0) + 1;
     }
     
     /**

@@ -26,7 +26,11 @@
             "EarningsTable\\": "src/"
         },
         "files": [
-            "config/config.php"
+            "config/config.php",
+            "common/UnifiedApiWrapper.php",
+            "common/UnifiedLogger.php",
+            "common/UnifiedCronManager.php",
+            "common/UnifiedValidator.php"
         ]
     },
     "autoload-dev": {
