@@ -51,7 +51,7 @@ function getCurrentPrice($polygonData, $includeExtended = true) {
     }
     
     // 5) DEVELOPMENT MODE: Generate mock current prices when markets are closed
-    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES) {
+    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES === true) {
         if (isset($polygonData['prevDay']['c']) && $polygonData['prevDay']['c'] > 0) {
             $prevClose = (float)$polygonData['prevDay']['c'];
             $ticker = $polygonData['ticker'] ?? 'UNKNOWN';
@@ -375,7 +375,7 @@ function computePercentChange($snapshot, $lastTradeV3, $prevClose) {
     }
     
     // 5) DEVELOPMENT MODE: Calculate from getCurrentPrice result if using mock data
-    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES && $prevClose > 0) {
+    if (defined('ENABLE_MOCK_PRICE_CHANGES') && ENABLE_MOCK_PRICE_CHANGES === true && $prevClose > 0) {
         $priceData = getCurrentPrice($snapshot);
         if ($priceData && $priceData['source'] === 'mock_testing') {
             $currentPrice = $priceData['price'];
