@@ -268,7 +268,7 @@
         --container-width: 70%;
         --container-max-width: none;
         --table-row-height: 42px;
-        --header-height: 60px;
+        --header-height: 42px;
     }
 
     /* ===== RESET & BASE STYLES ===== */
@@ -483,6 +483,9 @@
     /* Notes column (last column in guidance table) - Center aligned */
     .earnings-table-right.guidance-table th:last-child,
     .earnings-table-right.guidance-table td:last-child { text-align: center !important; }
+    
+    /* Period column in guidance table - Center aligned (override general right alignment) */
+    .earnings-table-right.guidance-table .fiscal-period-cell { text-align: center !important; }
 
     /* ===== TICKER & COMPANY COLUMN STYLES ===== */
     .ticker-cell {
@@ -1712,12 +1715,18 @@
     }
 
     /* Force all guidance table cells to use correct height */
-    table.earnings-table-right.guidance-table tbody tr td,
-    table.earnings-table-right.guidance-table thead tr th {
+    table.earnings-table-right.guidance-table tbody tr td {
         height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         min-height: var(--table-row-height) !important;
         max-height: var(--table-row-height) !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+    }
+    
+    /* Headers use unified styling - don't override height here */
+    table.earnings-table-right.guidance-table thead tr th {
+        padding: var(--spacing-1) var(--spacing-1) !important;
         line-height: 1 !important;
         vertical-align: middle !important;
     }
@@ -1761,6 +1770,7 @@
         /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
         /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
         padding: var(--spacing-1) var(--spacing-1) !important;
+        text-align: center !important;
     }
 
     .earnings-table-right.guidance-table .notes-icon {
@@ -1776,29 +1786,36 @@
     }
 
     /* ===== TABLE SYNCHRONIZATION ===== */
-    /* Ensure both tables have consistent styling */
-    .earnings-table-left th,
-    .earnings-table-right th {
+    /* Unified header styling for ALL tables - eliminates padding/line-height differences */
+    .earnings-table-left thead th,
+    .eps-revenue-table thead th,
+    .guidance-table thead th {
         background: #e3f2fd;
         border-bottom: 2px solid var(--color-gray-300);
         font-weight: 700;
         text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        height: var(--table-row-height);
-        padding: var(--spacing-2) var(--spacing-2);
+        height: var(--header-height, 42px);   /* fallback 42px */
+        min-height: var(--header-height, 42px);
+        line-height: 1.2;                     /* same everywhere */
+        padding: 8px 12px;                    /* same everywhere */
         vertical-align: middle;
         box-sizing: border-box;
+        text-align: left;                     /* default left alignment */
     }
 
-    /* Guidance table specific header styling */
-    .guidance-table th {
-        background: #e3f2fd;
-        border-bottom: 2px solid var(--color-gray-300);
-        font-weight: 700;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        vertical-align: middle;
-        box-sizing: border-box;
+    /* Center the Period column header specifically - must override unified styling */
+    .guidance-table thead th[data-sort="fiscal_period"] {
+        text-align: center !important;
+    }
+    
+    /* Additional specificity for Period column header */
+    .earnings-table-right.guidance-table thead th[data-sort="fiscal_period"] {
+        text-align: center !important;
+    }
+    
+    /* Maximum specificity for Period column data cells */
+    body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table tbody tr td.fiscal-period-cell {
+        text-align: center !important;
     }
 
     .earnings-table-left th:hover,
@@ -1808,8 +1825,10 @@
         box-shadow: var(--shadow-sm);
     }
 
+
+
     .guidance-table th:hover {
-        background: #bbdefb;
+        background: #bbdefb !important;
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
     }
@@ -2182,6 +2201,98 @@
         outline: 1px solid #000000;
         outline-offset: 1px;
      }
+
+    /* Center all dashes ("-") for unavailable data in all tables */
+    /* Target cells that commonly contain dashes by their content type */
+    .earnings-table-left td[data-content="-"],
+    .earnings-table-right td[data-content="-"] {
+        text-align: center !important;
+    }
+
+    /* Ensure dashes are centered even in right-aligned columns */
+    .earnings-table-right.eps-revenue-table td[data-content="-"],
+    .earnings-table-right.guidance-table td[data-content="-"] {
+        text-align: center !important;
+    }
+
+    /* Center specific columns that commonly show dashes */
+    .earnings-table-left td:nth-child(4), /* Size column */
+    .earnings-table-left td:nth-child(5), /* Market Cap column */
+    .earnings-table-left td:nth-child(6), /* Market Cap Diff column */
+    .earnings-table-left td:nth-child(7), /* Current Price column */
+    .earnings-table-left td:nth-child(8) { /* Price Change column */
+        text-align: center !important;
+    }
+
+    /* Right align EPS & Revenue columns */
+    .earnings-table-right.eps-revenue-table td:nth-child(1), /* EPS Estimate */
+    .earnings-table-right.eps-revenue-table td:nth-child(2), /* EPS Actual */
+    .earnings-table-right.eps-revenue-table td:nth-child(3), /* EPS Surprise */
+    .earnings-table-right.eps-revenue-table td:nth-child(4), /* Revenue Estimate */
+    .earnings-table-right.eps-revenue-table td:nth-child(5), /* Revenue Actual */
+    .earnings-table-right.eps-revenue-table td:nth-child(6) { /* Revenue Surprise */
+        text-align: right !important;
+    }
+
+    /* Right align Guidance columns (except Period and Notes) */
+    .earnings-table-right.guidance-table td:nth-child(1), /* EPS Guide */
+    .earnings-table-right.guidance-table td:nth-child(2), /* EPS G Surp */
+    .earnings-table-right.guidance-table td:nth-child(3), /* Rev Guide */
+    .earnings-table-right.guidance-table td:nth-child(4) { /* Rev G Surp */
+        text-align: right !important;
+    }
+
+    /* Keep center alignment for Period and Notes columns */
+    .earnings-table-right.guidance-table td:nth-child(5), /* Period */
+    .earnings-table-right.guidance-table td:nth-child(6) { /* Notes */
+        text-align: center !important;
+    }
+
+    /* Override for specific columns that should not be centered */
+    .earnings-table-left .ticker-cell,
+    .earnings-table-left .company-cell {
+        text-align: left !important;
+    }
+
+    /* Keep left alignment for headers */
+    .earnings-table-left th,
+    .earnings-table-right th {
+        text-align: left !important;
+    }
+
+    /* Keep center alignment for specific guidance columns */
+    .earnings-table-right.guidance-table .fiscal-period-cell,
+    .earnings-table-right.guidance-table td:last-child {
+        text-align: center !important;
+    }
+
+    /* Right align EPS & Revenue column headers */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(1), /* EPS Estimate */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(2), /* EPS Actual */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(3), /* EPS Surprise */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(4), /* Revenue Estimate */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(5), /* Revenue Actual */
+    .earnings-table-right.eps-revenue-table thead th:nth-child(6) { /* Revenue Surprise */
+        text-align: right !important;
+    }
+
+    /* Right align Guidance column headers (except Period and Notes) */
+    .earnings-table-right.guidance-table thead th:nth-child(1), /* EPS Guide */
+    .earnings-table-right.guidance-table thead th:nth-child(2), /* EPS G Surp */
+    .earnings-table-right.guidance-table thead th:nth-child(3), /* Rev Guide */
+    .earnings-table-right.guidance-table thead th:nth-child(4) { /* Rev G Surp */
+        text-align: right !important;
+    }
+
+    /* Ensure Period column header remains centered */
+    .earnings-table-right.guidance-table thead th:nth-child(5) { /* Period */
+        text-align: center !important;
+    }
+
+            /* Ensure Notes column header is centered */
+        .earnings-table-right.guidance-table thead th:nth-child(6) { /* Notes */
+            text-align: center !important;
+        }
     </style>
 </head>
 <body>
@@ -2748,27 +2859,40 @@
             
                                  // Create left part row (fixed columns)
                  const leftRow = document.createElement('tr');
+                 const companyName = item.company_name || '-';
+                 const marketCapFormatted = Utils.formatCurrency(item.market_cap);
+                 const marketCapDiffFormatted = Utils.formatMarketCapDiff(item.market_cap_diff);
+                 const currentPriceFormatted = Utils.formatPrice(item.current_price);
+                 const priceChangeFormatted = Utils.formatPriceChange(item.price_change_percent);
+                 
                  leftRow.innerHTML = `
                      <td>${currentRank}</td>
                      <td class="ticker-cell">${item.ticker}</td>
-                     <td class="company-cell">${item.company_name || '-'}</td>
+                     <td class="company-cell" ${companyName === '-' ? 'data-content="-"' : ''}>${companyName}</td>
                      <td><span class="size-badge ${sizeClass}">${displaySize}</span></td>
-                     <td>${Utils.formatCurrency(item.market_cap)}</td>
-                     <td class="${Utils.getDiffClass(item.market_cap_diff)}">${Utils.formatMarketCapDiff(item.market_cap_diff)}</td>
-                     <td>${Utils.formatPrice(item.current_price)}</td>
-                     <td class="${Utils.getPriceChangeClass(item.price_change_percent)}">${Utils.formatPriceChange(item.price_change_percent)}</td>
+                     <td ${marketCapFormatted === '-' ? 'data-content="-"' : ''}>${marketCapFormatted}</td>
+                     <td class="${Utils.getDiffClass(item.market_cap_diff)}" ${marketCapDiffFormatted === '-' ? 'data-content="-"' : ''}>${marketCapDiffFormatted}</td>
+                     <td ${currentPriceFormatted === '-' ? 'data-content="-"' : ''}>${currentPriceFormatted}</td>
+                     <td class="${Utils.getPriceChangeClass(item.price_change_percent)}" ${priceChangeFormatted === '-' ? 'data-content="-"' : ''}>${priceChangeFormatted}</td>
                  `;
                 tableBodyLeft.appendChild(leftRow);
                 
                 // Create EPS & Revenue row (right part)
                 const epsRevRow = document.createElement('tr');
+                const epsEstimate = Utils.formatEPS(item.eps_estimate);
+                const epsActual = Utils.formatEPS(item.eps_actual);
+                const epsSurprise = Utils.formatSurprise(item.eps_actual, item.eps_estimate);
+                const revenueEstimate = Utils.formatCurrency(item.revenue_estimate);
+                const revenueActual = Utils.formatCurrency(item.revenue_actual);
+                const revenueSurprise = Utils.formatSurprise(item.revenue_actual, item.revenue_estimate);
+                
                 epsRevRow.innerHTML = `
-                    <td>${Utils.formatEPS(item.eps_estimate)}</td>
-                    <td>${Utils.formatEPS(item.eps_actual)}</td>
-                    <td class="${Utils.getSurpriseClass(item.eps_actual, item.eps_estimate)}">${Utils.formatSurprise(item.eps_actual, item.eps_estimate)}</td>
-                    <td>${Utils.formatCurrency(item.revenue_estimate)}</td>
-                    <td>${Utils.formatCurrency(item.revenue_actual)}</td>
-                    <td class="${Utils.getSurpriseClass(item.revenue_actual, item.revenue_estimate)}">${Utils.formatSurprise(item.revenue_actual, item.revenue_estimate)}</td>
+                    <td ${epsEstimate === '-' ? 'data-content="-"' : ''}>${epsEstimate}</td>
+                    <td ${epsActual === '-' ? 'data-content="-"' : ''}>${epsActual}</td>
+                    <td class="${Utils.getSurpriseClass(item.eps_actual, item.eps_estimate)}" ${epsSurprise === '-' ? 'data-content="-"' : ''}>${epsSurprise}</td>
+                    <td ${revenueEstimate === '-' ? 'data-content="-"' : ''}>${revenueEstimate}</td>
+                    <td ${revenueActual === '-' ? 'data-content="-"' : ''}>${revenueActual}</td>
+                    <td class="${Utils.getSurpriseClass(item.revenue_actual, item.revenue_estimate)}" ${revenueSurprise === '-' ? 'data-content="-"' : ''}>${revenueSurprise}</td>
                 `;
                 tableBodyRightEpsRev.appendChild(epsRevRow);
                 
@@ -2776,12 +2900,16 @@
 
                 
                 const guidanceRow = document.createElement('tr');
+                const epsGuide = Utils.formatEPS(item.eps_guide);
+                const epsGuideSurprise = Utils.formatGuidePercent(item.eps_guide_surprise, item.eps_guide_extreme);
+                const revenueGuide = Utils.formatCurrency(item.revenue_guide);
+                
                 guidanceRow.innerHTML = `
-                    <td>${Utils.formatEPS(item.eps_guide)}</td>
-                    <td class="${item.eps_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}${item.eps_guide_extreme ? ' (Raw: ' + (item.eps_guide_surprise != null ? Number(item.eps_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.eps_guide_surprise, item.eps_guide_extreme)}</td>
-                    <td>${Utils.formatCurrency(item.revenue_guide)}</td>
-                    <td class="${item.revenue_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}${item.revenue_guide_extreme ? ' (Raw: ' + (item.revenue_guide_surprise != null ? Number(item.revenue_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}">${Utils.formatGuidePercent(item.revenue_guide_surprise, item.revenue_guide_extreme)}</td>
-                    <td class="fiscal-period-cell">${item.guidance_fiscal_period && item.guidance_fiscal_year ? `${item.guidance_fiscal_period}/${item.guidance_fiscal_year}` : '-'}</td>
+                    <td ${epsGuide === '-' ? 'data-content="-"' : ''}>${epsGuide}</td>
+                    <td class="${item.eps_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.eps_guide_surprise)}" title="${item.eps_guide_basis ? `Based on ${item.eps_guide_basis}${item.eps_guide_extreme ? ' (Raw: ' + (item.eps_guide_surprise != null ? Number(item.eps_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}" ${epsGuideSurprise === '-' ? 'data-content="-"' : ''}>${epsGuideSurprise}</td>
+                    <td ${revenueGuide === '-' ? 'data-content="-"' : ''}>${revenueGuide}</td>
+                    <td class="${item.revenue_guide_extreme ? 'extreme-value ' : ''}${Utils.getGuideClass(item.revenue_guide_surprise)}" title="${item.revenue_guide_basis ? `Based on ${item.revenue_guide_basis}${item.revenue_guide_extreme ? ' (Raw: ' + (item.revenue_guide_surprise != null ? Number(item.revenue_guide_surprise).toFixed(2) : '') + '%)' : ''}` : 'No data available'}" ${Utils.formatGuidePercent(item.revenue_guide_surprise, item.revenue_guide_extreme) === '-' ? 'data-content="-"' : ''}>${Utils.formatGuidePercent(item.revenue_guide_surprise, item.revenue_guide_extreme)}</td>
+                    <td class="fiscal-period-cell" ${(item.guidance_fiscal_period && item.guidance_fiscal_year ? `${item.guidance_fiscal_period}/${item.guidance_fiscal_year}` : '-') === '-' ? 'data-content="-"' : ''}>${item.guidance_fiscal_period && item.guidance_fiscal_year ? `${item.guidance_fiscal_period}/${item.guidance_fiscal_year}` : '-'}</td>
                     <td>
                         <div class="notes-icon ${item.guidance_notes ? 'has-notes' : 'no-notes'}" title="${item.guidance_notes || 'No guidance notes available'}">
                             i
@@ -3078,6 +3206,9 @@
             
             // Synchronize row heights after table switch
             setTimeout(syncRowHeights, 100);
+            
+            // Synchronize header heights after table switch (wait for DOM to render)
+            raf(syncHeaderHeights);
         },
 
         // Restore active section from localStorage
@@ -3301,6 +3432,46 @@
         return null;
     }
 
+    // Helper function for double requestAnimationFrame (ensures DOM is fully rendered)
+    const raf = (fn) => { requestAnimationFrame(() => requestAnimationFrame(fn)); };
+    
+    // Get active right table header (Guidance or EPS/Revenue)
+    const getActiveRightHead = () => {
+        const g = document.querySelector('.guidance-table.active thead');
+        if (g) return g;
+        const er = document.querySelector('.eps-revenue-table:not(.hidden) thead');
+        return er;
+    };
+    
+    // Synchronize header heights between left and right tables
+    const syncHeaderHeights = () => {
+        const leftHead = document.querySelector('.earnings-table-left thead');
+        const rightHead = getActiveRightHead();
+        
+        if (!leftHead || !rightHead) return;
+        
+        // Reset - let browser recalculate naturally
+        [...leftHead.rows, ...rightHead.rows].forEach(r => {
+            r.style.removeProperty('height');
+            r.style.removeProperty('min-height');
+        });
+        
+        // Get real height of left header and set it as CSS custom property
+        const h = leftHead.getBoundingClientRect().height || 42;
+        const root = document.documentElement;
+        root.style.setProperty('--header-height', `${Math.round(h)}px`);
+        
+        // Extra: align individual cells (in case they have different content)
+        const leftTh = leftHead.querySelectorAll('th');
+        const rightTh = rightHead.querySelectorAll('th');
+        const n = Math.min(leftTh.length, rightTh.length);
+        
+        for (let i = 0; i < n; i++) {
+            rightTh[i].style.setProperty('height', `${Math.round(h)}px`, 'important');
+            rightTh[i].style.setProperty('min-height', `${Math.round(h)}px`, 'important');
+        }
+    };
+    
     // Synchronizuje výšky riadkov medzi ľavou a pravou tabuľkou
     function syncRowHeights() {
         const leftBody = document.querySelector('#tableBodyLeft');
@@ -3333,10 +3504,11 @@
         }
     }
 
-    // Inicializuje synchronizáciu výšok riadkov
+    // Inicializuje synchronizáciu výšok riadkov a hlavičiek
     function initializeRowHeightSync() {
         // Po načítaní dát
         setTimeout(syncRowHeights, 100);
+        raf(syncHeaderHeights); // Synchronize headers after data load
         
         // Po prepnutí tabuliek
         const guidanceBtn = document.querySelector('[data-table="guidance"]');
@@ -3345,17 +3517,30 @@
         if (guidanceBtn) {
             guidanceBtn.addEventListener('click', () => {
                 setTimeout(syncRowHeights, 100); // Po CSS transition
+                raf(syncHeaderHeights); // Synchronize headers after switching
             });
         }
         
         if (epsRevBtn) {
             epsRevBtn.addEventListener('click', () => {
                 setTimeout(syncRowHeights, 100); // Po CSS transition
+                raf(syncHeaderHeights); // Synchronize headers after switching
             });
         }
         
-        // Pri resize (debounced)
-        window.addEventListener('resize', debounce(syncRowHeights, 150));
+        // Pri resize (debounced) - synchronize both rows and headers
+        window.addEventListener('resize', debounce(() => {
+            syncRowHeights();
+            raf(syncHeaderHeights);
+        }, 150));
+        
+        // Chrome/Edge better zoom detection via visualViewport
+        if (window.visualViewport) {
+            visualViewport.addEventListener('resize', debounce(() => {
+                syncRowHeights();
+                raf(syncHeaderHeights);
+            }, 150));
+        }
         
         // Po filtrovaní/triedení
         const observer = new MutationObserver(debounce(syncRowHeights, 50));
@@ -3425,6 +3610,8 @@
             // Initialize row height synchronization
             setTimeout(() => {
                 initializeRowHeightSync();
+                // Also synchronize headers after initialization
+                raf(syncHeaderHeights);
             }, 100);
             
             // Auto-refresh every 5 minutes
