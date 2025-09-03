@@ -7,6 +7,11 @@ Sitemap: https://earnings-table.com/sitemap.xml
 # Crawl-delay
 Crawl-delay: 1
 
+# Allow guidance and earnings data
+Allow: /guidance
+Allow: /earnings
+Allow: /api/earnings-tickers-today.php
+
 # Disallow admin areas
 Disallow: /admin/
 Disallow: /cron/
