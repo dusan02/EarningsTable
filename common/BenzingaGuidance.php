@@ -225,11 +225,16 @@ class BenzingaGuidance {
      */
     private function calculateEpsGuideVsConsensus($guidance) {
         $epsGuide = $guidance['estimated_eps_guidance'] ?? null;
-        $epsConsensus = $guidance['eps_consensus'] ?? null; // Ak bude dostupné v API
+        $ticker = $guidance['ticker'] ?? null;
         
-        if ($epsGuide && $epsConsensus && $epsConsensus != 0) {
-            $difference = (($epsGuide - $epsConsensus) / abs($epsConsensus)) * 100;
-            return round($difference, 4);
+        if ($epsGuide && $ticker) {
+            // Získaj analyst estimates z EarningsTickersToday
+            $epsConsensus = $this->getEpsEstimateFromEarningsTickersToday($ticker);
+            
+            if ($epsConsensus && $epsConsensus != 0) {
+                $difference = (($epsGuide - $epsConsensus) / abs($epsConsensus)) * 100;
+                return round($difference, 4);
+            }
         }
         
         return null;
@@ -240,11 +245,16 @@ class BenzingaGuidance {
      */
     private function calculateRevenueGuideVsConsensus($guidance) {
         $revenueGuide = $guidance['estimated_revenue_guidance'] ?? null;
-        $revenueConsensus = $guidance['revenue_consensus'] ?? null; // Ak bude dostupné v API
+        $ticker = $guidance['ticker'] ?? null;
         
-        if ($revenueGuide && $revenueConsensus && $revenueConsensus != 0) {
-            $difference = (($revenueGuide - $revenueConsensus) / abs($revenueConsensus)) * 100;
-            return round($difference, 4);
+        if ($revenueGuide && $ticker) {
+            // Získaj analyst estimates z EarningsTickersToday
+            $revenueConsensus = $this->getRevenueEstimateFromEarningsTickersToday($ticker);
+            
+            if ($revenueConsensus && $revenueConsensus != 0) {
+                $difference = (($revenueGuide - $revenueConsensus) / abs($revenueConsensus)) * 100;
+                return round($difference, 4);
+            }
         }
         
         return null;
@@ -536,6 +546,42 @@ class BenzingaGuidance {
         } catch (Exception $e) {
             echo "❌ CRITICAL ERROR: " . $e->getMessage() . "\n";
             exit(1);
+        }
+    }
+    
+    /**
+     * Získaj EPS estimate z EarningsTickersToday tabuľky
+     */
+    private function getEpsEstimateFromEarningsTickersToday($ticker) {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT eps_estimate 
+                FROM earningstickerstoday 
+                WHERE ticker = ? AND report_date = ?
+            ");
+            $stmt->execute([$ticker, $this->date]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['eps_estimate'] : null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Získaj Revenue estimate z EarningsTickersToday tabuľky
+     */
+    private function getRevenueEstimateFromEarningsTickersToday($ticker) {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT revenue_estimate 
+                FROM earningstickerstoday 
+                WHERE ticker = ? AND report_date = ?
+            ");
+            $stmt->execute([$ticker, $this->date]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['revenue_estimate'] : null;
+        } catch (Exception $e) {
+            return null;
         }
     }
 }
