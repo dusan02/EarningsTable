@@ -229,14 +229,14 @@
         /* Typography */
         --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --font-family-heading: 'Montserrat', sans-serif;
-        --font-size-xs: 10px;
-        --font-size-sm: 12px;
-        --font-size-base: 14px;
-        --font-size-lg: 16px;
-        --font-size-xl: 18px;
-        --font-size-2xl: 24px;
-        --font-size-3xl: 31.5px;
-        --font-size-4xl: 48px;
+        --font-size-xs: 8px;
+        --font-size-sm: 10px;
+        --font-size-base: 12px;
+        --font-size-lg: 14px;
+        --font-size-xl: 16px;
+        --font-size-2xl: 20px;
+        --font-size-3xl: 24px;
+        --font-size-4xl: 36px;
         
         /* Spacing */
         --spacing-1: 4px;
@@ -319,11 +319,11 @@
 
     .header h1 {
         font-family: var(--font-family-heading);
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-2xl);
         font-weight: 700;
         color: #1E3A8A;
-        margin-top: var(--spacing-8);
-        margin-bottom: var(--spacing-6);
+        margin-top: var(--spacing-6);
+        margin-bottom: var(--spacing-4);
         text-align: center;
     }
 
@@ -390,7 +390,7 @@
     }
 
                      .winner-label {
-                font-size: 11.25px;
+                font-size: 9px;
                 font-weight: 600;
         color: var(--color-gray-600);
          text-transform: uppercase;
@@ -399,14 +399,14 @@
      }
 
     .winner-ticker {
-        font-size: 14.4px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--color-gray-900);
         margin-bottom: var(--spacing-1);
     }
 
     .winner-value {
-        font-size: 12.6px;
+        font-size: 10px;
         font-weight: 600;
     }
 
@@ -515,7 +515,7 @@
     .ticker-cell {
         font-weight: 700;
         color: var(--color-gray-900);
-        font-size: 13px;
+        font-size: 11.3px;
         text-transform: uppercase;
         text-align: center;
         padding: var(--spacing-1);
@@ -528,7 +528,7 @@
     .company-cell {
         font-weight: 600;
         color: var(--color-gray-900);
-        font-size: 13px;
+        font-size: 11.3px;
         text-align: left;
         padding: var(--spacing-1);
         overflow: hidden;
@@ -576,7 +576,7 @@
     .company-name {
         font-weight: 600;
         color: var(--color-gray-900);
-        font-size: 13px;
+        font-size: 11.3px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -588,7 +588,7 @@
     .company-ticker {
         font-weight: 600;
         color: var(--color-gray-900);
-        font-size: 13px;
+        font-size: 11.3px;
         flex-shrink: 0;
         min-width: 60px;
         max-width: 60px;
@@ -600,7 +600,7 @@
     /* ===== STATUS & SIZE BADGES ===== */
     .status-badge,
     .size-badge {
-        padding: 2px 6px;
+        padding: 2px 2px;
         border-radius: var(--radius-sm);
         font-size: var(--font-size-xs);
         font-weight: 600;
@@ -608,9 +608,14 @@
         letter-spacing: 0.5px;
         display: inline-block;
         text-align: center;
-        min-width: 40px;
+        min-width: 14px;
         line-height: 1 !important;
         margin: 0 !important;
+    }
+
+    /* Center size badges in their cells - must override other rules */
+    .earnings-table-left td:nth-child(4) {
+        text-align: center !important;
     }
 
     .status-bmo {
@@ -1082,13 +1087,13 @@
         /* Adjust dual table layout for very small screens */
         .earnings-table-left,
         .earnings-table-right {
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .company-search {
             width: 60px;
             max-width: 70px;
-            font-size: 8px;
+            font-size: 10px;
         }
     }
 
@@ -1275,7 +1280,7 @@
         padding: 8px var(--spacing-2);
         border: 2px solid var(--color-gray-300);
         border-radius: var(--radius-md);
-        font-size: 11px;
+        font-size: 9px;
         background: var(--color-white);
         color: var(--color-gray-700);
         outline: none;
@@ -1464,7 +1469,7 @@
         }
         
         .winner-value {
-            font-size: 11px;
+            font-size: 9px;
         }
         
         /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
@@ -1499,7 +1504,7 @@
  
         .btn {
             padding: 6px var(--spacing-2);
-            font-size: 11px;
+            font-size: 9px;
         }
         
      .footer {
@@ -1532,7 +1537,7 @@
         /* Adjust dual table layout for very small screens */
         .earnings-table-left,
         .earnings-table-right {
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .company-search {
@@ -1816,7 +1821,7 @@
         border-collapse: separate;
         border-spacing: 0;
         font-family: var(--font-family-primary);
-        font-size: 12.6px;
+        font-size: 11.3px;
         font-variant-numeric: tabular-nums;
         margin: 0;
         padding: 0;
@@ -1986,6 +1991,7 @@
         background: #e3f2fd;
         border-bottom: 2px solid var(--color-gray-300);
         font-weight: 700;
+        font-size: 11.3px;                    /* same as table cells */
         text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         height: var(--header-height, 42px);   /* fallback 42px */
         min-height: var(--header-height, 42px);
@@ -2237,7 +2243,7 @@
         }
         
         .winner-value {
-            font-size: 11px;
+            font-size: 9px;
         }
         
         /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
@@ -2272,7 +2278,7 @@
         
         .btn {
             padding: 6px var(--spacing-2);
-            font-size: 11px;
+            font-size: 9px;
         }
         
          .footer {
@@ -2305,13 +2311,13 @@
         /* Adjust dual table layout for very small screens */
         .earnings-table-left,
         .earnings-table-right {
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .company-search {
             width: 60px;
             max-width: 70px;
-            font-size: 8px;
+            font-size: 10px;
         }
         
         .btn {
@@ -2447,7 +2453,6 @@
     }
 
     /* Center specific columns that commonly show dashes */
-    .earnings-table-left td:nth-child(4), /* Size column */
     .earnings-table-left td:nth-child(5), /* Market Cap column */
     .earnings-table-left td:nth-child(6), /* Market Cap Diff column */
     .earnings-table-left td:nth-child(7), /* Current Price column */
@@ -2681,10 +2686,10 @@
                              <col style="width:25px" aria-label="Ticker column">
                              <col style="width:75px" aria-label="Company column">
                              <col style="width:20px" aria-label="Size column">
-                             <col style="width:30px" aria-label="Market Cap column">
+                             <col style="width:25px" aria-label="Market Cap column">
                              <col style="width:25px" aria-label="Cap Diff column">
                              <col style="width:25px" aria-label="Price column">
-                             <col style="width:25px" aria-label="Change column">
+                             <col style="width:30px" aria-label="Change column">
                          </colgroup>
                                  <thead>
                      <tr>
