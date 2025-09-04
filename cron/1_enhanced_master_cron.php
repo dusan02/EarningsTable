@@ -17,76 +17,104 @@ echo "🚀 ENHANCED MASTER CRON STARTED\n";
 echo "📅 Date: " . date('Y-m-d H:i:s') . "\n\n";
 
 try {
-    // STEP 1: Clear old data
-    echo "=== STEP 1: CLEARING OLD DATA ===\n";
-    $clearStart = microtime(true);
+    // Get current time to determine if we should run daily tasks
+    $currentHour = (int)date('H');
+    $currentMinute = (int)date('i');
+    $isClearDataRun = ($currentHour === 2 && $currentMinute === 0); // Run clear data at 02:00
+    $isDailySetupRun = ($currentHour === 2 && $currentMinute === 5); // Run daily setup at 02:05
+    $isTwoMinuteRun = ($currentMinute % 2 === 0); // Run every 2 minutes
     
-    $output = [];
-    $returnCode = 0;
-    exec('php cron/2_clear_old_data.php --force 2>&1', $output, $returnCode);
-    
-    $clearTime = round(microtime(true) - $clearStart, 2);
-    echo implode("\n", $output) . "\n";
-    if ($returnCode === 0) {
-        echo "✅ Clear old data completed in {$clearTime}s\n";
+    // STEP 1: Clear old data (02:00 ONLY)
+    if ($isClearDataRun) {
+        echo "=== STEP 1: CLEARING OLD DATA (02:00) ===\n";
+        $clearStart = microtime(true);
+        
+        $output = [];
+        $returnCode = 0;
+        exec('php cron/2_clear_old_data.php --force 2>&1', $output, $returnCode);
+        
+        $clearTime = round(microtime(true) - $clearStart, 2);
+        echo implode("\n", $output) . "\n";
+        if ($returnCode === 0) {
+            echo "✅ Clear old data completed in {$clearTime}s\n";
+        } else {
+            echo "❌ Clear old data failed\n";
+        }
     } else {
-        echo "❌ Clear old data failed\n";
+        echo "⏭️  STEP 1: SKIPPING CLEAR OLD DATA (not 02:00)\n";
+        $clearTime = 0;
     }
     
-    // STEP 2: Daily data setup - static (NEW REFACTORED VERSION)
-    echo "\n=== STEP 2: DAILY DATA SETUP - STATIC ===\n";
-    $fetchStart = microtime(true);
-    
-    $output = [];
-    $returnCode = 0;
-    exec('php cron/3_daily_data_setup_static.php 2>&1', $output, $returnCode);
-    
-    $fetchTime = round(microtime(true) - $fetchStart, 2);
-    echo implode("\n", $output) . "\n";
-    if ($returnCode === 0) {
-        echo "✅ Daily data setup completed in {$fetchTime}s\n";
+    // STEP 2: Daily data setup - static (02:05 ONLY)
+    if ($isDailySetupRun) {
+        echo "\n=== STEP 2: DAILY DATA SETUP - STATIC (02:05) ===\n";
+        $fetchStart = microtime(true);
+        
+        $output = [];
+        $returnCode = 0;
+        exec('php cron/3_daily_data_setup_static.php 2>&1', $output, $returnCode);
+        
+        $fetchTime = round(microtime(true) - $fetchStart, 2);
+        echo implode("\n", $output) . "\n";
+        if ($returnCode === 0) {
+            echo "✅ Daily data setup completed in {$fetchTime}s\n";
+        } else {
+            echo "❌ Daily data setup failed\n";
+        }
     } else {
-        echo "❌ Daily data setup failed\n";
+        echo "⏭️  STEP 2: SKIPPING DAILY DATA SETUP (not 02:05)\n";
+        $fetchTime = 0;
     }
     
-    // STEP 3: Regular data updates (5-minute data)
-    echo "\n=== STEP 3: REGULAR DATA UPDATES - DYNAMIC ===\n";
-    $polygonStart = microtime(true);
-    
-    $output = [];
-    $returnCode = 0;
-    exec('php cron/4_regular_data_updates_dynamic.php 2>&1', $output, $returnCode);
-    
-    $polygonTime = round(microtime(true) - $polygonStart, 2);
-    echo implode("\n", $output) . "\n";
-    if ($returnCode === 0) {
-        echo "✅ Regular data updates completed in {$polygonTime}s\n";
+    // STEP 3: Regular data updates (EVERY 2 MINUTES)
+    if ($isTwoMinuteRun) {
+        echo "\n=== STEP 3: REGULAR DATA UPDATES - DYNAMIC (2-MIN) ===\n";
+        $polygonStart = microtime(true);
+        
+        $output = [];
+        $returnCode = 0;
+        exec('php cron/4_regular_data_updates_dynamic.php 2>&1', $output, $returnCode);
+        
+        $polygonTime = round(microtime(true) - $polygonStart, 2);
+        echo implode("\n", $output) . "\n";
+        if ($returnCode === 0) {
+            echo "✅ Regular data updates completed in {$polygonTime}s\n";
+        } else {
+            echo "❌ Regular data updates failed\n";
+        }
     } else {
-        echo "❌ Regular data updates failed\n";
+        echo "⏭️  STEP 3: SKIPPING REGULAR DATA UPDATES (not 2-min run)\n";
+        $polygonTime = 0;
     }
     
-    // STEP 4: Benzinga guidance (daily - only once per day)
-    echo "\n=== STEP 4: BENZINGA CORPORATE GUIDANCE UPDATES ===\n";
-    $guidanceStart = microtime(true);
-    
-    $output = [];
-    $returnCode = 0;
-    exec('php cron/5_benzinga_guidance_updates.php 2>&1', $output, $returnCode);
-    
-    $guidanceTime = round(microtime(true) - $guidanceStart, 2);
-    echo implode("\n", $output) . "\n";
-    if ($returnCode === 0) {
-        echo "✅ Benzinga guidance completed in {$guidanceTime}s\n";
+    // STEP 4: Benzinga guidance (EVERY 2 MINUTES)
+    if ($isTwoMinuteRun) {
+        echo "\n=== STEP 4: BENZINGA CORPORATE GUIDANCE UPDATES (2-MIN) ===\n";
+        $guidanceStart = microtime(true);
+        
+        $output = [];
+        $returnCode = 0;
+        exec('php cron/5_benzinga_guidance_updates.php 2>&1', $output, $returnCode);
+        
+        $guidanceTime = round(microtime(true) - $guidanceStart, 2);
+        echo implode("\n", $output) . "\n";
+        if ($returnCode === 0) {
+            echo "✅ Benzinga guidance completed in {$guidanceTime}s\n";
+        } else {
+            echo "❌ Benzinga guidance failed\n";
+        }
     } else {
-        echo "❌ Benzinga guidance failed\n";
+        echo "⏭️  STEP 4: SKIPPING BENZINGA GUIDANCE (not 2-min run)\n";
+        $guidanceTime = 0;
     }
     
     // STEP 5: New architecture summary
     echo "\n=== STEP 5: NEW ARCHITECTURE SUMMARY ===\n";
     echo "✅ Using refactored cron jobs for better performance\n";
-    echo "✅ Daily data setup: Static data (Finnhub + Polygon)\n";
-    echo "✅ Regular updates: Dynamic data (Finnhub + Polygon)\n";
-    echo "✅ Benzinga guidance: Corporate guidance data\n";
+    echo "✅ Daily data setup: Static data (Finnhub + Polygon) - 02:05 ONLY\n";
+    echo "✅ Regular updates: Dynamic data (Finnhub + Polygon) - EVERY 2 MINUTES\n";
+    echo "✅ Benzinga guidance: Corporate guidance data + consensus porovnanie - EVERY 2 MINUTES\n";
+    echo "🕐 Current run type: " . ($isClearDataRun ? "CLEAR DATA (02:00)" : ($isDailySetupRun ? "DAILY SETUP (02:05)" : "2-MINUTE")) . "\n";
     
     // Calculate step times - FIXED: each step measures its own time
     // $clearTime, $fetchTime, $polygonTime are already calculated above
@@ -131,10 +159,25 @@ try {
     
     // Detailed timing breakdown - FIXED: using correct step times
     echo "\n⏱️  EXECUTION TIME BREAKDOWN:\n";
-    echo "  🗑️  Step 1 (Clear old data): {$clearTime}s\n";
-    echo "  📊 Step 2 (Daily data setup): {$fetchTime}s\n";
-    echo "  ⚡ Step 3 (Regular data updates): {$polygonTime}s\n";
-    echo "  📈 Step 4 (Benzinga guidance): {$guidanceTime}s\n";
+    if ($isClearDataRun) {
+        echo "  🗑️  Step 1 (Clear old data): {$clearTime}s\n";
+    } else {
+        echo "  ⏭️  Step 1 (Clear old data): SKIPPED (not 02:00)\n";
+    }
+    
+    if ($isDailySetupRun) {
+        echo "  📊 Step 2 (Daily data setup): {$fetchTime}s\n";
+    } else {
+        echo "  ⏭️  Step 2 (Daily data setup): SKIPPED (not 02:05)\n";
+    }
+    
+    if ($isTwoMinuteRun) {
+        echo "  ⚡ Step 3 (Regular data updates): {$polygonTime}s\n";
+        echo "  📈 Step 4 (Benzinga guidance): {$guidanceTime}s\n";
+    } else {
+        echo "  ⏭️  Step 3 (Regular data updates): SKIPPED (not 2-min)\n";
+        echo "  ⏭️  Step 4 (Benzinga guidance): SKIPPED (not 2-min)\n";
+    }
     
     // Calculate total time - sequential execution
     $totalTime = $clearTime + $fetchTime + $polygonTime + $guidanceTime;

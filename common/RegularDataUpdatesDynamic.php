@@ -31,6 +31,7 @@ class RegularDataUpdatesDynamic {
     private $priceUpdates = [];
     private $marketCapDiffUpdates = [];
     private $currentData = [];
+    private $historicalData = []; // Pre-fetched historical data
     
     // Performance tracking
     private $phaseTimes = [];
@@ -197,54 +198,11 @@ class RegularDataUpdatesDynamic {
         $totalPolygonCalls = 0;
         $successfulCalls = 0;
         
-        foreach ($chunks as $index => $tickerChunk) {
-            echo "Processing price chunk " . ($index + 1) . "/" . count($chunks) . " (" . count($tickerChunk) . " tickers)...\n";
-            
-            $chunkStart = microtime(true);
-            
-            // Get snapshot data with better error handling
-            $batchData = $this->retryOperation(
-                fn() => $this->apiWrapper->getPolygonBatchQuote($tickerChunk),
-                maxAttempts: $this->config->get('max_retry_attempts'),
-                delay: $this->config->get('retry_delay')
-            );
-            
-            // Get last trades from V3 API for better extended hours data
-            $lastTradesData = $this->retryOperation(
-                fn() => $this->apiWrapper->getPolygonBatchLastTrades($tickerChunk),
-                maxAttempts: $this->config->get('max_retry_attempts'),
-                delay: $this->config->get('retry_delay')
-            );
-            
-            $chunkDuration = round(microtime(true) - $chunkStart, 2);
-            
-            if ($batchData && !empty($batchData)) {
-                $this->processPolygonBatchData($batchData, $lastTradesData);
-                $successfulCalls++;
-                $this->metrics->recordApiCall('polygon', $chunkDuration, true);
-                $this->logger->logApiPerformance('polygon', $chunkDuration, true, 'batch_quote');
-                echo "  ✅ Chunk " . ($index + 1) . " processed successfully in {$chunkDuration}s\n";
-            } else {
-                $this->metrics->recordApiCall('polygon', $chunkDuration, false);
-                $this->logger->logApiPerformance('polygon', $chunkDuration, false, 'batch_quote');
-                echo "  ❌ Chunk " . ($index + 1) . " failed, using fallback data\n";
-                
-                // Use fallback data for this chunk
-                $this->processFallbackDataForChunk($tickerChunk);
-            }
-            
-            $totalPolygonCalls++;
-            
-            // Rate limiting with adaptive delay
-            if ($index < count($chunks) - 1) {
-                $delay = $this->config->get('rate_limit_delay');
-                if ($chunkDuration > 30) { // If chunk took more than 30s, increase delay
-                    $delay *= 2;
-                    echo "  ⏳ Increasing delay to " . ($delay * 1000) . "ms due to slow API response\n";
-                }
-                sleep($delay);
-            }
-        }
+        // Pre-fetch all historical data in one batch query
+        $this->prefetchHistoricalData();
+        
+        // Process chunks in parallel using curl_multi
+        $this->processChunksInParallel($chunks, $totalPolygonCalls, $successfulCalls);
         
         echo "✅ Updated prices for " . count($this->priceUpdates) . " tickers in {$totalPolygonCalls} API calls\n";
         echo "✅ Successful API calls: {$successfulCalls}/{$totalPolygonCalls}\n";
@@ -256,6 +214,152 @@ class RegularDataUpdatesDynamic {
         }
         
         $this->phaseTimes['polygon_data'] = round(microtime(true) - $phaseStart, 2);
+    }
+    
+    /**
+     * Pre-fetch all historical data in one batch query
+     */
+    private function prefetchHistoricalData() {
+        global $pdo;
+        
+        if (empty($this->existingTickers)) {
+            return;
+        }
+        
+        $placeholders = str_repeat('?,', count($this->existingTickers) - 1) . '?';
+        $stmt = $pdo->prepare("
+            SELECT ticker, previous_close 
+            FROM todayearningsmovements 
+            WHERE ticker IN ($placeholders)
+        ");
+        $stmt->execute($this->existingTickers);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $this->historicalData = [];
+        foreach ($results as $row) {
+            $this->historicalData[$row['ticker']] = $row['previous_close'];
+        }
+        
+        echo "📊 Pre-fetched historical data for " . count($this->historicalData) . " tickers\n";
+    }
+    
+    /**
+     * Process chunks in parallel using curl_multi
+     */
+    private function processChunksInParallel($chunks, &$totalPolygonCalls, &$successfulCalls) {
+        $multiHandle = curl_multi_init();
+        $curlHandles = [];
+        $chunkMap = [];
+        
+        // Start all chunk requests in parallel
+        foreach ($chunks as $index => $tickerChunk) {
+            echo "🚀 Starting chunk " . ($index + 1) . "/" . count($chunks) . " (" . count($tickerChunk) . " tickers)...\n";
+            
+            $ch = curl_init();
+            $tickerList = implode(',', $tickerChunk);
+            $url = "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={$tickerList}&apikey=" . POLYGON_API_KEY;
+            
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 60,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 3
+            ]);
+            
+            curl_multi_add_handle($multiHandle, $ch);
+            $curlHandles[] = $ch;
+            $chunkMap[spl_object_hash($ch)] = ['index' => $index, 'tickers' => $tickerChunk];
+        }
+        
+        // Execute all requests in parallel
+        $active = null;
+        do {
+            $status = curl_multi_exec($multiHandle, $active);
+            if ($active) {
+                curl_multi_select($multiHandle);
+            }
+            
+            // Process completed requests
+            while ($info = curl_multi_info_read($multiHandle)) {
+                if ($info['msg'] == CURLMSG_DONE) {
+                    $ch = $info['handle'];
+                    $chunkInfo = $chunkMap[spl_object_hash($ch)];
+                    $index = $chunkInfo['index'];
+                    $tickerChunk = $chunkInfo['tickers'];
+                    
+                    $response = curl_multi_getcontent($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    $error = curl_error($ch);
+                    $totalTime = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
+                    
+                    if ($error) {
+                        echo "  ❌ Chunk " . ($index + 1) . " failed: {$error}\n";
+                        $this->processFallbackDataForChunk($tickerChunk);
+                    } elseif ($httpCode === 200 && $response) {
+                        $data = json_decode($response, true);
+                        if (isset($data['tickers']) && is_array($data['tickers'])) {
+                            $batchData = [];
+                            foreach ($data['tickers'] as $result) {
+                                if (isset($result['ticker'])) {
+                                    $batchData[$result['ticker']] = $result;
+                                }
+                            }
+                            
+                            $this->processPolygonBatchDataOptimized($batchData);
+                            $successfulCalls++;
+                            echo "  ✅ Chunk " . ($index + 1) . " processed successfully in {$totalTime}s\n";
+                        } else {
+                            echo "  ❌ Chunk " . ($index + 1) . " failed: Invalid response format\n";
+                            $this->processFallbackDataForChunk($tickerChunk);
+                        }
+                    } else {
+                        echo "  ❌ Chunk " . ($index + 1) . " failed: HTTP {$httpCode}\n";
+                        $this->processFallbackDataForChunk($tickerChunk);
+                    }
+                    
+                    curl_multi_remove_handle($multiHandle, $ch);
+                    curl_close($ch);
+                    $totalPolygonCalls++;
+                }
+            }
+        } while ($active && $status == CURLM_OK);
+        
+        curl_multi_close($multiHandle);
+    }
+    
+    /**
+     * Optimized Polygon batch data processing (no individual DB calls)
+     */
+    private function processPolygonBatchDataOptimized($batchData) {
+        if (empty($batchData)) {
+            return;
+        }
+        
+        foreach ($batchData as $ticker => $result) {
+            // Use pre-fetched historical data
+            $previousClose = $this->historicalData[$ticker] ?? ($result['prevDay']['c'] ?? null);
+            
+            if ($previousClose === null || $previousClose <= 0) {
+                continue;
+            }
+            
+            // Get current price
+            $currentPrice = $result['lastTrade']['p'] ?? $result['prevDay']['c'] ?? $previousClose;
+            
+            // Calculate percent change
+            $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
+            
+            $this->priceUpdates[$ticker] = [
+                'current_price' => $currentPrice,
+                'previous_close' => $previousClose,
+                'price_change_percent' => $priceChangePercent,
+                'price_source' => 'polygon_optimized',
+                'change_source' => 'polygon_optimized'
+            ];
+        }
     }
     
     /**
