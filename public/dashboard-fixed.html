@@ -739,7 +739,7 @@
     /* ===== FISCAL PERIOD STYLES ===== */
     .fiscal-period-cell {
         text-align: center;
-        font-weight: 600;
+        font-weight: 400;
         font-size: var(--font-size-sm);
         padding: var(--spacing-1) var(--spacing-1);
         border-right: 1px solid var(--color-gray-200);
@@ -1501,6 +1501,87 @@
 
     .slide-in {
         animation: slideIn 0.3s ease-out;
+    }
+
+    /* ===== FOOTER STYLES ===== */
+    .site-footer {
+        background-color: var(--color-white);
+        border-top: 1px solid var(--color-gray-200);
+        color: var(--color-gray-700);
+        margin-top: var(--spacing-8);
+        padding: var(--spacing-4) var(--spacing-5);
+        text-align: center;
+    }
+
+    .disclaimer {
+        max-width: 600px;
+        margin: 0 auto var(--spacing-4) auto;
+        font-size: var(--font-size-sm);
+        line-height: 1.5;
+        color: var(--color-gray-600);
+    }
+
+    .disclaimer strong {
+        color: var(--color-gray-600);
+        font-weight: 700;
+    }
+
+    .footer-bottom {
+        border-top: 1px solid var(--color-gray-200);
+        padding-top: var(--spacing-3);
+        font-size: var(--font-size-sm);
+        color: var(--color-gray-500);
+    }
+
+    .footer-bottom a {
+        color: var(--color-gray-600);
+        text-decoration: none;
+        transition: color var(--transition-normal);
+    }
+
+    .footer-bottom a:hover {
+        color: #1E3A8A;
+    }
+
+    .footer-social {
+        display: flex;
+        gap: var(--spacing-2);
+    }
+
+    .social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: var(--color-gray-200);
+        border-radius: 50%;
+        color: var(--color-gray-600);
+        text-decoration: none;
+        transition: all var(--transition-normal);
+        font-size: var(--font-size-sm);
+    }
+
+    .social-link:hover {
+        background: #1E3A8A;
+        color: white;
+    }
+
+    /* Responsive Footer */
+    @media (max-width: 768px) {
+        .footer-main {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-6);
+        }
+        
+        .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .footer-content {
+            padding: var(--spacing-6) var(--spacing-4);
+        }
     }
 
     /* ===== PRINT STYLES ===== */
@@ -3834,5 +3915,23 @@
         console.log('🚀 Silent autorefresh initialized');
     }
     </script>
+
+    <!-- Professional Footer -->
+    <footer class="site-footer">
+        <div class="disclaimer">
+            <strong>Disclaimer</strong><br>
+            This website provides company earnings reports, guidance data, and related
+            financial information for informational and educational purposes only.
+            While we strive for accuracy, we cannot guarantee that the information is
+            complete, correct, or up to date. The information is provided as-is and is
+            not intended as investment advice. We are not affiliated with any company
+            mentioned.
+        </div>
+        <div class="footer-bottom">
+            © 2025 EarningsTable. All rights reserved. |
+            Data sourced from <a href="https://polygon.io" target="_blank" rel="nofollow">Polygon.io</a>
+            and <a href="https://www.benzinga.com" target="_blank" rel="nofollow">Benzinga</a>
+        </div>
+    </footer>
 </body>
 </html>
