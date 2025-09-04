@@ -17,7 +17,7 @@
 | Cron                   | Súbor                                | Frekvencia    | Účel                                  |
 | ---------------------- | ------------------------------------ | ------------- | ------------------------------------- |
 | **4. Regular Updates** | `4_regular_data_updates_dynamic.php` | Každých 5 min | Aktualizácia cien a zmien             |
-| **5. Benzinga 5min**   | `5_benzinga_guidance_5min.php`       | Každých 5 min | **NOVÝ** - Corporate guidance updates |
+| **6. Benzinga 5min**   | `6_benzinga_guidance_5min.php`       | Každých 5 min | **NOVÝ** - Corporate guidance updates |
 
 
 ## 🔧 **NASTAVENIE V CPANEL:**
@@ -35,7 +35,7 @@
 */5 * * * * php /home/username/public_html/cron/4_regular_data_updates_dynamic.php
 
 # Benzinga guidance updates (NOVÝ)
-*/5 * * * * php /home/username/public_html/cron/5_benzinga_guidance_5min.php
+*/5 * * * * php /home/username/public_html/cron/6_benzinga_guidance_5min.php
 ```
 
 ## 📈 **VÝHODY NOVEJ ARCHITEKTÚRY:**
