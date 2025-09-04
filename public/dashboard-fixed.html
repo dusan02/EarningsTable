@@ -3465,10 +3465,14 @@
                     document.querySelectorAll('.earnings-table-left tbody tr, .earnings-table-right tbody tr').forEach(row => {
                     row.style.display = '';
                 });
+                // Reapply size filter after clearing search
+                if (SizeFilter && SizeFilter.applyFilter) {
+                    SizeFilter.applyFilter();
+                }
                 return;
             }
 
-                // Search in left table (company info)
+                // Search in left table (company info) - IGNORE current size filter
                 const leftRows = document.querySelectorAll('.earnings-table-left tbody tr');
                 const rightEpsRevRows = document.querySelectorAll('.earnings-table-right.eps-revenue-table tbody tr');
                 const rightGuidanceRows = document.querySelectorAll('.earnings-table-right.guidance-table tbody tr');
@@ -3482,17 +3486,20 @@
                     const ticker = tickerCell.textContent?.toLowerCase() || '';
                     const companyName = companyCell.textContent?.toLowerCase() || '';
                     
-                    const matches = companyName.includes(searchTerm) || ticker.includes(searchTerm);
+                    const searchMatches = companyName.includes(searchTerm) || ticker.includes(searchTerm);
+                    
+                    // Show row if it matches search (ignore size filter)
+                    const shouldShow = searchMatches;
                     
                     // Show/hide corresponding rows in all tables
-                    leftRow.style.display = matches ? '' : 'none';
+                    leftRow.style.display = shouldShow ? '' : 'none';
                     
                     if (rightEpsRevRows[index]) {
-                        rightEpsRevRows[index].style.display = matches ? '' : 'none';
+                        rightEpsRevRows[index].style.display = shouldShow ? '' : 'none';
                     }
                     
                     if (rightGuidanceRows[index]) {
-                        rightGuidanceRows[index].style.display = matches ? '' : 'none';
+                        rightGuidanceRows[index].style.display = shouldShow ? '' : 'none';
                     }
             });
         });
@@ -3595,31 +3602,49 @@
             const activeRightTbody = this.getActiveRightTbody();
             const rightRows = activeRightTbody ? activeRightTbody.querySelectorAll('tr') : [];
             
+            // Get current search term
+            const searchInput = document.getElementById('companySearch');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            
             // Filter left rows and get their indices
             const visibleIndices = [];
             leftRows.forEach((row, index) => {
                 const sizeCell = row.querySelector('td:nth-child(4)'); // Size column
-                if (sizeCell) {
+                const tickerCell = row.querySelector('td:nth-child(2)'); // Ticker column
+                const companyCell = row.querySelector('td:nth-child(3)'); // Company column
+                
+                if (sizeCell && tickerCell && companyCell) {
                     const sizeText = sizeCell.textContent.trim().toUpperCase();
-                    let shouldShow = true;
+                    const ticker = tickerCell.textContent?.toLowerCase() || '';
+                    const companyName = companyCell.textContent?.toLowerCase() || '';
                     
+                    let sizeMatches = true;
                     if (this.currentFilters.length > 0) {
-                        shouldShow = false;
+                        sizeMatches = false;
                         
                         // Check if this row matches any of the selected filters
                         for (const filter of this.currentFilters) {
                             if (filter === 'MEGA') {
                                 const sizePill = sizeCell.querySelector('.size-mega');
                                 if (sizePill !== null) {
-                                    shouldShow = true;
+                                    sizeMatches = true;
                                     break;
                                 }
                             } else if (sizeText === filter) {
-                                shouldShow = true;
+                                sizeMatches = true;
                                 break;
                             }
                         }
                     }
+                    
+                    // Check if row matches current search term
+                    let searchMatches = true;
+                    if (searchTerm !== '') {
+                        searchMatches = companyName.includes(searchTerm) || ticker.includes(searchTerm);
+                    }
+                    
+                    // Show row only if it matches both size filter AND search
+                    const shouldShow = sizeMatches && searchMatches;
                     
                     row.style.display = shouldShow ? '' : 'none';
                     if (shouldShow) {
