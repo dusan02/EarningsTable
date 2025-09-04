@@ -17,7 +17,6 @@
 | Cron                   | Súbor                                | Frekvencia    | Účel                                  |
 | ---------------------- | ------------------------------------ | ------------- | ------------------------------------- |
 | **4. Regular Updates** | `4_regular_data_updates_dynamic.php` | Každých 5 min | Aktualizácia cien a zmien             |
-| **6. Benzinga 5min**   | `6_benzinga_guidance_5min.php`       | Každých 5 min | **NOVÝ** - Corporate guidance updates |
 
 
 ## 🔧 **NASTAVENIE V CPANEL:**
@@ -33,26 +32,18 @@
 ```bash
 # Regular data updates (ceny, zmeny)
 */5 * * * * php /home/username/public_html/cron/4_regular_data_updates_dynamic.php
-
-# Benzinga guidance updates (NOVÝ)
-*/5 * * * * php /home/username/public_html/cron/6_benzinga_guidance_5min.php
 ```
 
 ## 📈 **VÝHODY NOVEJ ARCHITEKTÚRY:**
 
-### **Benzinga 5-minútové updates:**
-
-- ✅ **Aktuálnejšie guidance** - každých 5 minút namiesto denne
-- ✅ **Lepšia synchronizácia** s trhovými dátami
-- ✅ **Rýchlejšie odhalenie** zmen v corporate guidance
 
 
 ## 🎯 **ZÁVER:**
 
 **Nové nastavenie:**
 
-- **Benzinga guidance** - každých 5 minút (namiesto denne)
+- **Benzinga guidance** - denne (cez master cron)
 - **Consensus porovnanie** - integrované do Benzinga guidance (používa estimates z Cron 3)
 - **Lepšia synchronizácia** medzi všetkými dátami
 
-**Výsledok:** Aktuálnejšie a presnejšie corporate guidance dáta s consensus porovnaním!
+**Výsledok:** Presnejšie corporate guidance dáta s consensus porovnaním!
