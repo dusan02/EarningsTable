@@ -3428,6 +3428,11 @@
                 });
 
                 if (filteredEarnings.length === 0) {
+                    // Hide all elements except header
+                    document.getElementById('market-stats').style.display = 'none';
+                    document.querySelector('.toolbar').style.display = 'none';
+                    document.getElementById('earnings-data').style.display = 'none';
+                    
                     loading.innerHTML = `
                         <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
@@ -3442,6 +3447,11 @@
            }
            
                 AppState.earningsData = filteredEarnings;
+
+                // Show all elements again when data is loaded
+                document.getElementById('market-stats').style.display = 'grid';
+                document.querySelector('.toolbar').style.display = 'flex';
+                document.getElementById('earnings-data').style.display = 'block';
 
                 DataSorter.sortData('market_cap', 'desc');
                 DataSorter.updateSortIcons('market_cap', 'desc');
@@ -3466,6 +3476,11 @@
                 AppState.error = error.message;
                 
                 if (error.message.includes('Failed to fetch') || error.message.includes('HTTP error')) {
+                    // Hide all elements except header for network errors
+                    document.getElementById('market-stats').style.display = 'none';
+                    document.querySelector('.toolbar').style.display = 'none';
+                    document.getElementById('earnings-data').style.display = 'none';
+                    
                     loading.innerHTML = `
                         <div style="color: #6b7280; text-align: center; padding: 40px 20px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
@@ -3477,10 +3492,18 @@
                         </div>
                     `;
                 } else {
+                    // Hide all elements except header for other errors
+                    document.getElementById('market-stats').style.display = 'none';
+                    document.querySelector('.toolbar').style.display = 'none';
+                    document.getElementById('earnings-data').style.display = 'none';
+                    
                     loading.innerHTML = `
-                        <div style="color: #dc2626; text-align: center;">
-                            <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
-                            <div>Error loading data: ${error.message}</div>
+                        <div style="color: #dc2626; text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                            <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #dc2626;">Error loading data</div>
+                            <div style="font-size: 16px; color: #6b7280; line-height: 1.5;">
+                                ${error.message}
+                            </div>
                         </div>
                     `;
                 }
@@ -3768,7 +3791,48 @@
     // ===== JQUERY READY HANDLER =====
     $(document).ready(function() {
         App.init();
+        
+        // Initialize intelligent autorefresh
+        initIntelligentAutorefresh();
     });
+
+    // ===== SILENT AUTOREFRESH SYSTEM =====
+    function initIntelligentAutorefresh() {
+        let lastKnownCronTime = null;
+        let checkInterval = 30000; // Check cron status every 30 seconds
+        let statusTimer = null;
+        
+        // Start checking cron status silently
+        checkCronStatus();
+        statusTimer = setInterval(checkCronStatus, checkInterval);
+        
+        function checkCronStatus() {
+            fetch('/api/cron-status.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.last_run_timestamp) {
+                        // Check if we need to refresh (new cron data detected)
+                        if (lastKnownCronTime && data.last_run_timestamp > lastKnownCronTime) {
+                            console.log('🔄 New cron data detected, refreshing page...');
+                            window.location.reload();
+                        }
+                        
+                        lastKnownCronTime = data.last_run_timestamp;
+                        
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking cron status:', error);
+                });
+        }
+        
+        // Cleanup function
+        window.addEventListener('beforeunload', function() {
+            if (statusTimer) clearInterval(statusTimer);
+        });
+        
+        console.log('🚀 Silent autorefresh initialized');
+    }
     </script>
 </body>
 </html>

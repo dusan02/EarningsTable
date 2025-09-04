@@ -241,8 +241,44 @@ try {
     echo "\n✅ Enhanced master cron completed successfully!\n";
     echo "🎯 New architecture: Better performance and stability!\n";
     
+    // Write success status to file for autorefresh functionality
+    $statusData = [
+        'last_successful_run' => date('Y-m-d H:i:s'),
+        'total_records' => $totalCount,
+        'execution_time' => $totalTime,
+        'eps_percentage' => $epsPercent,
+        'revenue_percentage' => $revenuePercent
+    ];
+    
+    $statusFile = __DIR__ . '/../storage/cron_status.json';
+    $statusDir = dirname($statusFile);
+    
+    // Ensure storage directory exists
+    if (!is_dir($statusDir)) {
+        mkdir($statusDir, 0755, true);
+    }
+    
+    file_put_contents($statusFile, json_encode($statusData, JSON_PRETTY_PRINT));
+    echo "📝 Status written to: {$statusFile}\n";
+    
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";
+    
+    // Write error status to file
+    $statusData = [
+        'last_successful_run' => null,
+        'error' => $e->getMessage(),
+        'error_time' => date('Y-m-d H:i:s')
+    ];
+    
+    $statusFile = __DIR__ . '/../storage/cron_status.json';
+    $statusDir = dirname($statusFile);
+    
+    if (!is_dir($statusDir)) {
+        mkdir($statusDir, 0755, true);
+    }
+    
+    file_put_contents($statusFile, json_encode($statusData, JSON_PRETTY_PRINT));
     exit(1);
 }
 ?>
