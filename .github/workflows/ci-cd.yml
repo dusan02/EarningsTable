@@ -42,19 +42,18 @@ jobs:
           mysql -h 127.0.0.1 -P 3306 -u root -proot -e "CREATE DATABASE IF NOT EXISTS earnings_db;"
           mysql -h 127.0.0.1 -P 3306 -u root -proot earnings_db < sql/setup_all_tables.sql
 
-      - name: 🧪 Run database tests
+      - name: 🧪 Run comprehensive tests
         run: |
-          php Tests/github_actions_test.php
+          php Tests/master_test.php
         env:
           DB_HOST: 127.0.0.1
           DB_NAME: earnings_db
           DB_USER: root
           DB_PASS: root
 
-      - name: 🔍 Run API tests
+      - name: 🔍 Run additional API tests
         run: |
           php Tests/test_api.php
-          php Tests/check_api_data.php
         continue-on-error: true
 
       - name: 📊 Test coverage report
