@@ -3,8 +3,10 @@ require_once 'config.php';
 
 echo "=== CURL_MULTI SPEED TEST ===\n\n";
 
-// Test tickers
-$testTickers = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'META', 'NVDA', 'AMZN', 'NFLX', 'AMD', 'INTC'];
+// Test tickers - current tickers
+require_once 'test_helper.php';
+$testTickers = TestHelper::getCurrentTickers(10);
+TestHelper::printTickerInfo($testTickers, "Testing cURL Multi Speed for");
 
 echo "Testing with " . count($testTickers) . " tickers...\n\n";
 

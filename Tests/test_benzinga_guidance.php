@@ -1,15 +1,17 @@
 <?php
 /**
- * Test Benzinga Guidance API pre tickery CHPT a CRM
+ * Test Benzinga Guidance API pre aktuálne tickery
  */
 
 require_once 'config.php';
+require_once 'test_helper.php';
 
 echo "🔍 Testing Benzinga Guidance API\n";
 echo "================================\n\n";
 
-// Test tickery
-$testTickers = ['CHPT', 'CRM'];
+// Načíta aktuálne tickery s guidance dátami
+$testTickers = TestHelper::getTickersWithGuidance(3);
+TestHelper::printTickerInfo($testTickers, "Testing Guidance API for");
 
 foreach ($testTickers as $ticker) {
     echo "📊 Testing ticker: {$ticker}\n";
@@ -68,12 +70,12 @@ foreach ($testTickers as $ticker) {
                     foreach ($data['results'] as $index => $guidance) {
                         echo "   Record " . ($index + 1) . ":\n";
                         echo "     - Date: " . ($guidance['date'] ?? 'N/A') . "\n";
-                        echo "     - Period: " . ($guidance['period'] ?? 'N/A') . "\n";
-                        echo "     - Year: " . ($guidance['year'] ?? 'N/A') . "\n";
-                        echo "     - EPS Guidance: " . ($guidance['eps_guidance'] ?? 'N/A') . "\n";
-                        echo "     - Revenue Guidance: " . ($guidance['revenue_guidance'] ?? 'N/A') . "\n";
+                        echo "     - Period: " . ($guidance['fiscal_period'] ?? 'N/A') . "\n";
+                        echo "     - Year: " . ($guidance['fiscal_year'] ?? 'N/A') . "\n";
+                        echo "     - EPS Guidance: " . ($guidance['estimated_eps_guidance'] ?? 'N/A') . "\n";
+                        echo "     - Revenue Guidance: " . ($guidance['estimated_revenue_guidance'] ? number_format($guidance['estimated_revenue_guidance']) : 'N/A') . "\n";
                         echo "     - Currency: " . ($guidance['currency'] ?? 'N/A') . "\n";
-                        echo "     - Notes: " . ($guidance['notes'] ?? 'N/A') . "\n";
+                        echo "     - Company: " . ($guidance['company_name'] ?? 'N/A') . "\n";
                         echo "\n";
                     }
                 } else {

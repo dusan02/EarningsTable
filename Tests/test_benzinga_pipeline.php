@@ -14,14 +14,16 @@
  */
 
 require_once 'test_config.php';
+require_once 'test_helper.php';
 
 class BenzingaPipelineTest {
     private $pdo;
     private $testResults = [];
-    private $testTickers = ['CRM', 'CHPT', 'HPE']; // Test tickery
+    private $testTickers;
     
     public function __construct($pdo) {
         $this->pdo = $pdo;
+        $this->testTickers = TestHelper::getTickersWithGuidance(3);
     }
     
     /**

@@ -7,8 +7,10 @@ echo "=== TESTING POLYGON BATCH QUOTE ===\n\n";
 try {
     $apiWrapper = new UnifiedApiWrapper();
     
-    // Test with a few tickers
-    $testTickers = ['AAPL', 'MSFT', 'GOOGL'];
+    // Test with current tickers
+    require_once 'test_helper.php';
+    $testTickers = TestHelper::getCurrentTickers(3);
+    TestHelper::printTickerInfo($testTickers, "Testing Batch Quote for");
     
     echo "Testing with tickers: " . implode(', ', $testTickers) . "\n\n";
     

@@ -4,12 +4,14 @@
  */
 
 require_once 'config.php';
+require_once 'test_helper.php';
 
 echo "🔍 Testing Benzinga API Directly\n";
 echo "================================\n\n";
 
-// Test tickery
-$testTickers = ['CHPT', 'CRM'];
+// Načíta aktuálne tickery s guidance dátami
+$testTickers = TestHelper::getTickersWithGuidance(3);
+TestHelper::printTickerInfo($testTickers, "Testing Direct Benzinga API for");
 
 foreach ($testTickers as $ticker) {
     echo "📊 Testing ticker: {$ticker}\n";
