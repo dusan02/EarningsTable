@@ -390,11 +390,11 @@
     }
 
                      .winner-label {
-                font-size: 9px;
+                font-size: 9.9px;
                 font-weight: 600;
         color: var(--color-gray-600);
-         text-transform: uppercase;
-         letter-spacing: 0.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: var(--spacing-1);
      }
 
@@ -406,7 +406,7 @@
     }
 
     .winner-value {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
     }
 
@@ -1461,7 +1461,7 @@
         }
         
         .winner-label {
-            font-size: 10px;
+            font-size: 9.9px;
         }
         
         .winner-ticker {
@@ -1469,7 +1469,7 @@
         }
         
         .winner-value {
-            font-size: 9px;
+            font-size: 12px;
         }
         
         /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
@@ -2237,7 +2237,7 @@
         }
         
         .winner-label {
-            font-size: 10px;
+            font-size: 9.9px;
         }
         
         .winner-ticker {
@@ -2245,7 +2245,7 @@
         }
         
         .winner-value {
-            font-size: 9px;
+            font-size: 12px;
         }
         
         /* Note: .table-header-cell and .table-cell styles are now handled by .earnings-table-left and .earnings-table-right */
@@ -2874,7 +2874,7 @@
         formatMarketCapDiff: (value) => {
             if (!value || isNaN(value)) return '-';
             const num = parseFloat(value);
-            const sign = num >= 0 ? '' : '-';
+            const sign = num >= 0 ? '+' : '-';
             const absNum = Math.abs(num);
             
             if (absNum >= 1e12) return `${sign}${(absNum / 1e12).toFixed(1)}T`;
@@ -3352,9 +3352,9 @@
         }) : null;
 
         document.getElementById('priceGainerTicker').textContent = priceBest?.ticker ?? '—';
-            document.getElementById('priceGainerValue').textContent = priceBest ? `${parseFloat(priceBest.price_change_percent).toFixed(2)}%` : '—';
+            document.getElementById('priceGainerValue').textContent = priceBest ? Utils.formatPriceChange(priceBest.price_change_percent) : '—';
         document.getElementById('priceLoserTicker').textContent = priceWorst?.ticker ?? '—';
-            document.getElementById('priceLoserValue').textContent = priceWorst ? `${parseFloat(priceWorst.price_change_percent).toFixed(2)}%` : '—';
+            document.getElementById('priceLoserValue').textContent = priceWorst ? Utils.formatPriceChange(priceWorst.price_change_percent) : '—';
 
             // Market cap diff
         const mc = data.filter(d => {
