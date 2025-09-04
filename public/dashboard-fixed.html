@@ -267,7 +267,10 @@
         /* Layout */
         --container-width: 70%;
         --container-max-width: none;
-        --table-row-height: 25px;
+        /* Table dimensions - UNIFIED SYSTEM */
+        --row-h: 25px;                    /* jednotná výška riadku */
+        --cell-xpad: 8px;                 /* horizontálny padding */
+        --table-row-height: 25px;         /* legacy - zachované pre kompatibilitu */
         --header-height: 42px;
     }
 
@@ -422,12 +425,15 @@
         color: var(--color-info);
     }
 
-    /* ===== TABLE STYLES ===== */
-    /* Note: .table-scroll styles are now handled by .dual-table-wrapper */
-    /* The dual table structure provides its own scrolling behavior */
-
-    /* Note: .earnings-table styles are now handled by .earnings-table-left and .earnings-table-right */
-    /* The dual table structure provides separate styling for each part */
+    /* ===== TABLE STYLES - UNIFIED SYSTEM ===== */
+    /* Zjednotené štýly pre všetky tri tabuľky */
+    .earnings-table-left,
+    .eps-revenue-table,
+    .guidance-table {
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+    }
 
     /* Note: Table header styles are now handled by .earnings-table-left th and .earnings-table-right th */
     /* The dual table structure provides separate styling for each part */
@@ -1300,13 +1306,13 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         cursor: help;
         font-family: var(--font-family-primary);
         font-weight: 600;
-        font-size: var(--font-size-base);
+        font-size: 12px;
         line-height: 1;
         transition: all var(--transition-normal);
         position: relative;
@@ -1344,8 +1350,8 @@
     }
 
     .notes-icon:hover {
-        transform: scale(1.15);
-        box-shadow: var(--shadow-lg);
+        transform: scale(1.1);
+        box-shadow: var(--shadow-md);
     }
 
     /* ===== IMPROVED TOOLTIP ===== */
@@ -1838,32 +1844,32 @@
         table-layout: fixed;
     }
 
-    /* Ensure both tables have same row heights */
+    /* KĽÚČOVÉ: jednotné riadky v tbody - všetky tri tabuľky */
     .earnings-table-left tbody tr,
-    .earnings-table-right tbody tr {
-        height: var(--table-row-height) !important;
-    }
-
+    .eps-revenue-table tbody tr,
     .guidance-table tbody tr {
-        height: var(--table-row-height) !important;
+        height: var(--row-h) !important;
     }
 
-    /* Synchronize hover effects between left and right parts */
+    /* Synchronize hover effects between left and right parts - ALL TABLES */
     .earnings-table-left tbody tr:hover,
     .earnings-table-right tbody tr:hover,
+    .eps-revenue-table tbody tr:hover,
     .guidance-table tbody tr:hover {
         background-color: var(--color-gray-200);
     }
 
-    /* Ensure proper background inheritance - ALL ROWS ARE ZEBRA STRIPED */
+    /* Ensure proper background inheritance - ALL ROWS ARE ZEBRA STRIPED - ALL TABLES */
     .earnings-table-left tbody tr:nth-child(even),
     .earnings-table-right tbody tr:nth-child(even),
+    .eps-revenue-table tbody tr:nth-child(even),
     .guidance-table tbody tr:nth-child(even) {
         background-color: var(--color-gray-50) !important;
     }
 
     .earnings-table-left tbody tr:nth-child(odd),
     .earnings-table-right tbody tr:nth-child(odd),
+    .eps-revenue-table tbody tr:nth-child(odd),
     .guidance-table tbody tr:nth-child(odd) {
         background-color: var(--color-white);
     }
@@ -1878,128 +1884,47 @@
         display: table !important;
     }
 
-    /* Ensure guidance table uses correct row height and padding */
-    .guidance-table td,
-    .guidance-table th {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        line-height: 1.2 !important; /* Better vertical centering */
-        vertical-align: middle !important;
-        box-sizing: border-box !important;
-    }
+    /* REMOVED: Guidance table specific styling - now handled by unified rules above */
 
-    /* Override specific cell styles in guidance table */
-    .guidance-table .fiscal-period-cell {
-        height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-    }
+    /* REMOVED: Specific cell styles - now handled by unified rules above */
 
-    .guidance-table .notes-icon {
-        height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-    }
+    /* REMOVED: Force guidance table dimensions - now handled by unified rules above */
 
-    /* Force guidance table to use correct dimensions */
-    .earnings-table-right.guidance-table td,
-    .earnings-table-right.guidance-table th {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        line-height: 1.2 !important;
-        vertical-align: middle !important;
-    }
-
-    /* Force all guidance table cells to use correct height */
-    table.earnings-table-right.guidance-table tbody tr td {
-        height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        line-height: 1 !important;
-        vertical-align: middle !important;
-    }
+    /* REMOVED: Force all guidance table cells - now handled by unified rules above */
     
-    /* Headers use unified styling - don't override height here */
-    table.earnings-table-right.guidance-table thead tr th {
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        line-height: 1 !important;
-        vertical-align: middle !important;
-    }
+    /* REMOVED: Headers unified styling - now handled by unified rules above */
 
-    /* Ultimate override for guidance table - highest specificity */
-    body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table td,
-    body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table th {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        line-height: 1.2 !important;
-        vertical-align: middle !important;
-        box-sizing: border-box !important;
-    }
+    /* REMOVED: Ultimate override for guidance table - now handled by unified rules above */
 
-    /* Force guidance table rows to use correct height */
-    body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table tbody tr {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        line-height: 1 !important;
-    }
+    /* REMOVED: Force guidance table rows - now handled by unified rules above */
 
-    /* Additional guidance table overrides */
-    .guidance-table td,
-    .guidance-table th,
-    .guidance-table tbody tr,
-    .guidance-table thead tr {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        line-height: 1.2 !important;
-        vertical-align: middle !important;
-    }
+    /* REMOVED: Additional guidance table overrides - now handled by unified rules above */
 
-    /* Override any conflicting styles for guidance table */
-    .earnings-table-right.guidance-table .fiscal-period-cell {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        text-align: center !important;
-    }
-
-    .earnings-table-right.guidance-table .notes-icon {
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
-        padding: var(--spacing-1) var(--spacing-1) !important;
-    }
+    /* REMOVED: Override conflicting styles - now handled by unified rules above */
 
     /* Hide EPS & Revenue table when guidance is active */
     .eps-revenue-table.hidden {
         display: none !important;
     }
 
+    /* REMOVED: EPS & Revenue table specific styling - now handled by unified rules above */
+
     /* ===== TABLE SYNCHRONIZATION ===== */
-    /* Unified header styling for ALL tables - eliminates padding/line-height differences */
+    /* Zjednotené hlavičky: rovnaké pravidlá ako pre body */
     .earnings-table-left thead th,
     .eps-revenue-table thead th,
     .guidance-table thead th {
         background: #e3f2fd;
         border-bottom: 2px solid var(--color-gray-300);
         font-weight: 700;
-        font-size: 11.3px;                    /* same as table cells */
+        font-size: 11.3px;
         text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        height: var(--header-height, 42px);   /* fallback 42px */
-        min-height: var(--header-height, 42px);
-        line-height: 1.2;                     /* same everywhere */
-        padding: 8px 12px;                    /* same everywhere */
+        padding: 0 var(--cell-xpad) !important;
+        height: var(--row-h) !important;
+        line-height: var(--row-h) !important;
         vertical-align: middle;
         box-sizing: border-box;
-        text-align: left;                     /* default left alignment */
+        text-align: left;
     }
     
     /* Market Cap and Cap Diff columns - force right alignment */
@@ -2070,36 +1995,24 @@
         box-shadow: var(--shadow-sm);
     }
 
-    /* Ensure consistent cell styling */
-    .earnings-table-left td,
-    .earnings-table-right td {
-        padding: var(--spacing-2) var(--spacing-2);
-        white-space: nowrap;
-        overflow: hidden;
+    /* KĽÚČOVÉ: zjednoť th/td — rozhoduje line-height + vertical padding = 0 */
+    .earnings-table-left td, .earnings-table-left th,
+    .eps-revenue-table  td, .eps-revenue-table  th,
+    .guidance-table     td, .guidance-table     th {
+        padding: 0 var(--cell-xpad) !important;   /* vertikálny padding = 0 */
+        height: var(--row-h) !important;
+        line-height: var(--row-h) !important;     /* robí presnú výšku riadku */
+        white-space: nowrap; 
+        overflow: hidden; 
         text-overflow: ellipsis;
-        vertical-align: middle;
+        vertical-align: middle; 
+        box-sizing: border-box;
         border-bottom: 1px solid var(--color-gray-100);
         border-right: 1px solid var(--color-gray-100);
-        box-sizing: border-box;
-        height: var(--table-row-height) !important;
-        min-height: var(--table-row-height) !important;
-        max-height: var(--table-row-height) !important;
         transition: all var(--transition-normal);
     }
 
-    /* Guidance table specific cell styling */
-    .guidance-table td {
-        padding: var(--spacing-1) var(--spacing-1) !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        vertical-align: middle;
-        border-bottom: 1px solid var(--color-gray-100);
-        border-right: 1px solid var(--color-gray-100);
-        box-sizing: border-box;
-        height: var(--table-row-height) !important;
-        transition: all var(--transition-normal);
-    }
+    /* REMOVED: Guidance table specific styling - now handled by unified rules above */
 
     .earnings-table-right td:last-child {
         border-right: none;
@@ -2109,16 +2022,18 @@
         border-right: none;
     }
 
-    /* Synchronize row hover effects */
+    /* Synchronize row hover effects - ALL TABLES */
     .earnings-table-left tbody tr:hover td,
     .earnings-table-right tbody tr:hover td,
+    .eps-revenue-table tbody tr:hover td,
     .guidance-table tbody tr:hover td {
         background-color: var(--color-gray-200);
     }
 
-    /* Hover synchronization class */
+    /* Hover synchronization class - ALL TABLES */
     .earnings-table-left tbody tr.hover-sync td,
     .earnings-table-right tbody tr.hover-sync td,
+    .eps-revenue-table tbody tr.hover-sync td,
     .guidance-table tbody tr.hover-sync td {
         background-color: var(--color-gray-200);
     }
