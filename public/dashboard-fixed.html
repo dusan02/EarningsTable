@@ -2503,6 +2503,13 @@
     .earnings-table-right.guidance-table td:last-child {
         text-align: center !important;
     }
+    
+    /* Prevent ellipsis for guidance surprise columns */
+    .earnings-table-right.guidance-table td:nth-child(2), /* EPS G Surp */
+    .earnings-table-right.guidance-table td:nth-child(4) { /* Rev G Surp */
+        text-overflow: unset !important;
+        overflow: visible !important;
+    }
 
     /* Right align EPS & Revenue column headers */
     .earnings-table-right.eps-revenue-table thead th:nth-child(1), /* EPS Estimate */
@@ -2769,12 +2776,12 @@
                     <!-- Guidance Columns (Hidden by Default) -->
                     <table class="earnings-table-right guidance-table" role="table" aria-label="Guidance columns" style="display: none;">
                         <colgroup>
-                            <col style="width:16.67%" aria-label="EPS Guidance column">
-                            <col style="width:16.67%" aria-label="EPS Guidance Surprise column">
-                            <col style="width:16.67%" aria-label="Revenue Guidance column">
-                            <col style="width:16.67%" aria-label="Revenue Guidance Surprise column">
-                            <col style="width:16.67%" aria-label="Fiscal Period column">
-                            <col style="width:16.67%" aria-label="Notes column">
+                            <col style="width:15%" aria-label="EPS Guidance column">
+                            <col style="width:20%" aria-label="EPS Guidance Surprise column">
+                            <col style="width:15%" aria-label="Revenue Guidance column">
+                            <col style="width:20%" aria-label="Revenue Guidance Surprise column">
+                            <col style="width:15%" aria-label="Fiscal Period column">
+                            <col style="width:15%" aria-label="Notes column">
                         </colgroup>
                         <thead>
                             <tr>
@@ -2893,7 +2900,7 @@
             const isClamped = Math.abs(num) > 300;
             
             const sign = clamped >= 0 ? '+' : '';
-            const suffix = isClamped ? ' !' : '';
+            const suffix = isClamped ? '!' : '';
             
             return `${sign}${clamped.toFixed(2)}%${suffix}`;
         },

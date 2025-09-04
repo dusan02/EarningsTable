@@ -56,6 +56,8 @@ try {
             e.ticker,
             e.eps_estimate,
             e.revenue_estimate,
+            e.fiscal_period,
+            e.fiscal_year,
             e.report_time,
             e.data_source,
             e.source_priority,
@@ -81,8 +83,8 @@ try {
             g.previous_max_eps_guidance,
             g.previous_min_revenue_guidance,
             g.previous_max_revenue_guidance,
-            g.fiscal_period as guidance_fiscal_period,
-            g.fiscal_year as guidance_fiscal_year,
+            g.g_period as guidance_fiscal_period,
+            g.g_year as guidance_fiscal_year,
             g.eps_method as guidance_eps_method,
             g.revenue_method as guidance_revenue_method,
             g.currency as guidance_currency,
@@ -91,35 +93,38 @@ try {
         LEFT JOIN TodayEarningsMovements t ON e.ticker = t.ticker
         LEFT JOIN (
             SELECT 
-                ticker COLLATE utf8mb4_general_ci as ticker,
-                estimated_eps_guidance,
-                eps_guide_vs_consensus_pct,
-                estimated_revenue_guidance,
-                revenue_guide_vs_consensus_pct,
-                previous_min_eps_guidance,
-                previous_max_eps_guidance,
-                previous_min_revenue_guidance,
-                previous_max_revenue_guidance,
-                fiscal_period,
-                fiscal_year,
-                eps_method,
-                revenue_method,
-                currency,
-                notes,
-                ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY 
-                    CASE WHEN release_type = 'final' THEN 1 ELSE 2 END,
-                    last_updated DESC
-                ) as rn
+                g1.ticker COLLATE utf8mb4_unicode_ci AS g_ticker,
+                g1.fiscal_period COLLATE utf8mb4_unicode_ci AS g_period,
+                g1.fiscal_year AS g_year,
+                g1.estimated_eps_guidance,
+                g1.eps_guide_vs_consensus_pct,
+                g1.estimated_revenue_guidance,
+                g1.revenue_guide_vs_consensus_pct,
+                g1.previous_min_eps_guidance,
+                g1.previous_max_eps_guidance,
+                g1.previous_min_revenue_guidance,
+                g1.previous_max_revenue_guidance,
+                g1.eps_method,
+                g1.revenue_method,
+                g1.currency,
+                g1.notes,
+                ROW_NUMBER() OVER (PARTITION BY g1.ticker, g1.fiscal_period, g1.fiscal_year ORDER BY 
+                    CASE WHEN g1.release_type = 'final' THEN 1 ELSE 2 END,
+                    g1.last_updated DESC
+                ) AS rn
             FROM benzinga_guidance g1
-            WHERE g1.fiscal_period IN ('Q1','Q2','Q3','Q4','FY','2H','3Q','1H','4Q')
-            AND g1.fiscal_year IN (2024, 2025, 2026)
+            WHERE g1.fiscal_period IN ('Q1','Q2','Q3','Q4','FY','H1','H2')
+            AND g1.fiscal_year BETWEEN YEAR(CURDATE())-1 AND YEAR(CURDATE())+3
             -- ✅ Menej prísny filter: vyžaduje len akékoľvek guidance, nie nutne EPS AJ Revenue
             AND (
                 (g1.estimated_eps_guidance != '' AND g1.estimated_eps_guidance IS NOT NULL)
                 OR 
                 (g1.estimated_revenue_guidance != '' AND g1.estimated_revenue_guidance IS NOT NULL)
             )
-        ) g ON e.ticker = g.ticker AND g.rn = 1
+        ) g ON e.ticker COLLATE utf8mb4_unicode_ci = g.g_ticker
+            AND e.fiscal_period COLLATE utf8mb4_unicode_ci = g.g_period
+            AND e.fiscal_year = g.g_year
+            AND g.rn = 1
         WHERE e.report_date = ?
         ORDER BY e.ticker
     ");
@@ -128,9 +133,34 @@ try {
     
     // Helper functions for validation
     function periodsMatch($guidance, $item) {
-        // Guidance is now only shown for companies with earnings data, so this is more reliable
-        // In the future, when estimates have fiscal periods, we can add proper validation
-        return true; // Allow fallback 2 for now, but log for monitoring
+        // Now we have fiscal_period and fiscal_year in both tables - strict matching required
+        if (empty($guidance['fiscal_period']) || empty($guidance['fiscal_year'])) {
+            return false; // No guidance period info
+        }
+        if (empty($item['fiscal_period']) || empty($item['fiscal_year'])) {
+            return false; // No estimate period info
+        }
+        
+        // Normalize period formats for comparison
+        $guidancePeriod = normalizePeriod($guidance['fiscal_period']);
+        $estimatePeriod = normalizePeriod($item['fiscal_period']);
+        
+        return $guidancePeriod === $estimatePeriod && 
+               $guidance['fiscal_year'] == $item['fiscal_year'];
+    }
+    
+    function normalizePeriod($period) {
+        // Normalize different period formats to standard Q1-Q4, H1/H2, FY
+        $period = strtoupper(trim($period));
+        switch ($period) {
+            case '1H': case 'H1': return 'H1';
+            case '2H': case 'H2': return 'H2';
+            case '3Q': case 'Q3': return 'Q3';
+            case '4Q': case 'Q4': return 'Q4';
+            case 'Q1': case 'Q2': return $period;
+            case 'FY': return 'FY';
+            default: return $period;
+        }
     }
     
     function methodOk($guidanceMethod, $estimateMethod) {
@@ -140,33 +170,40 @@ try {
         return $guidanceMethod === $estimateMethod;
     }
     
+    function canCompare($guide, $est, $guidanceMethod, $estimateMethod) {
+        if (!$guide || !$est) return false;
+        if ($est == 0) return false;
+        if (!periodsMatch($guide, $est)) return false;
+        if (!methodOk($guidanceMethod, $estimateMethod)) return false;
+        return true;
+    }
+    
     function isExtremeValue($value) {
         return abs($value) > 300; // Flag values above 300% as potentially extreme
     }
     
     // Apply fallback logic for guidance surprise values with enhanced validation
     foreach ($earnings as &$item) {
-        // EPS Guide Surprise Fallback
+        // EPS Guide Surprise Fallback with strict validation
         if ($item['eps_guide_surprise_consensus'] !== null) {
-            // Use consensus if available
+            // 1. PRIORITA: Use vendor consensus if available
             $item['eps_guide_surprise'] = $item['eps_guide_surprise_consensus'];
-            $item['eps_guide_basis'] = 'consensus';
+            $item['eps_guide_basis'] = 'vendor_consensus';
             $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
-        } elseif (
-            $item['eps_guide'] !== null && 
-            $item['eps_estimate'] !== null && 
-            $item['eps_estimate'] != 0 &&
-            periodsMatch($item, $item) && 
-            methodOk($item['guidance_eps_method'] ?? null, null)
-        ) {
-            // Guidance vs estimate (now more reliable since guidance is only for companies with earnings)
+        } elseif (canCompare(
+            ['fiscal_period' => $item['guidance_fiscal_period'], 'fiscal_year' => $item['guidance_fiscal_year']], 
+            ['fiscal_period' => $item['fiscal_period'], 'fiscal_year' => $item['fiscal_year']], 
+            $item['guidance_eps_method'] ?? null, 
+            null
+        ) && $item['eps_guide'] !== null && $item['eps_estimate'] !== null && $item['eps_estimate'] != 0) {
+            // 2. FALLBACK: Guidance vs estimate (with strict period/method matching)
             $item['eps_guide_surprise'] = (($item['eps_guide'] - $item['eps_estimate']) / $item['eps_estimate']) * 100;
             $item['eps_guide_basis'] = 'estimate';
             $item['eps_guide_extreme'] = isExtremeValue($item['eps_guide_surprise']);
             
-            // Log potential mismatches for monitoring
+            // Log for monitoring
             if ($item['eps_guide_extreme']) {
-                error_log("EXTREME EPS: {$item['ticker']} = {$item['eps_guide_surprise']}% (guidance: {$item['eps_guide']}, estimate: {$item['eps_estimate']}) - basis: estimate");
+                error_log("EXTREME EPS: {$item['ticker']} = {$item['eps_guide_surprise']}% (guidance: {$item['eps_guide']}, estimate: {$item['eps_estimate']}) - periods: {$item['guidance_fiscal_period']}/{$item['guidance_fiscal_year']} vs {$item['fiscal_period']}/{$item['fiscal_year']}");
             }
         } elseif (
             $item['eps_guide'] !== null && 
@@ -175,7 +212,7 @@ try {
             $item['previous_min_eps_guidance'] != 0 && 
             $item['previous_max_eps_guidance'] != 0
         ) {
-            // Fallback: guidance vs previous guidance midpoint (only if both min/max exist)
+            // 3. FALLBACK: guidance vs previous guidance midpoint (only if both min/max exist)
             $midpoint = ($item['previous_min_eps_guidance'] + $item['previous_max_eps_guidance']) / 2;
             if ($midpoint != 0) {
                 $item['eps_guide_surprise'] = (($item['eps_guide'] - $midpoint) / $midpoint) * 100;
@@ -192,27 +229,26 @@ try {
             $item['eps_guide_extreme'] = false;
         }
         
-        // Revenue Guide Surprise Fallback
+        // Revenue Guide Surprise Fallback with strict validation
         if ($item['revenue_guide_surprise_consensus'] !== null) {
-            // Use consensus if available
+            // 1. PRIORITA: Use vendor consensus if available
             $item['revenue_guide_surprise'] = $item['revenue_guide_surprise_consensus'];
-            $item['revenue_guide_basis'] = 'consensus';
+            $item['revenue_guide_basis'] = 'vendor_consensus';
             $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
-        } elseif (
-            $item['revenue_guide'] !== null && 
-            $item['revenue_estimate'] !== null && 
-            $item['revenue_estimate'] != 0 &&
-            periodsMatch($item, $item) && 
-            methodOk($item['guidance_revenue_method'] ?? null, null)
-        ) {
-            // Guidance vs estimate (now more reliable since guidance is only for companies with earnings)
+        } elseif (canCompare(
+            ['fiscal_period' => $item['guidance_fiscal_period'], 'fiscal_year' => $item['guidance_fiscal_year']], 
+            ['fiscal_period' => $item['fiscal_period'], 'fiscal_year' => $item['fiscal_year']], 
+            $item['guidance_revenue_method'] ?? null, 
+            null
+        ) && $item['revenue_guide'] !== null && $item['revenue_estimate'] !== null && $item['revenue_estimate'] != 0) {
+            // 2. FALLBACK: Guidance vs estimate (with strict period/method matching)
             $item['revenue_guide_surprise'] = (($item['revenue_guide'] - $item['revenue_estimate']) / $item['revenue_estimate']) * 100;
             $item['revenue_guide_basis'] = 'estimate';
             $item['revenue_guide_extreme'] = isExtremeValue($item['revenue_guide_surprise']);
             
-            // Log potential mismatches for monitoring
+            // Log for monitoring
             if ($item['revenue_guide_extreme']) {
-                error_log("EXTREME REVENUE: {$item['ticker']} = {$item['revenue_guide_surprise']}% (guidance: {$item['revenue_guide']}, estimate: {$item['revenue_estimate']}) - basis: estimate");
+                error_log("EXTREME REVENUE: {$item['ticker']} = {$item['revenue_guide_surprise']}% (guidance: {$item['revenue_guide']}, estimate: {$item['revenue_estimate']}) - periods: {$item['guidance_fiscal_period']}/{$item['guidance_fiscal_year']} vs {$item['fiscal_period']}/{$item['fiscal_year']}");
             }
         } elseif (
             $item['revenue_guide'] !== null && 
@@ -221,7 +257,7 @@ try {
             $item['previous_min_revenue_guidance'] != 0 && 
             $item['previous_max_revenue_guidance'] != 0
         ) {
-            // Fallback: guidance vs previous guidance midpoint (only if both min/max exist)
+            // 3. FALLBACK: guidance vs previous guidance midpoint (only if both min/max exist)
             $midpoint = ($item['previous_min_revenue_guidance'] + $item['previous_max_revenue_guidance']) / 2;
             if ($midpoint != 0) {
                 $item['revenue_guide_surprise'] = (($item['revenue_guide'] - $midpoint) / $midpoint) * 100;

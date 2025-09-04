@@ -18,7 +18,9 @@ $tests = [
         'check_tickers.php' => 'Kontrola tickerov',
         'check_earnings.php' => 'Kontrola earnings dát',
         'check_data.php' => 'Prehľad dnešných dát',
-        'check_tables.php' => 'Kontrola štruktúry tabuliek'
+        'check_tables.php' => 'Kontrola štruktúry tabuliek',
+        'check_collation_status.php' => 'Kontrola collation statusu databázy',
+        'check_ett_structure.php' => 'Kontrola štruktúry EarningsTickersToday tabuľky'
     ],
     
     // === TEST SÚBORY (Funkcionalita) ===
@@ -40,7 +42,9 @@ $tests = [
         'test_simple_db.php' => 'Test databázového pripojenia',
         // === NOVÉ BENZINGA PIPELINE TESTS ===
         'test_benzinga_pipeline.php' => 'Test Benzinga data pipeline (CRITICAL)',
-        'test_benzinga_issues.php' => 'Test Benzinga issues resolution (CRITICAL)'
+        'test_benzinga_issues.php' => 'Test Benzinga issues resolution (CRITICAL)',
+        // === NOVÉ GUIDANCE MATCHING TESTS ===
+        'test_avgo_matching.php' => 'Test AVGO guidance matching logiky'
     ],
     
     // === CRITICAL TEST SÚBORY (Kritické funkcionality) ===
