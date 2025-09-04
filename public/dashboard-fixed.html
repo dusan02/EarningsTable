@@ -267,7 +267,7 @@
         /* Layout */
         --container-width: 70%;
         --container-max-width: none;
-        --table-row-height: 42px;
+        --table-row-height: 25px;
         --header-height: 42px;
     }
 
@@ -1841,7 +1841,7 @@
     /* Ensure both tables have same row heights */
     .earnings-table-left tbody tr,
     .earnings-table-right tbody tr {
-        height: var(--table-row-height);
+        height: var(--table-row-height) !important;
     }
 
     .guidance-table tbody tr {
@@ -1881,9 +1881,9 @@
     /* Ensure guidance table uses correct row height and padding */
     .guidance-table td,
     .guidance-table th {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         line-height: 1.2 !important; /* Better vertical centering */
         vertical-align: middle !important;
@@ -1892,21 +1892,21 @@
 
     /* Override specific cell styles in guidance table */
     .guidance-table .fiscal-period-cell {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
     }
 
     .guidance-table .notes-icon {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
     }
 
     /* Force guidance table to use correct dimensions */
     .earnings-table-right.guidance-table td,
     .earnings-table-right.guidance-table th {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         line-height: 1.2 !important;
         vertical-align: middle !important;
@@ -1932,9 +1932,9 @@
     /* Ultimate override for guidance table - highest specificity */
     body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table td,
     body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table th {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         line-height: 1.2 !important;
         vertical-align: middle !important;
@@ -1943,9 +1943,9 @@
 
     /* Force guidance table rows to use correct height */
     body .main-container .dual-table-wrapper .table-right-part table.earnings-table-right.guidance-table tbody tr {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         line-height: 1 !important;
     }
 
@@ -1954,9 +1954,9 @@
     .guidance-table th,
     .guidance-table tbody tr,
     .guidance-table thead tr {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         line-height: 1.2 !important;
         vertical-align: middle !important;
@@ -1964,17 +1964,17 @@
 
     /* Override any conflicting styles for guidance table */
     .earnings-table-right.guidance-table .fiscal-period-cell {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
         text-align: center !important;
     }
 
     .earnings-table-right.guidance-table .notes-icon {
-        /* height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* min-height: var(--table-row-height) !important; - REMOVED for JS sync */
-        /* max-height: var(--table-row-height) !important; - REMOVED for JS sync */
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         padding: var(--spacing-1) var(--spacing-1) !important;
     }
 
@@ -2081,7 +2081,9 @@
         border-bottom: 1px solid var(--color-gray-100);
         border-right: 1px solid var(--color-gray-100);
         box-sizing: border-box;
-        height: var(--table-row-height);
+        height: var(--table-row-height) !important;
+        min-height: var(--table-row-height) !important;
+        max-height: var(--table-row-height) !important;
         transition: all var(--transition-normal);
     }
 
@@ -3947,23 +3949,16 @@
         const rightRows = rightBody.querySelectorAll('tr');
         const n = Math.min(leftRows.length, rightRows.length);
 
+        // Use CSS variable for consistent row height
+        const root = document.documentElement;
+        const rowHeight = getComputedStyle(root).getPropertyValue('--table-row-height').trim();
+
         for (let i = 0; i < n; i++) {
-            // Reset - necháme prepočítať prirodzenú výšku
-            [leftRows[i], rightRows[i]].forEach(r => {
-                r.style.removeProperty('height');
-                r.style.removeProperty('min-height');
-                r.style.removeProperty('max-height');
-            });
-
-            const lh = leftRows[i].getBoundingClientRect().height;
-            const rh = rightRows[i].getBoundingClientRect().height;
-            const h = Math.max(lh, rh);
-
             // Nastav rovnakú výšku pre oba riadky
             [leftRows[i], rightRows[i]].forEach(r => {
-                r.style.setProperty('height', `${h}px`, 'important');
-                r.style.setProperty('min-height', `${h}px`, 'important');
-                r.style.setProperty('max-height', `${h}px`, 'important');
+                r.style.setProperty('height', rowHeight, 'important');
+                r.style.setProperty('min-height', rowHeight, 'important');
+                r.style.setProperty('max-height', rowHeight, 'important');
             });
         }
     }
