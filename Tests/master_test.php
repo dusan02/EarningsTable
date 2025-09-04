@@ -44,7 +44,38 @@ $tests = [
         'test_benzinga_pipeline.php' => 'Test Benzinga data pipeline (CRITICAL)',
         'test_benzinga_issues.php' => 'Test Benzinga issues resolution (CRITICAL)',
         // === NOVÉ GUIDANCE MATCHING TESTS ===
-        'test_avgo_matching.php' => 'Test AVGO guidance matching logiky'
+        'test_avgo_matching.php' => 'Test AVGO guidance matching logiky',
+        // === NOVÉ GUIDANCE SURPRISE TESTS ===
+        'test_guidance_surprise_calculation.php' => 'Test výpočtu guidance surprise percent',
+        'test_guidance_period_matching.php' => 'Test matchingu fiscal periods (Q1 vs Q1, FY vs FY)',
+        'test_guidance_extreme_values.php' => 'Test handlingu extreme values (>300%, <-300%)',
+        'test_guidance_fallback_logic.php' => 'Test fallback logiky (consensus → estimate → previous)',
+        // === NOVÉ COLLATION & DATABASE TESTS ===
+        'test_collation_consistency.php' => 'Test konzistentnosti collation v celej DB',
+        'test_database_migrations.php' => 'Test migračných skriptov',
+        'test_fiscal_period_derivation.php' => 'Test odvodenia fiscal periods z report_date',
+        // === NOVÉ API & DATA INTEGRITY TESTS ===
+        'test_api_response_consistency.php' => 'Test konzistentnosti API odpovedí',
+        'test_guidance_data_validation.php' => 'Test validácie guidance dát',
+        'test_earnings_estimate_accuracy.php' => 'Test presnosti earnings estimates',
+        // === NOVÉ PERFORMANCE TESTS ===
+        'test_guidance_calculation_speed.php' => 'Test rýchlosti výpočtov guidance',
+        'test_batch_operations.php' => 'Test batch operácií v databáze',
+        'test_api_rate_limiting.php' => 'Test rate limiting pre API volania',
+        // === NOVÉ SECURITY & VALIDATION TESTS ===
+        'test_sql_injection_guidance.php' => 'Test SQL injection ochrany v guidance queries',
+        'test_input_validation.php' => 'Test validácie vstupných dát',
+        'test_data_sanitization.php' => 'Test sanitizácie dát',
+        // === DODATOČNÉ DÔLEŽITÉ TESTS ===
+        'test_api_endpoint.php' => 'Test API endpoint funkcionality',
+        'test_batch_quote.php' => 'Test Polygon batch quote performance',
+        'test_finnhub_earnings.php' => 'Test Finnhub earnings API',
+        'test_dashboard_data.php' => 'Test dashboard data integrity',
+        // === NOVÉ KRITICKÉ BEZPEČNOSTNÉ TESTS ===
+        'test_authentication_authorization.php' => 'Test Authentication & Authorization systému',
+        'test_csrf_protection.php' => 'Test CSRF Protection ochrany',
+        'test_session_management.php' => 'Test Session Management bezpečnosti',
+        'test_api_security.php' => 'Test API Security ochrany'
     ],
     
     // === CRITICAL TEST SÚBORY (Kritické funkcionality) ===
