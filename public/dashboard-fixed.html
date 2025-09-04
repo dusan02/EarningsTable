@@ -3016,6 +3016,11 @@
             DataSorter.updateSortIcons(AppState.currentSort.field, AppState.currentSort.direction);
             TableRenderer.renderTable();
             
+            // Reapply size filter after sorting to maintain filter state
+            if (SizeFilter && SizeFilter.applyFilter) {
+                SizeFilter.applyFilter();
+            }
+            
             requestAnimationFrame(TableRenderer.fitTableToContainer);
         }
     };
