@@ -81,12 +81,29 @@ try {
         echo "❌ Benzinga guidance failed\n";
     }
     
-    // STEP 5: New architecture summary
-    echo "\n=== STEP 5: NEW ARCHITECTURE SUMMARY ===\n";
+    // STEP 5: Estimates Consensus Updates
+    echo "\n=== STEP 5: ESTIMATES CONSENSUS UPDATES ===\n";
+    $consensusStart = microtime(true);
+    
+    $output = [];
+    $returnCode = 0;
+    exec('php cron/6_estimates_consensus_updates.php 2>&1', $output, $returnCode);
+    
+    $consensusTime = round(microtime(true) - $consensusStart, 2);
+    echo implode("\n", $output) . "\n";
+    if ($returnCode === 0) {
+        echo "✅ Estimates consensus updates completed in {$consensusTime}s\n";
+    } else {
+        echo "❌ Estimates consensus updates failed\n";
+    }
+    
+    // STEP 6: New architecture summary
+    echo "\n=== STEP 6: NEW ARCHITECTURE SUMMARY ===\n";
     echo "✅ Using refactored cron jobs for better performance\n";
     echo "✅ Daily data setup: Static data (Finnhub + Polygon)\n";
     echo "✅ Regular updates: Dynamic data (Finnhub + Polygon)\n";
     echo "✅ Benzinga guidance: Corporate guidance data\n";
+    echo "✅ Estimates consensus: EPS/Revenue estimates and guidance comparison\n";
     
     // Calculate step times - FIXED: each step measures its own time
     // $clearTime, $fetchTime, $polygonTime are already calculated above
@@ -135,8 +152,10 @@ try {
     echo "  📊 Step 2 (Daily data setup): {$fetchTime}s\n";
     echo "  ⚡ Step 3 (Regular data updates): {$polygonTime}s\n";
     echo "  📈 Step 4 (Benzinga guidance): {$guidanceTime}s\n";
+    echo "  📊 Step 5 (Estimates consensus): {$consensusTime}s\n";
+    
     // Calculate total time - sequential execution
-    $totalTime = $clearTime + $fetchTime + $polygonTime + $guidanceTime;
+    $totalTime = $clearTime + $fetchTime + $polygonTime + $guidanceTime + $consensusTime;
     echo "  🚀 TOTAL EXECUTION TIME: {$totalTime}s\n";
     
     echo "\n✅ Enhanced master cron completed successfully!\n";

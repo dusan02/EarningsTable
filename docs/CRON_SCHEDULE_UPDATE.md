@@ -11,6 +11,7 @@
 | **3. Daily Setup**       | `3_daily_data_setup_static.php`      | Denné      | Statické dáta (tickery, market cap)        |
 | **4. Regular Updates**   | `4_regular_data_updates_dynamic.php` | Denné      | Dynamické dáta (ceny, zmeny)               |
 | **5. Benzinga Guidance** | `5_benzinga_guidance_updates.php`    | Denné      | Corporate guidance dáta                    |
+| **6. Consensus**         | `6_estimates_consensus_updates.php`  | Denné      | Estimates consensus (analyst estimates)    |
 
 ### **5-MINÚTOVÉ CRONY:**
 
@@ -18,6 +19,7 @@
 | ---------------------- | ------------------------------------ | ------------- | ------------------------------------- |
 | **4. Regular Updates** | `4_regular_data_updates_dynamic.php` | Každých 5 min | Aktualizácia cien a zmien             |
 | **5. Benzinga 5min**   | `5_benzinga_guidance_5min.php`       | Každých 5 min | **NOVÝ** - Corporate guidance updates |
+| **6. Consensus 5min**  | `6_estimates_consensus_updates.php`  | Každých 5 min | **NOVÝ** - Analyst estimates updates   |
 
 
 ## 🔧 **NASTAVENIE V CPANEL:**
@@ -31,7 +33,7 @@
 ### **5-minútové crony:**
 
 ```bash
-# Regular data updates (ceny, zmeny)
+# Regular data updates (ceny, zmeny) + Estimates consensus (analyst estimates)
 */5 * * * * php /home/username/public_html/cron/4_regular_data_updates_dynamic.php
 
 # Benzinga guidance updates (NOVÝ)
@@ -52,6 +54,7 @@
 **Nové nastavenie:**
 
 - **Benzinga guidance** - každých 5 minút (namiesto denne)
+- **Analyst estimates** - každých 5 minút (nová funkcionalita)
 - **Lepšia synchronizácia** medzi všetkými dátami
 
-**Výsledok:** Aktuálnejšie a presnejšie corporate guidance dáta!
+**Výsledok:** Aktuálnejšie a presnejšie corporate guidance dáta s analyst estimates!
