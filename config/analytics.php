@@ -30,10 +30,16 @@ define('GA_COOKIE_CONSENT', true); // Cookie consent (GDPR compliance)
  * @return string HTML kód pre Google Analytics
  */
 function getGoogleAnalyticsCode() {
-    $enabled = GA_ENABLED;
-    $measurementId = GA_MEASUREMENT_ID;
+    // Check if analytics is enabled and has valid measurement ID
+    if (!defined('GA_ENABLED') || !GA_ENABLED) {
+        return '';
+    }
     
-    if (!$enabled || empty($measurementId) || $measurementId === 'GA_MEASUREMENT_ID') {
+    if (!defined('GA_MEASUREMENT_ID') || empty(GA_MEASUREMENT_ID)) {
+        return '';
+    }
+    
+    if (GA_MEASUREMENT_ID === 'GA_MEASUREMENT_ID') {
         return '';
     }
     
@@ -100,10 +106,12 @@ function getGoogleAnalyticsCode() {
  * @return string JavaScript kód
  */
 function getGoogleAnalyticsEvent($eventName, $parameters = []) {
-    $enabled = GA_ENABLED;
-    $trackEvents = GA_TRACK_EVENTS;
+    // Check if analytics is enabled and event tracking is enabled
+    if (!defined('GA_ENABLED') || !GA_ENABLED) {
+        return '';
+    }
     
-    if (!$enabled || !$trackEvents) {
+    if (!defined('GA_TRACK_EVENTS') || !GA_TRACK_EVENTS) {
         return '';
     }
     
@@ -119,9 +127,8 @@ function getGoogleAnalyticsEvent($eventName, $parameters = []) {
  * @return string JavaScript kód
  */
 function getGoogleAnalyticsPageView($pageTitle, $pageLocation) {
-    $enabled = GA_ENABLED;
-    
-    if (!$enabled) {
+    // Check if analytics is enabled
+    if (!defined('GA_ENABLED') || !GA_ENABLED) {
         return '';
     }
     
