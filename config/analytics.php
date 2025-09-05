@@ -31,20 +31,18 @@ define('GA_COOKIE_CONSENT', true); // Cookie consent (GDPR compliance)
  */
 function getGoogleAnalyticsCode() {
     // Check if analytics is enabled and has valid measurement ID
-    $config = [
-        'enabled' => constant('GA_ENABLED'),
-        'measurement_id' => constant('GA_MEASUREMENT_ID')
-    ];
+    $enabled = _getAnalyticsEnabled();
+    $measurementId = _getMeasurementId();
     
-    if (!$config['enabled']) {
+    if (!$enabled) {
         return '';
     }
     
-    if (empty($config['measurement_id'])) {
+    if (empty($measurementId)) {
         return '';
     }
     
-    if ($config['measurement_id'] === 'GA_MEASUREMENT_ID') {
+    if ($measurementId === 'GA_MEASUREMENT_ID') {
         return '';
     }
     
@@ -112,16 +110,14 @@ function getGoogleAnalyticsCode() {
  */
 function getGoogleAnalyticsEvent($eventName, $parameters = []) {
     // Check if analytics is enabled and event tracking is enabled
-    $config = [
-        'enabled' => constant('GA_ENABLED'),
-        'track_events' => constant('GA_TRACK_EVENTS')
-    ];
+    $enabled = _getAnalyticsEnabled();
+    $trackEvents = _getTrackEvents();
     
-    if (!$config['enabled']) {
+    if (!$enabled) {
         return '';
     }
     
-    if (!$config['track_events']) {
+    if (!$trackEvents) {
         return '';
     }
     
@@ -138,14 +134,27 @@ function getGoogleAnalyticsEvent($eventName, $parameters = []) {
  */
 function getGoogleAnalyticsPageView($pageTitle, $pageLocation) {
     // Check if analytics is enabled
-    $config = [
-        'enabled' => constant('GA_ENABLED')
-    ];
+    $enabled = _getAnalyticsEnabled();
     
-    if (!$config['enabled']) {
+    if (!$enabled) {
         return '';
     }
     
     return "trackPageView('$pageTitle', '$pageLocation');";
+}
+
+/**
+ * Helper functions to prevent PHPStan from analyzing constants
+ */
+function _getAnalyticsEnabled() {
+    return constant('GA_ENABLED');
+}
+
+function _getMeasurementId() {
+    return constant('GA_MEASUREMENT_ID');
+}
+
+function _getTrackEvents() {
+    return constant('GA_TRACK_EVENTS');
 }
 ?>
