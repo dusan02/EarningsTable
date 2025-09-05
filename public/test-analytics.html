@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Analytics Test - Earnings Table</title>
+    
+    <!-- Google Analytics -->
+    <?php include_once 'includes/analytics.php'; ?>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #005a87;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 Google Analytics Test</h1>
+        
+        <div class="status info">
+            <strong>Measurement ID:</strong> G-E6DJ7N6W1L<br>
+            <strong>Status:</strong> <span id="ga-status">Checking...</span>
+        </div>
+        
+        <h2>Test Eventy</h2>
+        <p>Kliknite na tlačidlá nižšie a skontrolujte v Google Analytics Real-time reportoch:</p>
+        
+        <button class="test-button" onclick="testPageLoad()">📄 Test Page Load</button>
+        <button class="test-button" onclick="testTickerClick()">📊 Test Ticker Click</button>
+        <button class="test-button" onclick="testSearch()">🔍 Test Search</button>
+        <button class="test-button" onclick="testDataRefresh()">🔄 Test Data Refresh</button>
+        <button class="test-button" onclick="testViewToggle()">👁️ Test View Toggle</button>
+        
+        <div id="test-results"></div>
+        
+        <h2>Debug Informácie</h2>
+        <div id="debug-info" class="status info">
+            <strong>gtag funkcia:</strong> <span id="gtag-status">Checking...</span><br>
+            <strong>AnalyticsEvents:</strong> <span id="analytics-events-status">Checking...</span><br>
+            <strong>DataLayer:</strong> <span id="datalayer-status">Checking...</span>
+        </div>
+        
+        <h2>Inštrukcie</h2>
+        <ol>
+            <li>Otvor <a href="https://analytics.google.com/" target="_blank">Google Analytics</a></li>
+            <li>Choď na <strong>Realtime → Overview</strong></li>
+            <li>Klikni na tlačidlá vyššie</li>
+            <li>Sleduj real-time eventy v GA</li>
+        </ol>
+    </div>
+
+    <!-- Analytics Events -->
+    <script src="js/analytics-events.js"></script>
+    
+    <script>
+        // Test funkcie
+        function testPageLoad() {
+            if (typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackPageLoad();
+                showResult('✅ Page Load event odoslaný');
+            } else {
+                showResult('❌ AnalyticsEvents nie je dostupné');
+            }
+        }
+        
+        function testTickerClick() {
+            if (typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackTickerClick('TEST');
+                showResult('✅ Ticker Click event odoslaný (TEST)');
+            } else {
+                showResult('❌ AnalyticsEvents nie je dostupné');
+            }
+        }
+        
+        function testSearch() {
+            if (typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackSearch('test search');
+                showResult('✅ Search event odoslaný');
+            } else {
+                showResult('❌ AnalyticsEvents nie je dostupné');
+            }
+        }
+        
+        function testDataRefresh() {
+            if (typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackDataRefresh();
+                showResult('✅ Data Refresh event odoslaný');
+            } else {
+                showResult('❌ AnalyticsEvents nie je dostupné');
+            }
+        }
+        
+        function testViewToggle() {
+            if (typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackViewToggle('test_view');
+                showResult('✅ View Toggle event odoslaný');
+            } else {
+                showResult('❌ AnalyticsEvents nie je dostupné');
+            }
+        }
+        
+        function showResult(message) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = 'status success';
+            div.innerHTML = message;
+            results.appendChild(div);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                div.remove();
+            }, 5000);
+        }
+        
+        // Check Google Analytics status
+        function checkGAStatus() {
+            // Check gtag
+            const gtagStatus = typeof gtag !== 'undefined' ? '✅ Dostupné' : '❌ Nedostupné';
+            document.getElementById('gtag-status').textContent = gtagStatus;
+            
+            // Check AnalyticsEvents
+            const analyticsEventsStatus = typeof AnalyticsEvents !== 'undefined' ? '✅ Dostupné' : '❌ Nedostupné';
+            document.getElementById('analytics-events-status').textContent = analyticsEventsStatus;
+            
+            // Check dataLayer
+            const datalayerStatus = typeof window.dataLayer !== 'undefined' ? '✅ Dostupné' : '❌ Nedostupné';
+            document.getElementById('datalayer-status').textContent = datalayerStatus;
+            
+            // Overall status
+            const overallStatus = (typeof gtag !== 'undefined' && typeof AnalyticsEvents !== 'undefined') ? '✅ Aktívne' : '❌ Problém';
+            document.getElementById('ga-status').textContent = overallStatus;
+        }
+        
+        // Run checks when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkGAStatus, 1000); // Wait 1 second for GA to load
+        });
+        
+        // Manual check button
+        function manualCheck() {
+            checkGAStatus();
+            showResult('🔍 Status skontrolovaný');
+        }
+        
+        // Add manual check button
+        document.addEventListener('DOMContentLoaded', function() {
+            const button = document.createElement('button');
+            button.className = 'test-button';
+            button.textContent = '🔍 Skontrolovať Status';
+            button.onclick = manualCheck;
+            document.querySelector('.test-container').appendChild(button);
+        });
+    </script>
+</body>
+</html>

@@ -84,6 +84,9 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
+    <!-- Analytics Events -->
+    <script src="js/analytics-events.js"></script>
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -3070,6 +3073,14 @@
                      <td ${currentPriceFormatted === '-' ? 'data-content="-"' : ''}>${currentPriceFormatted}</td>
                      <td class="${Utils.getPriceChangeClass(item.price_change_percent)}" ${priceChangeFormatted === '-' ? 'data-content="-"' : ''}>${priceChangeFormatted}</td>
                  `;
+                
+                // Add click tracking for ticker
+                leftRow.addEventListener('click', function() {
+                    if (typeof AnalyticsEvents !== 'undefined') {
+                        AnalyticsEvents.trackTickerClick(item.ticker);
+                    }
+                });
+                
                 tableBodyLeft.appendChild(leftRow);
                 
                 // Create EPS & Revenue row (right part)
@@ -3463,6 +3474,11 @@
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase().trim();
             
+            // Track search usage
+            if (searchTerm.length > 2 && typeof AnalyticsEvents !== 'undefined') {
+                AnalyticsEvents.trackSearch(searchTerm);
+            }
+            
             if (searchTerm === '') {
                     // Show all rows in all tables
                     document.querySelectorAll('.earnings-table-left tbody tr, .earnings-table-right tbody tr').forEach(row => {
@@ -3716,12 +3732,25 @@
 
                 const response = await fetch(CONFIG.API_ENDPOINT);
                 if (!response.ok) {
+                    // Track API error
+                    if (typeof AnalyticsEvents !== 'undefined') {
+                        AnalyticsEvents.trackApiError('earnings_data', `HTTP_${response.status}`);
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
                 if (!data.success) {
+                    // Track API error
+                    if (typeof AnalyticsEvents !== 'undefined') {
+                        AnalyticsEvents.trackApiError('earnings_data', 'API_ERROR');
+                    }
                     throw new Error(data.message || 'Failed to load data');
+                }
+                
+                // Track successful data load
+                if (typeof AnalyticsEvents !== 'undefined') {
+                    AnalyticsEvents.trackDataRefresh();
                 }
 
                 // DEBUG: Check CRM data specifically
@@ -3930,6 +3959,10 @@
         
         if (guidanceBtn) {
             guidanceBtn.addEventListener('click', () => {
+                // Track view toggle
+                if (typeof AnalyticsEvents !== 'undefined') {
+                    AnalyticsEvents.trackViewToggle('guidance');
+                }
                 setTimeout(syncRowHeights, 100); // Po CSS transition
                 raf(syncHeaderHeights); // Synchronize headers after switching
             });
@@ -3937,6 +3970,10 @@
         
         if (epsRevBtn) {
             epsRevBtn.addEventListener('click', () => {
+                // Track view toggle
+                if (typeof AnalyticsEvents !== 'undefined') {
+                    AnalyticsEvents.trackViewToggle('eps_revenue');
+                }
                 setTimeout(syncRowHeights, 100); // Po CSS transition
                 raf(syncHeaderHeights); // Synchronize headers after switching
             });

@@ -127,7 +127,7 @@ class UnifiedApiWrapper {
             return ['percent' => $percent, 'source' => 'last_trade_fallback'];
         }
         
-        return ['percent' => 0, 'source' => 'no_change'];
+        return ['percent' => null, 'source' => 'no_change'];
     }
     
     /**

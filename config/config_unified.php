@@ -14,6 +14,7 @@ date_default_timezone_set($config->get('app.timezone'));
 
 // Define constants for backward compatibility
 if (!defined('DB_HOST')) define('DB_HOST', $config->get('database.host'));
+if (!defined('DB_PORT')) define('DB_PORT', $config->get('database.port'));
 if (!defined('DB_NAME')) define('DB_NAME', $config->get('database.name'));
 if (!defined('DB_USER')) define('DB_USER', $config->get('database.user'));
 if (!defined('DB_PASS')) define('DB_PASS', $config->get('database.pass'));
@@ -50,8 +51,12 @@ if ($config->isDebug()) {
 
 // Database connection
 try {
-    require_once __DIR__ . '/connection_pool.php';
-    $pdo = DatabaseConnection::getConnection();
+    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
 } catch (PDOException $e) {
     logDatabaseError('connection', '', [], $e->getMessage(), [
         'host' => DB_HOST,

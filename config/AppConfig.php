@@ -36,6 +36,7 @@ class AppConfig {
             // Database
             'database' => [
                 'host' => EnvLoader::get('DB_HOST', 'localhost'),
+                'port' => EnvLoader::get('DB_PORT', '3307'),
                 'name' => EnvLoader::get('DB_NAME', 'earnings_table'),
                 'user' => EnvLoader::get('DB_USER', 'root'),
                 'pass' => EnvLoader::get('DB_PASS', ''),

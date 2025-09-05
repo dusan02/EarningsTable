@@ -415,8 +415,8 @@ class DailyDataSetup {
             $polygonStmt = $pdo->prepare("
                 INSERT INTO todayearningsmovements (
                     ticker, company_name, previous_close, market_cap, size,
-                    shares_outstanding, company_type, primary_exchange, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                    shares_outstanding, company_type, primary_exchange, report_date, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 ON DUPLICATE KEY UPDATE 
                     company_name = VALUES(company_name),
                     previous_close = VALUES(previous_close),
@@ -425,6 +425,7 @@ class DailyDataSetup {
                     shares_outstanding = VALUES(shares_outstanding),
                     company_type = VALUES(company_type),
                     primary_exchange = VALUES(primary_exchange),
+                    report_date = VALUES(report_date),
                     updated_at = NOW()
             ");
             
@@ -450,7 +451,8 @@ class DailyDataSetup {
                     $data['polygon']['size'],
                     $data['polygon']['shares_outstanding'],
                     $data['polygon']['company_type'],
-                    $data['polygon']['primary_exchange']
+                    $data['polygon']['primary_exchange'],
+                    $this->date
                 ]);
                 $polygonSaved++;
             }

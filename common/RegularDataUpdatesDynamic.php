@@ -347,10 +347,13 @@ class RegularDataUpdatesDynamic {
             }
             
             // Get current price
-            $currentPrice = $result['lastTrade']['p'] ?? $result['prevDay']['c'] ?? $previousClose;
+            $currentPrice = $result['lastTrade']['p'] ?? $result['prevDay']['c'] ?? null;
             
-            // Calculate percent change
-            $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
+            // Calculate percent change ONLY if we have valid current price
+            $priceChangePercent = null;
+            if ($currentPrice !== null && $currentPrice > 0 && $previousClose > 0) {
+                $priceChangePercent = (($currentPrice - $previousClose) / $previousClose) * 100;
+            }
             
             $this->priceUpdates[$ticker] = [
                 'current_price' => $currentPrice,
@@ -390,11 +393,6 @@ class RegularDataUpdatesDynamic {
             // Get last trade from V3 API if available
             $lastTradeV3 = $lastTradesData[$ticker] ?? null;
             
-            // Use robust percent change calculation
-            $percentChangeData = $this->apiWrapper->computePercentChange($result, $lastTradeV3, $previousClose);
-            $priceChangePercent = $percentChangeData['percent'];
-            $changeSource = $percentChangeData['source'];
-            
             // Get current price using existing logic
             $priceData = $this->apiWrapper->getCurrentPrice($result);
             
@@ -413,7 +411,16 @@ class RegularDataUpdatesDynamic {
                 $priceSource = $priceData['source'];
             }
             
-            echo "✅ {$ticker}: Processing with historical prevClose={$previousClose}, currentPrice={$currentPrice}\n";
+            // Use robust percent change calculation ONLY if we have valid current price
+            $priceChangePercent = null;
+            $changeSource = 'no_change';
+            if ($currentPrice > 0 && $previousClose > 0) {
+                $percentChangeData = $this->apiWrapper->computePercentChange($result, $lastTradeV3, $previousClose);
+                $priceChangePercent = $percentChangeData['percent'];
+                $changeSource = $percentChangeData['source'];
+            }
+            
+            echo "✅ {$ticker}: Processing with historical prevClose={$previousClose}, currentPrice={$currentPrice}, changePercent={$priceChangePercent}\n";
             
             $this->priceUpdates[$ticker] = [
                 'current_price' => $currentPrice,
@@ -443,9 +450,9 @@ class RegularDataUpdatesDynamic {
                 
                 // Use previous_close as current_price (fallback)
                 $currentPrice = $previousClose;
-                $priceChangePercent = 0.0; // No change
+                $priceChangePercent = null; // No valid current price, so no change calculation
                 
-                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=0%\n";
+                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=NULL (no valid price)\n";
                 
                 $this->priceUpdates[$ticker] = [
                     'current_price' => $currentPrice,
@@ -477,9 +484,9 @@ class RegularDataUpdatesDynamic {
                 
                 // Use previous_close as current_price (fallback)
                 $currentPrice = $previousClose;
-                $priceChangePercent = 0.0; // No change
+                $priceChangePercent = null; // No valid current price, so no change calculation
                 
-                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=0%\n";
+                echo "✅ {$ticker}: Fallback - current_price={$currentPrice}, change=NULL (no valid price)\n";
                 
                 $this->priceUpdates[$ticker] = [
                     'current_price' => $currentPrice,
@@ -520,19 +527,27 @@ class RegularDataUpdatesDynamic {
             $priceChangePercent = $priceData['price_change_percent'];
             
             // Calculate market cap diff using the price_change_percent from priceUpdates
-            if ($marketCap && $previousClose > 0 && $currentPrice > 0) {
-                // Use the price_change_percent that was already calculated (including fallback)
-                if ($priceChangePercent !== null) {
-                    $marketCapDiff = ($priceChangePercent / 100) * $marketCap;
-                    $marketCapDiffBillions = $marketCapDiff / 1000000000;
-                    
-                    $this->marketCapDiffUpdates[$ticker] = [
-                        'market_cap_diff' => $marketCapDiff,
-                        'market_cap_diff_billions' => $marketCapDiffBillions
-                    ];
-                    $marketCapDiffCount++;
-                    
-                    echo "✅ {$ticker}: Market Cap Diff = {$marketCapDiffBillions}B (change: {$priceChangePercent}%)\n";
+            // ONLY if we have valid current price and price change percent
+            if ($marketCap && $previousClose > 0 && $currentPrice > 0 && $priceChangePercent !== null) {
+                $marketCapDiff = ($priceChangePercent / 100) * $marketCap;
+                $marketCapDiffBillions = $marketCapDiff / 1000000000;
+                
+                $this->marketCapDiffUpdates[$ticker] = [
+                    'market_cap_diff' => $marketCapDiff,
+                    'market_cap_diff_billions' => $marketCapDiffBillions
+                ];
+                $marketCapDiffCount++;
+                
+                echo "✅ {$ticker}: Market Cap Diff = {$marketCapDiffBillions}B (change: {$priceChangePercent}%)\n";
+            } else {
+                // Set market cap diff to null if no valid price data
+                $this->marketCapDiffUpdates[$ticker] = [
+                    'market_cap_diff' => null,
+                    'market_cap_diff_billions' => null
+                ];
+                
+                if ($currentPrice <= 0 || $currentPrice === null) {
+                    echo "⚠️  {$ticker}: No valid current price - skipping market cap diff calculation\n";
                 }
             }
         }

@@ -6,12 +6,13 @@
 
 // Basic database connection for tests
 $dbHost = 'localhost';
+$dbPort = '3307';  // ✅ Opravené: používať port 3307
 $dbName = 'earnings_table';  // ✅ Opravené: používať earnings_table namiesto earnings_db
 $dbUser = 'root';
 $dbPass = '';
 
 try {
-    $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4";
+    $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4";
     $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
