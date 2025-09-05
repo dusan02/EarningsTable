@@ -31,15 +31,14 @@ define('GA_COOKIE_CONSENT', true); // Cookie consent (GDPR compliance)
  */
 function getGoogleAnalyticsCode() {
     // Check if analytics is enabled and has valid measurement ID
-    if (!defined('GA_ENABLED') || !GA_ENABLED) {
+    $enabled = constant('GA_ENABLED');
+    $measurementId = constant('GA_MEASUREMENT_ID');
+    
+    if (!$enabled || empty($measurementId)) {
         return '';
     }
     
-    if (!defined('GA_MEASUREMENT_ID') || empty(GA_MEASUREMENT_ID)) {
-        return '';
-    }
-    
-    if (GA_MEASUREMENT_ID === 'GA_MEASUREMENT_ID') {
+    if ($measurementId === 'GA_MEASUREMENT_ID') {
         return '';
     }
     
@@ -107,11 +106,10 @@ function getGoogleAnalyticsCode() {
  */
 function getGoogleAnalyticsEvent($eventName, $parameters = []) {
     // Check if analytics is enabled and event tracking is enabled
-    if (!defined('GA_ENABLED') || !GA_ENABLED) {
-        return '';
-    }
+    $enabled = constant('GA_ENABLED');
+    $trackEvents = constant('GA_TRACK_EVENTS');
     
-    if (!defined('GA_TRACK_EVENTS') || !GA_TRACK_EVENTS) {
+    if (!$enabled || !$trackEvents) {
         return '';
     }
     
@@ -128,7 +126,9 @@ function getGoogleAnalyticsEvent($eventName, $parameters = []) {
  */
 function getGoogleAnalyticsPageView($pageTitle, $pageLocation) {
     // Check if analytics is enabled
-    if (!defined('GA_ENABLED') || !GA_ENABLED) {
+    $enabled = constant('GA_ENABLED');
+    
+    if (!$enabled) {
         return '';
     }
     
