@@ -6,9 +6,10 @@
 **IP:** 89.185.250.213  
 **OS:** Debian 12  
 **Login:** root  
-**Password:** EJXTfBOG2t  
+**Password:** EJXTfBOG2t
 
 **VNC Console:**
+
 - Host: 89.185.250.242
 - Port: 5903
 - Password: 2uSI25ci
@@ -67,12 +68,12 @@ cat > /etc/apache2/sites-available/earnings-table.com.conf << 'EOF'
     ServerName earnings-table.com
     ServerAlias www.earnings-table.com
     DocumentRoot /var/www/html/EarningsTable/public
-    
+
     <Directory /var/www/html/EarningsTable/public>
         AllowOverride All
         Require all granted
     </Directory>
-    
+
     ErrorLog ${APACHE_LOG_DIR}/earnings-table_error.log
     CustomLog ${APACHE_LOG_DIR}/earnings-table_access.log combined
 </VirtualHost>
@@ -233,6 +234,7 @@ tail -f /var/www/html/EarningsTable/logs/*.log
 ## 🎯 Výsledok
 
 Po dokončení budete mať:
+
 - ✅ EarningsTable dostupný na http://earnings-table.com
 - ✅ Google Analytics aktívne
 - ✅ Cron jobs bežiace
@@ -242,6 +244,7 @@ Po dokončení budete mať:
 ## 🆘 Troubleshooting
 
 **Ak niečo nefunguje:**
+
 1. Skontrolujte logy: `tail -f /var/log/apache2/error.log`
 2. Skontrolujte PHP: `php -v`
 3. Skontrolujte MySQL: `systemctl status mysql`

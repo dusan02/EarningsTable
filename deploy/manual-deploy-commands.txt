@@ -1,0 +1,173 @@
+# EarningsTable Manual Deployment Commands
+# Copy and paste these commands one by one into your SSH session
+
+# ========================================
+# Step 1: Connect to VPS
+# ========================================
+ssh root@89.185.250.213
+# Password: EJXTfBOG2t
+
+# ========================================
+# Step 2: Update system
+# ========================================
+apt update && apt upgrade -y
+
+# ========================================
+# Step 3: Install LAMP stack
+# ========================================
+apt install -y apache2 mysql-server software-properties-common
+add-apt-repository -y ppa:ondrej/php
+apt update
+apt install -y php8.0 php8.0-mysql php8.0-curl php8.0-json php8.0-mbstring php8.0-xml php8.0-zip php8.0-gd php8.0-cli php8.0-common php8.0-opcache php8.0-readline
+
+# ========================================
+# Step 4: Install Composer
+# ========================================
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+chmod +x /usr/local/bin/composer
+
+# ========================================
+# Step 5: Configure Apache
+# ========================================
+a2enmod rewrite ssl headers
+a2dissite 000-default
+
+# Create virtual host
+cat > /etc/apache2/sites-available/earnings-table.com.conf << 'EOF'
+<VirtualHost *:80>
+    ServerName earnings-table.com
+    ServerAlias www.earnings-table.com
+    DocumentRoot /var/www/html/EarningsTable/public
+    
+    <Directory /var/www/html/EarningsTable/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+    
+    ErrorLog ${APACHE_LOG_DIR}/earnings-table_error.log
+    CustomLog ${APACHE_LOG_DIR}/earnings-table_access.log combined
+</VirtualHost>
+EOF
+
+a2ensite earnings-table.com.conf
+systemctl reload apache2
+
+# ========================================
+# Step 6: Configure MySQL
+# ========================================
+systemctl enable mysql
+systemctl start mysql
+
+# Secure MySQL (automated)
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'EJXTfBOG2t';"
+mysql -u root -pEJXTfBOG2t -e "DELETE FROM mysql.user WHERE User='';"
+mysql -u root -pEJXTfBOG2t -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+mysql -u root -pEJXTfBOG2t -e "DROP DATABASE IF EXISTS test;"
+mysql -u root -pEJXTfBOG2t -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';"
+mysql -u root -pEJXTfBOG2t -e "FLUSH PRIVILEGES;"
+
+# Create database and user
+mysql -u root -pEJXTfBOG2t << 'EOF'
+CREATE DATABASE IF NOT EXISTS earnings_table CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'earnings_user'@'localhost' IDENTIFIED BY 'EJXTfBOG2t';
+GRANT ALL PRIVILEGES ON earnings_table.* TO 'earnings_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+# ========================================
+# Step 7: Clone project
+# ========================================
+cd /var/www/html
+git clone https://github.com/dusan02/EarningsTable.git
+
+# ========================================
+# Step 8: Set permissions
+# ========================================
+chown -R www-data:www-data /var/www/html/EarningsTable
+chmod -R 755 /var/www/html/EarningsTable
+chmod -R 777 /var/www/html/EarningsTable/storage
+chmod -R 777 /var/www/html/EarningsTable/logs
+
+# ========================================
+# Step 9: Install dependencies
+# ========================================
+cd /var/www/html/EarningsTable
+composer install --no-dev --optimize-autoloader
+
+# ========================================
+# Step 10: Create .env file
+# ========================================
+cat > /var/www/html/EarningsTable/.env << 'EOF'
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=earnings_table
+DB_USER=earnings_user
+DB_PASS=EJXTfBOG2t
+
+# API Keys (Please update these)
+FINNHUB_API_KEY=your_finnhub_api_key_here
+POLYGON_API_KEY=your_polygon_api_key_here
+BENZINGA_API_KEY=your_benzinga_api_key_here
+
+# Google Analytics
+GA_MEASUREMENT_ID=G-E6DJ7N6W1L
+GA_ENABLED=true
+GA_DEBUG_MODE=false
+
+# Environment
+APP_ENV=production
+APP_DEBUG=false
+EOF
+
+# ========================================
+# Step 11: Setup cron jobs
+# ========================================
+cat > /tmp/earnings_cron << 'EOF'
+# EarningsTable Cron Jobs
+*/2 * * * * /usr/bin/php /var/www/html/EarningsTable/cron/1_enhanced_master_cron.php >> /var/www/html/EarningsTable/logs/master_cron.log 2>&1
+0 0 * * * /usr/bin/php /var/www/html/EarningsTable/cron/2_clear_old_data.php >> /var/www/html/EarningsTable/logs/clear_old_data.log 2>&1
+0 1 * * * /usr/bin/php /var/www/html/EarningsTable/cron/3_daily_data_setup_static.php >> /var/www/html/EarningsTable/logs/daily_setup.log 2>&1
+*/5 * * * * /usr/bin/php /var/www/html/EarningsTable/cron/4_regular_data_updates_dynamic.php >> /var/www/html/EarningsTable/logs/regular_updates.log 2>&1
+0 2 * * * /usr/bin/php /var/www/html/EarningsTable/cron/5_benzinga_guidance_updates.php >> /var/www/html/EarningsTable/logs/benzinga_updates.log 2>&1
+EOF
+
+crontab /tmp/earnings_cron
+rm /tmp/earnings_cron
+
+# ========================================
+# Step 12: Configure firewall
+# ========================================
+apt install -y ufw
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
+
+# ========================================
+# Step 13: Final configuration
+# ========================================
+systemctl restart apache2
+systemctl restart mysql
+
+# ========================================
+# Step 14: Test installation
+# ========================================
+echo "<?php phpinfo(); ?>" > /var/www/html/EarningsTable/public/info.php
+
+# ========================================
+# SUCCESS!
+# ========================================
+echo "✅ Deployment Complete!"
+echo "🌐 Your EarningsTable is now available at:"
+echo "   http://89.185.250.213/dashboard-fixed.php"
+echo "   http://89.185.250.213/info.php (PHP info)"
+echo ""
+echo "📋 Next steps:"
+echo "1. Update API keys in /var/www/html/EarningsTable/.env"
+echo "2. Configure DNS records in websupport.cz"
+echo "3. Setup SSL certificate: certbot --apache -d earnings-table.com"
+echo "4. Test the application"

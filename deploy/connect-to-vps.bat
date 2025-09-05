@@ -17,7 +17,16 @@ echo ========================================
 echo.
 echo Connecting to VPS...
 echo.
+echo After connecting, run these commands step by step:
+echo 1. Copy commands from: deploy/manual-deploy-commands.txt
+echo 2. Paste them one by one into SSH session
+echo 3. Enter password when prompted: EJXTfBOG2t
+echo.
 
 ssh root@89.185.250.213
 
+echo.
+echo ========================================
+echo SSH session ended
+echo ========================================
 pause
