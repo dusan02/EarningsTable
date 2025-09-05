@@ -546,7 +546,7 @@ class RegularDataUpdatesDynamic {
                     'market_cap_diff_billions' => null
                 ];
                 
-                if ($currentPrice <= 0 || $currentPrice === null) {
+                if ($currentPrice === null || $currentPrice <= 0) {
                     echo "⚠️  {$ticker}: No valid current price - skipping market cap diff calculation\n";
                 }
             }
