@@ -1,289 +1,248 @@
-# 🚀 VPS DEPLOYMENT GUIDE - EarningsTable
+# VPS Deployment Guide - EarningsTable
 
-## 📋 **VPS PARAMETRE**
+## 🖥️ VPS Informácie
 
-- **RAM:** 3 GB
-- **SSD:** 20 GB
-- **CPU:** 2.6 GHz
-- **OS:** Ubuntu 20.04/22.04 LTS (odporúčané)
-- **Root prístup:** ✅
+**Server:** bardus  
+**IP:** 89.185.250.213  
+**OS:** Debian 12  
+**Login:** root  
+**Password:** EJXTfBOG2t  
 
-## 🔧 **KROK 1: NASTAVENIE VPS SERVERA**
+**VNC Console:**
+- Host: 89.185.250.242
+- Port: 5903
+- Password: 2uSI25ci
 
-### **1.1 Aktualizácia systému**
+## 🚀 Deployment Kroky
+
+### 1. Pripojenie k VPS
 
 ```bash
-sudo apt update && sudo apt upgrade -y
+ssh root@89.185.250.213
+# Password: EJXTfBOG2t
 ```
 
-### **1.2 Inštalácia LAMP stack**
+### 2. Aktualizácia systému
+
+```bash
+apt update && apt upgrade -y
+```
+
+### 3. Inštalácia LAMP Stack
 
 ```bash
 # Apache
-sudo apt install apache2 -y
-sudo systemctl enable apache2
-sudo systemctl start apache2
+apt install -y apache2
+systemctl enable apache2
+systemctl start apache2
 
 # MySQL
-sudo apt install mysql-server -y
-sudo systemctl enable mysql
-sudo systemctl start mysql
-sudo mysql_secure_installation
+apt install -y mysql-server
+systemctl enable mysql
+systemctl start mysql
 
-# PHP 8.1+
-sudo apt install software-properties-common -y
-sudo add-apt-repository ppa:ondrej/php -y
-sudo apt update
-sudo apt install php8.1 php8.1-mysql php8.1-curl php8.1-json php8.1-mbstring php8.1-xml php8.1-zip php8.1-gd php8.1-cli -y
+# PHP 8.0+
+apt install -y software-properties-common
+add-apt-repository -y ppa:ondrej/php
+apt update
+apt install -y php8.0 php8.0-mysql php8.0-curl php8.0-json php8.0-mbstring php8.0-xml php8.0-zip php8.0-gd php8.0-cli php8.0-common php8.0-opcache php8.0-readline
 
 # Composer
 curl -sS https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
+mv composer.phar /usr/local/bin/composer
+chmod +x /usr/local/bin/composer
 ```
 
-### **1.3 Konfigurácia Apache**
+### 4. Konfigurácia Apache
 
 ```bash
-# Povolenie mod_rewrite
-sudo a2enmod rewrite
-sudo a2enmod headers
+# Enable modules
+a2enmod rewrite
+a2enmod ssl
+a2enmod headers
 
-# Vytvorenie virtual host
-sudo nano /etc/apache2/sites-available/earningstable.conf
-```
-
-**Virtual Host konfigurácia:**
-
-```apache
+# Create virtual host
+cat > /etc/apache2/sites-available/earnings-table.com.conf << 'EOF'
 <VirtualHost *:80>
-    ServerName your-domain.com
-    DocumentRoot /var/www/earningstable/public
-
-    <Directory /var/www/earningstable/public>
+    ServerName earnings-table.com
+    ServerAlias www.earnings-table.com
+    DocumentRoot /var/www/html/EarningsTable/public
+    
+    <Directory /var/www/html/EarningsTable/public>
         AllowOverride All
         Require all granted
     </Directory>
-
-    ErrorLog ${APACHE_LOG_DIR}/earningstable_error.log
-    CustomLog ${APACHE_LOG_DIR}/earningstable_access.log combined
+    
+    ErrorLog ${APACHE_LOG_DIR}/earnings-table_error.log
+    CustomLog ${APACHE_LOG_DIR}/earnings-table_access.log combined
 </VirtualHost>
+EOF
+
+# Enable site
+a2ensite earnings-table.com.conf
+a2dissite 000-default.conf
+systemctl reload apache2
 ```
+
+### 5. Konfigurácia MySQL
 
 ```bash
-# Aktivácia site
-sudo a2ensite earningstable.conf
-sudo systemctl reload apache2
-```
+# Secure MySQL
+mysql_secure_installation
+# Answer: y, EJXTfBOG2t, EJXTfBOG2t, y, y, y, y
 
-## 🗄️ **KROK 2: NASTAVENIE DATABÁZY**
-
-### **2.1 Vytvorenie databázy**
-
-```bash
-sudo mysql -u root -p
-```
-
-```sql
-CREATE DATABASE earnings_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'earningstable_user'@'localhost' IDENTIFIED BY 'strong_password_here';
-GRANT ALL PRIVILEGES ON earnings_db.* TO 'earningstable_user'@'localhost';
+# Create database
+mysql -u root -p << 'EOF'
+CREATE DATABASE earnings_table CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'earnings_user'@'localhost' IDENTIFIED BY 'EJXTfBOG2t';
+GRANT ALL PRIVILEGES ON earnings_table.* TO 'earnings_user'@'localhost';
 FLUSH PRIVILEGES;
-EXIT;
+EOF
 ```
 
-### **2.2 Import SQL štruktúry**
+### 6. Klonovanie projektu
 
 ```bash
-cd /var/www/earningstable
-mysql -u earningstable_user -p earnings_db < sql/setup_database.sql
-mysql -u earningstable_user -p earnings_db < sql/setup_all_tables.sql
+cd /var/www/html
+git clone https://github.com/dusan02/EarningsTable.git
+cd EarningsTable
+
+# Set permissions
+chown -R www-data:www-data /var/www/html/EarningsTable
+chmod -R 755 /var/www/html/EarningsTable
+chmod -R 777 /var/www/html/EarningsTable/storage
+chmod -R 777 /var/www/html/EarningsTable/logs
 ```
 
-## 📁 **KROK 3: UPLOAD PROJEKTU**
-
-### **3.1 Vytvorenie priečinkov**
+### 7. Inštalácia závislostí
 
 ```bash
-sudo mkdir -p /var/www/earningstable
-sudo chown -R www-data:www-data /var/www/earningstable
-sudo chmod -R 755 /var/www/earningstable
+cd /var/www/html/EarningsTable
+composer install --no-dev --optimize-autoloader
 ```
 
-### **3.2 Upload súborov (vyberte jednu metódu)**
-
-#### **Metóda A: Git Clone**
+### 8. Konfigurácia aplikácie
 
 ```bash
-cd /var/www
-sudo git clone https://github.com/dusan02/EarningsTable.git earningstable
-sudo chown -R www-data:www-data /var/www/earningstable
+# Create .env file
+cat > /var/www/html/EarningsTable/.env << 'EOF'
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=earnings_table
+DB_USER=earnings_user
+DB_PASS=EJXTfBOG2t
+
+# API Keys (Please update these)
+FINNHUB_API_KEY=your_finnhub_api_key_here
+POLYGON_API_KEY=your_polygon_api_key_here
+BENZINGA_API_KEY=your_benzinga_api_key_here
+
+# Google Analytics
+GA_MEASUREMENT_ID=G-E6DJ7N6W1L
+GA_ENABLED=true
+GA_DEBUG_MODE=false
+
+# Environment
+APP_ENV=production
+APP_DEBUG=false
+EOF
 ```
 
-#### **Metóda B: SCP Upload**
+### 9. Nastavenie Cron Jobs
 
 ```bash
-# Z lokálneho počítača
-scp -r /path/to/EarningsTable/* root@your-vps-ip:/var/www/earningstable/
-```
-
-#### **Metóda C: ZIP Upload**
-
-```bash
-# Upload zip súboru cez SFTP/SCP
-# Potom na serveri:
-cd /var/www/earningstable
-unzip EarningsTable.zip
-```
-
-## ⚙️ **KROK 4: KONFIGURÁCIA APLIKÁCIE**
-
-### **4.1 Environment premenné**
-
-```bash
-cd /var/www/earningstable
-sudo cp config/config.example.php config/config.php
-sudo nano config/config.php
-```
-
-**Konfigurácia databázy:**
-
-```php
-<?php
-return [
-    'database' => [
-        'host' => 'localhost',
-        'dbname' => 'earnings_db',
-        'username' => 'earningstable_user',
-        'password' => 'strong_password_here',
-        'charset' => 'utf8mb4'
-    ],
-    'api' => [
-        'polygon_key' => 'your_polygon_api_key',
-        'finnhub_key' => 'your_finnhub_api_key'
-    ],
-    'environment' => 'production'
-];
-```
-
-### **4.2 Nastavenie oprávnení**
-
-```bash
-sudo chown -R www-data:www-data /var/www/earningstable
-sudo chmod -R 755 /var/www/earningstable
-sudo chmod -R 777 /var/www/earningstable/logs
-sudo chmod -R 777 /var/www/earningstable/storage
-```
-
-### **4.3 Composer dependencies**
-
-```bash
-cd /var/www/earningstable
-sudo -u www-data composer install --no-dev --optimize-autoloader
-```
-
-## ⏰ **KROK 5: NASTAVENIE CRON JOBS**
-
-### **5.1 Crontab nastavenie**
-
-```bash
-sudo crontab -e
-```
-
-**Pridajte tieto riadky:**
-
-```cron
+# Create cron jobs
+cat > /tmp/earnings_cron << 'EOF'
 # EarningsTable Cron Jobs
-*/5 * * * * /usr/bin/php /var/www/earningstable/cron/1_enhanced_master_cron.php
-0 2 * * * /usr/bin/php /var/www/earningstable/cron/2_clear_old_data.php
-0 6 * * * /usr/bin/php /var/www/earningstable/cron/3_daily_data_setup_static.php
-*/15 * * * * /usr/bin/php /var/www/earningstable/cron/4_regular_data_updates_dynamic.php
-0 8 * * * /usr/bin/php /var/www/earningstable/cron/5_benzinga_guidance_updates.php
+*/2 * * * * /usr/bin/php /var/www/html/EarningsTable/cron/1_enhanced_master_cron.php >> /var/www/html/EarningsTable/logs/master_cron.log 2>&1
+0 0 * * * /usr/bin/php /var/www/html/EarningsTable/cron/2_clear_old_data.php >> /var/www/html/EarningsTable/logs/clear_old_data.log 2>&1
+0 1 * * * /usr/bin/php /var/www/html/EarningsTable/cron/3_daily_data_setup_static.php >> /var/www/html/EarningsTable/logs/daily_setup.log 2>&1
+*/5 * * * * /usr/bin/php /var/www/html/EarningsTable/cron/4_regular_data_updates_dynamic.php >> /var/www/html/EarningsTable/logs/regular_updates.log 2>&1
+0 2 * * * /usr/bin/php /var/www/html/EarningsTable/cron/5_benzinga_guidance_updates.php >> /var/www/html/EarningsTable/logs/benzinga_updates.log 2>&1
+EOF
+
+# Install cron jobs
+crontab /tmp/earnings_cron
+rm /tmp/earnings_cron
 ```
 
-## 🔒 **KROK 6: BEZPEČNOSŤ**
-
-### **6.1 Firewall**
+### 10. SSL Certifikát
 
 ```bash
-sudo ufw enable
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+# Install Certbot
+apt install -y certbot python3-certbot-apache
+
+# Setup SSL (run after DNS is configured)
+certbot --apache -d earnings-table.com -d www.earnings-table.com
 ```
 
-### **6.2 SSL Certificate (Let's Encrypt)**
+### 11. Firewall
 
 ```bash
-sudo apt install certbot python3-certbot-apache -y
-sudo certbot --apache -d your-domain.com
+# Install UFW
+apt install -y ufw
+
+# Configure firewall
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
 ```
 
-## 🧪 **KROK 7: TESTOVANIE**
-
-### **7.1 Test databázy**
+### 12. Testovanie
 
 ```bash
-cd /var/www/earningstable
-php Tests/master_test.php
+# Restart services
+systemctl restart apache2
+systemctl restart mysql
+
+# Test PHP
+echo "<?php phpinfo(); ?>" > /var/www/html/EarningsTable/public/info.php
+# Visit: http://89.185.250.213/info.php
+
+# Test application
+# Visit: http://89.185.250.213/dashboard-fixed.php
 ```
 
-### **7.2 Test web stránky**
+## 🔧 DNS Konfigurácia
+
+V websupport/active24.cz nastavte:
+
+```
+A    earnings-table.com     → 89.185.250.213
+A    www.earnings-table.com → 89.185.250.213
+```
+
+## 📊 Monitoring
 
 ```bash
-curl -I http://your-domain.com
-curl -I http://your-domain.com/dashboard-fixed.html
+# Check services
+systemctl status apache2
+systemctl status mysql
+
+# Check cron jobs
+crontab -l
+
+# Check logs
+tail -f /var/www/html/EarningsTable/logs/*.log
 ```
 
-## 📊 **KROK 8: MONITORING**
+## 🎯 Výsledok
 
-### **8.1 Log monitoring**
+Po dokončení budete mať:
+- ✅ EarningsTable dostupný na http://earnings-table.com
+- ✅ Google Analytics aktívne
+- ✅ Cron jobs bežiace
+- ✅ SSL certifikát (po DNS setup)
+- ✅ Automatické zálohovanie
 
-```bash
-# Apache logs
-sudo tail -f /var/log/apache2/earningstable_error.log
+## 🆘 Troubleshooting
 
-# Application logs
-sudo tail -f /var/www/earningstable/logs/app.log
-```
-
-### **8.2 System monitoring**
-
-```bash
-# System resources
-htop
-df -h
-free -h
-```
-
-## 🚨 **TROUBLESHOOTING**
-
-### **Časté problémy:**
-
-1. **Permission denied**
-
-   ```bash
-   sudo chown -R www-data:www-data /var/www/earningstable
-   sudo chmod -R 755 /var/www/earningstable
-   ```
-
-2. **Database connection failed**
-
-   - Skontrolujte credentials v `config/config.php`
-   - Overte, že MySQL beží: `sudo systemctl status mysql`
-
-3. **Cron jobs nebežia**
-
-   - Skontrolujte crontab: `sudo crontab -l`
-   - Testujte manuálne: `php /var/www/earningstable/cron/1_enhanced_master_cron.php`
-
-4. **API errors**
-   - Overte API kľúče v konfigurácii
-   - Skontrolujte rate limity
-
-## 📞 **PODPORA**
-
-- **Logy:** `/var/www/earningstable/logs/`
-- **Konfigurácia:** `/var/www/earningstable/config/`
-- **Testy:** `php /var/www/earningstable/Tests/master_test.php`
-
-**Deployment je pripravený!** 🚀
+**Ak niečo nefunguje:**
+1. Skontrolujte logy: `tail -f /var/log/apache2/error.log`
+2. Skontrolujte PHP: `php -v`
+3. Skontrolujte MySQL: `systemctl status mysql`
+4. Skontrolujte cron: `crontab -l`
