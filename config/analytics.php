@@ -31,14 +31,20 @@ define('GA_COOKIE_CONSENT', true); // Cookie consent (GDPR compliance)
  */
 function getGoogleAnalyticsCode() {
     // Check if analytics is enabled and has valid measurement ID
-    $enabled = constant('GA_ENABLED');
-    $measurementId = constant('GA_MEASUREMENT_ID');
+    $config = [
+        'enabled' => constant('GA_ENABLED'),
+        'measurement_id' => constant('GA_MEASUREMENT_ID')
+    ];
     
-    if (!$enabled || empty($measurementId)) {
+    if (!$config['enabled']) {
         return '';
     }
     
-    if ($measurementId === 'GA_MEASUREMENT_ID') {
+    if (empty($config['measurement_id'])) {
+        return '';
+    }
+    
+    if ($config['measurement_id'] === 'GA_MEASUREMENT_ID') {
         return '';
     }
     
@@ -106,10 +112,16 @@ function getGoogleAnalyticsCode() {
  */
 function getGoogleAnalyticsEvent($eventName, $parameters = []) {
     // Check if analytics is enabled and event tracking is enabled
-    $enabled = constant('GA_ENABLED');
-    $trackEvents = constant('GA_TRACK_EVENTS');
+    $config = [
+        'enabled' => constant('GA_ENABLED'),
+        'track_events' => constant('GA_TRACK_EVENTS')
+    ];
     
-    if (!$enabled || !$trackEvents) {
+    if (!$config['enabled']) {
+        return '';
+    }
+    
+    if (!$config['track_events']) {
         return '';
     }
     
@@ -126,9 +138,11 @@ function getGoogleAnalyticsEvent($eventName, $parameters = []) {
  */
 function getGoogleAnalyticsPageView($pageTitle, $pageLocation) {
     // Check if analytics is enabled
-    $enabled = constant('GA_ENABLED');
+    $config = [
+        'enabled' => constant('GA_ENABLED')
+    ];
     
-    if (!$enabled) {
+    if (!$config['enabled']) {
         return '';
     }
     
