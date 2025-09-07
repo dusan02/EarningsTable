@@ -1,6 +1,7 @@
 # 🚀 Quick VPS Deployment - EarningsTable
 
 ## 📋 VPS Údaje
+
 - **IP:** 89.185.250.213
 - **Login:** root
 - **Password:** EJXTfBOG2t
@@ -9,12 +10,15 @@
 ## 🎯 Rýchly Deployment
 
 ### Možnosť 1: VNC Konzola (najjednoduchšie)
+
 1. **Pripojte sa cez VNC:**
+
    - Host: `89.185.250.242`
    - Port: `5903`
    - Password: `2uSI25ci`
 
 2. **Otvorte terminál v VNC a spustite:**
+
 ```bash
 # Pripojenie cez SSH (ak chcete)
 ssh root@89.185.250.213
@@ -22,6 +26,7 @@ ssh root@89.185.250.213
 ```
 
 ### Možnosť 2: SSH s heslem
+
 ```bash
 # V PowerShell alebo Command Prompt
 ssh root@89.185.250.213
@@ -29,6 +34,7 @@ ssh root@89.185.250.213
 ```
 
 ### Možnosť 3: PuTTY (Windows)
+
 1. Stiahnite si PuTTY
 2. Host: `89.185.250.213`
 3. Port: `22`
@@ -40,11 +46,13 @@ ssh root@89.185.250.213
 Po pripojení k VPS skopírujte a vkladajte tieto príkazy **jeden po druhom**:
 
 ### 1. Aktualizácia systému
+
 ```bash
 apt update && apt upgrade -y
 ```
 
 ### 2. Inštalácia LAMP
+
 ```bash
 apt install -y apache2 mysql-server software-properties-common
 add-apt-repository -y ppa:ondrej/php
@@ -53,6 +61,7 @@ apt install -y php8.0 php8.0-mysql php8.0-curl php8.0-json php8.0-mbstring php8.
 ```
 
 ### 3. Composer
+
 ```bash
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
@@ -60,24 +69,26 @@ chmod +x /usr/local/bin/composer
 ```
 
 ### 4. Apache konfigurácia
+
 ```bash
 a2enmod rewrite ssl headers
 a2dissite 000-default
 ```
 
 ### 5. Virtual Host
+
 ```bash
 cat > /etc/apache2/sites-available/earnings-table.com.conf << 'EOF'
 <VirtualHost *:80>
     ServerName earnings-table.com
     ServerAlias www.earnings-table.com
     DocumentRoot /var/www/html/EarningsTable/public
-    
+
     <Directory /var/www/html/EarningsTable/public>
         AllowOverride All
         Require all granted
     </Directory>
-    
+
     ErrorLog ${APACHE_LOG_DIR}/earnings-table_error.log
     CustomLog ${APACHE_LOG_DIR}/earnings-table_access.log combined
 </VirtualHost>
@@ -88,6 +99,7 @@ systemctl reload apache2
 ```
 
 ### 6. MySQL konfigurácia
+
 ```bash
 systemctl enable mysql
 systemctl start mysql
@@ -99,12 +111,14 @@ mysql -u root -pEJXTfBOG2t -e "FLUSH PRIVILEGES;"
 ```
 
 ### 7. Klonovanie projektu
+
 ```bash
 cd /var/www/html
 git clone https://github.com/dusan02/EarningsTable.git
 ```
 
 ### 8. Permissions
+
 ```bash
 chown -R www-data:www-data /var/www/html/EarningsTable
 chmod -R 755 /var/www/html/EarningsTable
@@ -113,12 +127,14 @@ chmod -R 777 /var/www/html/EarningsTable/logs
 ```
 
 ### 9. Dependencies
+
 ```bash
 cd /var/www/html/EarningsTable
 composer install --no-dev --optimize-autoloader
 ```
 
 ### 10. Environment súbor
+
 ```bash
 cat > /var/www/html/EarningsTable/.env << 'EOF'
 DB_HOST=localhost
@@ -138,6 +154,7 @@ EOF
 ```
 
 ### 11. Cron Jobs
+
 ```bash
 cat > /tmp/earnings_cron << 'EOF'
 */2 * * * * /usr/bin/php /var/www/html/EarningsTable/cron/1_enhanced_master_cron.php >> /var/www/html/EarningsTable/logs/master_cron.log 2>&1
@@ -152,6 +169,7 @@ rm /tmp/earnings_cron
 ```
 
 ### 12. Firewall
+
 ```bash
 apt install -y ufw
 ufw default deny incoming
@@ -163,12 +181,14 @@ ufw --force enable
 ```
 
 ### 13. Restart služieb
+
 ```bash
 systemctl restart apache2
 systemctl restart mysql
 ```
 
 ### 14. Test
+
 ```bash
 echo "<?php phpinfo(); ?>" > /var/www/html/EarningsTable/public/info.php
 ```
@@ -176,10 +196,12 @@ echo "<?php phpinfo(); ?>" > /var/www/html/EarningsTable/public/info.php
 ## ✅ Hotovo!
 
 Po dokončení bude aplikácia dostupná na:
+
 - **http://89.185.250.213/dashboard-fixed.php**
 - **http://89.185.250.213/info.php** (PHP info)
 
 ## 📋 Ďalšie kroky:
+
 1. **Aktualizujte API kľúče** v `/var/www/html/EarningsTable/.env`
 2. **Nastavte DNS** v websupport.cz
 3. **SSL certifikát:** `certbot --apache -d earnings-table.com`

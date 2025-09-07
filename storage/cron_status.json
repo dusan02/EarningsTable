@@ -1,7 +1,7 @@
 {
-    "last_successful_run": "2025-09-05 11:10:12",
+    "last_successful_run": "2025-09-05 15:38:22",
     "total_records": 8,
-    "execution_time": 2.0300000000000002,
-    "eps_percentage": 0,
-    "revenue_percentage": 0
+    "execution_time": 2.07,
+    "eps_percentage": 25,
+    "revenue_percentage": 25
 }
