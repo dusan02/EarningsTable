@@ -24,7 +24,7 @@ async function runOnce(jobType: 'finnhub' | 'polygon') {
   }
 }
 
-async function main() {
+export async function main() {
   console.log('🔍 DEBUG: Starting main function...');
   const args = process.argv.slice(2);
   console.log('🔍 DEBUG: Args:', args);

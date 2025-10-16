@@ -94,7 +94,7 @@ async function fetchGroupedPrevClose(symbols: string[]): Promise<Map<string, num
     return prevCloseMap;
     
   } catch (error) {
-    console.log(`→ Grouped aggs failed: ${error.response?.status || 'Unknown error'}`);
+    console.log(`→ Grouped aggs failed: ${(error as any).response?.status || 'Unknown error'}`);
     return new Map();
   }
 }
@@ -141,10 +141,10 @@ async function fetchSnapshotBulk(symbols: string[], options: { batchSize: number
           }
         } catch (error) {
           // Only log on final failure
-          if (error.response?.status === 429) {
+          if ((error as any).response?.status === 429) {
             console.log(`→ Rate limited for ${symbol}, will retry`);
           } else {
-            console.log(`❌ API error for ${symbol}: ${error.response?.status || error.message}`);
+            console.log(`❌ API error for ${symbol}: ${(error as any).response?.status || (error as any).message}`);
           }
         }
       })
@@ -347,18 +347,18 @@ export async function fetchMarketCapData(symbol: string, bulkSnapshotData?: any,
   
   return {
     symbol,
-    symbolBoolean: tickerExists ? 1 : 0,  // 0/1 instead of boolean
+    symbolBoolean: tickerExists,
     marketCap: marketCap,
     previousMarketCap: previousMarketCap,
     marketCapDiff: marketCapDiff,
-    marketCapBoolean: hasMarketCap ? 1 : 0,  // 0/1 instead of boolean
+    marketCapBoolean: hasMarketCap,
     price: price,
     previousClose: previousClose,
     change: change,
     size: size,
     name: companyName,
-    priceBoolean: hasPrice ? 1 : 0,  // 0/1 instead of boolean
-    Boolean: allConditionsMet ? 1 : 0,  // 0/1 instead of boolean
+    priceBoolean: hasPrice,
+    Boolean: allConditionsMet,
     priceSource: priceSource,
     marketCapFetchedAt: new Date()
   };

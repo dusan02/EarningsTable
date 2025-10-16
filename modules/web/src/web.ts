@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5555;
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -138,6 +138,10 @@ app.get('/api/final-report', async (req, res) => {
       revEst: report.revEst ? report.revEst.toString() : null,
       createdAt: report.createdAt.toISOString(),
       updatedAt: report.updatedAt.toISOString(),
+      // Include logo fields
+      logoUrl: report.logoUrl,
+      logoSource: report.logoSource,
+      logoFetchedAt: report.logoFetchedAt ? report.logoFetchedAt.toISOString() : null,
     }));
 
     res.json({
@@ -175,6 +179,39 @@ process.on('SIGTERM', async () => {
   console.log('\n→ Shutting down web server...');
   await prisma.$disconnect();
   process.exit(0);
+});
+
+// API endpoint pre získanie cron status a posledného timestamp
+app.get('/api/cron-status', async (req, res) => {
+  try {
+    const cronStatuses = await prisma.cronStatus.findMany({
+      orderBy: { lastRunAt: 'desc' },
+    });
+
+    // Get the most recent successful run (prefer polygon, then finnhub)
+    const polygonStatus = cronStatuses.find(s => s.jobType === 'polygon' && s.status === 'success');
+    const finnhubStatus = cronStatuses.find(s => s.jobType === 'finnhub' && s.status === 'success');
+    
+    const lastUpdate = polygonStatus?.lastRunAt || finnhubStatus?.lastRunAt;
+
+    res.json({
+      success: true,
+      lastUpdate: lastUpdate ? lastUpdate.toISOString() : null,
+      cronStatuses: cronStatuses.map(status => ({
+        jobType: status.jobType,
+        lastRunAt: status.lastRunAt.toISOString(),
+        status: status.status,
+        recordsProcessed: status.recordsProcessed,
+        errorMessage: status.errorMessage,
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching cron status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch cron status'
+    });
+  }
 });
 
 app.listen(PORT, () => {

@@ -14,6 +14,10 @@ interface FinalReportData {
   revActual: number;
   revEst: number;
   revSurp: number;
+  // Logo fields
+  logoUrl: string | null;
+  logoSource: string | null;
+  logoFetchedAt: string | null;
 }
 
 interface EarningsTableProps {
@@ -100,6 +104,32 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
     return <span className="text-blue-600">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
   };
 
+  // Company logo component with fallback
+  const CompanyLogo: React.FC<{ symbol: string; logoUrl: string | null; name: string }> = ({ symbol, logoUrl, name }) => {
+    if (logoUrl) {
+      return (
+        <img 
+          src={logoUrl} 
+          alt={`${symbol} logo`} 
+          className="w-8 h-8 rounded-full object-contain bg-gray-100 dark:bg-gray-700"
+          onError={(e) => {
+            // Hide image on error and show fallback
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+      );
+    }
+    
+    // Fallback: show initials in a circle
+    const initials = symbol.substring(0, 2).toUpperCase();
+    return (
+      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 text-xs font-semibold font-sans">
+        {initials}
+      </div>
+    );
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
@@ -109,10 +139,10 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-sans">
                 Earnings Report
               </h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-base text-gray-600 dark:text-gray-400 font-normal font-sans">
                 Real-time financial data and earnings surprises
               </p>
             </div>
@@ -133,7 +163,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   placeholder="Search companies..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white font-normal font-sans focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="text-gray-400">🔍</span>
@@ -152,7 +182,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-sans"
                     onClick={() => handleSort('symbol')}
                   >
                     <div className="flex items-center space-x-1">
@@ -162,7 +192,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-sans"
                     onClick={() => handleSort('size')}
                   >
                     <div className="flex items-center space-x-1">
@@ -172,7 +202,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-sans"
                     onClick={() => handleSort('marketCap')}
                   >
                     <div className="flex items-center space-x-1">
@@ -182,7 +212,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors font-sans"
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center space-x-1">
@@ -191,11 +221,11 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     </div>
                   </th>
                   
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     EPS
                   </th>
                   
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     Revenue
                   </th>
                 </tr>
@@ -206,14 +236,14 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   <th></th>
                   <th></th>
                   <th></th>
-                  <th className="px-6 py-2 text-center text-xs text-gray-500 dark:text-gray-400">
+                  <th className="px-6 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
                     <div className="space-y-1">
                       <div>Actual</div>
                       <div>Estimate</div>
                       <div>Surprise</div>
                     </div>
                   </th>
-                  <th className="px-6 py-2 text-center text-xs text-gray-500 dark:text-gray-400">
+                  <th className="px-6 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
                     <div className="space-y-1">
                       <div>Actual</div>
                       <div>Estimate</div>
@@ -231,19 +261,26 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   >
                     {/* Company */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {item.symbol}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.name}
+                      <div className="flex items-center space-x-3">
+                        <CompanyLogo 
+                          symbol={item.symbol} 
+                          logoUrl={item.logoUrl} 
+                          name={item.name} 
+                        />
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white font-sans">
+                            {item.symbol}
+                          </div>
+                          <div className="text-sm font-normal text-gray-500 dark:text-gray-400 font-sans">
+                            {item.name}
+                          </div>
                         </div>
                       </div>
                     </td>
                     
                     {/* Size */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSizeColor(item.size)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full font-sans ${getSizeColor(item.size)}`}>
                         {item.size}
                       </span>
                     </td>
@@ -251,10 +288,10 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     {/* Market Cap */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white font-sans">
                           {formatMarketCap(item.marketCap)}
                         </div>
-                        <div className={`text-sm ${getChangeColor(item.marketCapDiff)}`}>
+                        <div className={`text-sm font-normal font-sans ${getChangeColor(item.marketCapDiff)}`}>
                           {item.marketCapDiff > 0 ? '+' : ''}{formatMarketCap(item.marketCapDiff)}
                         </div>
                       </div>
@@ -263,10 +300,10 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     {/* Price */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white font-sans">
                           ${item.price?.toFixed(2)}
                         </div>
-                        <div className={`text-sm ${getChangeColor(item.change)}`}>
+                        <div className={`text-sm font-normal font-sans ${getChangeColor(item.change)}`}>
                           {item.change > 0 ? '+' : ''}{item.change?.toFixed(2)}%
                         </div>
                       </div>
@@ -274,11 +311,11 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     
                     {/* EPS */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-sm font-sans">
                         <div className="text-gray-900 dark:text-white font-medium">
                           {item.epsActual?.toFixed(2) || 'N/A'}
                         </div>
-                        <div className="text-gray-600 dark:text-gray-400">
+                        <div className="text-gray-600 dark:text-gray-400 font-normal">
                           {item.epsEst?.toFixed(2) || 'N/A'}
                         </div>
                         <div className={`${getChangeColor(item.epsSurp)} font-medium`}>
@@ -289,11 +326,11 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     
                     {/* Revenue */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-sm font-sans">
                         <div className="text-gray-900 dark:text-white font-medium">
                           {item.revActual ? formatRevenue(item.revActual) : 'N/A'}
                         </div>
-                        <div className="text-gray-600 dark:text-gray-400">
+                        <div className="text-gray-600 dark:text-gray-400 font-normal">
                           {item.revEst ? formatRevenue(item.revEst) : 'N/A'}
                         </div>
                         <div className={`${getChangeColor(item.revSurp)} font-medium`}>
@@ -309,8 +346,8 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
           
           {filteredAndSortedData.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-lg">No companies found</div>
-              <div className="text-gray-500 text-sm mt-2">
+              <div className="text-gray-400 text-lg font-medium font-sans">No companies found</div>
+              <div className="text-gray-500 text-sm font-normal font-sans mt-2">
                 Try adjusting your search terms
               </div>
             </div>
@@ -318,7 +355,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
         </div>
         
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-8 text-center text-sm font-normal text-gray-500 dark:text-gray-400 font-sans">
           Showing {filteredAndSortedData.length} of {data.length} companies
         </div>
       </div>

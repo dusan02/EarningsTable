@@ -54,6 +54,10 @@ export type PolygonData = {
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
   Boolean?: boolean | null;
+  // Logo fields
+  logoUrl?: string | null;
+  logoSource?: string | null;
+  logoFetchedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -72,6 +76,10 @@ export type CreatePolygonData = {
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
   Boolean?: boolean | null;
+  // Logo fields
+  logoUrl?: string | null;
+  logoSource?: string | null;
+  logoFetchedAt?: Date | null;
 };
 
 export type FinalReport = {
@@ -89,6 +97,10 @@ export type FinalReport = {
   revActual?: bigint | null;  // From FinhubData (revenueActual)
   revEst?: bigint | null;  // From FinhubData (revenueEstimate)
   revSurp?: number | null;  // Calculated: ((revActual/revEstimate) * 100) - 100
+  // Logo fields (copied from PolygonData)
+  logoUrl?: string | null;
+  logoSource?: string | null;
+  logoFetchedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -107,6 +119,10 @@ export type CreateFinalReport = {
   revActual?: bigint | null;  // From FinhubData (revenueActual)
   revEst?: bigint | null;  // From FinhubData (revenueEstimate)
   revSurp?: number | null;  // Calculated: ((revActual/revEstimate) * 100) - 100
+  // Logo fields (copied from PolygonData)
+  logoUrl?: string | null;
+  logoSource?: string | null;
+  logoFetchedAt?: Date | null;
 };
 
 export type ApiResponse<T> = {

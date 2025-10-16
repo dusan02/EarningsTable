@@ -1,5 +1,4 @@
 import { BaseCronJob } from '../core/BaseCronJob.js';
-import { fetchMarketCapDataForSymbols } from '../polygon.js';
 import { db } from '../core/DatabaseManager.js';
 import { processSymbolsInBatches } from '../core/priceService.js';
 
@@ -15,6 +14,10 @@ export class PolygonCronJob extends BaseCronJob {
 
   async execute(): Promise<void> {
     console.log('🚀 Starting PolygonCronJob execution with PriceService...');
+    
+    // Mark job as running
+    await db.updateCronStatus('polygon', 'running');
+    
     try {
       // Get all symbols from PolygonData table
       console.log('📊 Getting symbols from PolygonData table...');
@@ -22,6 +25,7 @@ export class PolygonCronJob extends BaseCronJob {
       
       if (symbols.length === 0) {
         console.log('⚠️ No symbols found in PolygonData table');
+        await db.updateCronStatus('polygon', 'success', 0);
         return;
       }
 
@@ -39,10 +43,14 @@ export class PolygonCronJob extends BaseCronJob {
       console.log('🔄 Generating final report...');
       await db.generateFinalReport();
 
+      // Mark job as successful
+      await db.updateCronStatus('polygon', 'success', marketData.length);
       console.log('✅ PolygonCronJob completed successfully');
       
     } catch (error) {
       console.error('❌ PolygonCronJob failed:', error);
+      // Mark job as failed
+      await db.updateCronStatus('polygon', 'error', undefined, (error as any)?.message || 'Unknown error');
       throw error;
     }
   }

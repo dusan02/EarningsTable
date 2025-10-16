@@ -80,7 +80,7 @@ class CronRunnerWithStats {
       // Try to get count of processed records
       let recordsProcessed = 0;
       try {
-        const finhubData = await db.getFinhubDataByDate(new Date().toISOString().split('T')[0]);
+        const finhubData = await db.getFinhubDataByDate(new Date());
         recordsProcessed = finhubData.length;
       } catch (e) {
         // Ignore if we can't get count

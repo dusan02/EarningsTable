@@ -20,6 +20,10 @@ interface FinalReportData {
   revActual: bigint | null
   revEst: bigint | null
   revSurp: number | null
+  // Logo fields
+  logoUrl: string | null
+  logoSource: string | null
+  logoFetchedAt: string | null
 }
 
 export default function EarningsDashboard() {
@@ -163,12 +167,38 @@ export default function EarningsDashboard() {
     return sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
   }
 
+  // Company logo component with fallback
+  const CompanyLogo = ({ symbol, logoUrl, name }: { symbol: string; logoUrl: string | null; name: string | null }) => {
+    if (logoUrl) {
+      return (
+        <img 
+          src={logoUrl} 
+          alt={`${symbol} logo`} 
+          className="w-8 h-8 rounded-full object-contain bg-gray-100 dark:bg-gray-700"
+          onError={(e) => {
+            // Hide image on error and show fallback
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+      );
+    }
+    
+    // Fallback: show initials in a circle
+    const initials = symbol.substring(0, 2).toUpperCase();
+    return (
+      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 text-xs font-semibold font-sans">
+        {initials}
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading earnings data...</p>
+          <p className="mt-4 text-sm font-normal text-gray-600 dark:text-gray-400 font-sans">Loading earnings data...</p>
         </div>
       </div>
     )
@@ -179,13 +209,13 @@ export default function EarningsDashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-sans">
             Error Loading Data
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <p className="text-base font-normal text-gray-600 dark:text-gray-400 mb-4 font-sans">{error}</p>
           <button
             onClick={fetchData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium font-sans"
           >
             Retry
           </button>
@@ -201,10 +231,10 @@ export default function EarningsDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-sans">
                 Earnings Dashboard
               </h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-base font-normal text-gray-600 dark:text-gray-400 font-sans">
                 Company earnings and financial data
               </p>
             </div>
@@ -233,7 +263,7 @@ export default function EarningsDashboard() {
               placeholder="Search companies..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm font-normal text-gray-900 dark:text-white font-sans focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -244,7 +274,7 @@ export default function EarningsDashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     <button
                       onClick={() => handleSort('symbol')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
@@ -254,11 +284,11 @@ export default function EarningsDashboard() {
                     </button>
                   </th>
                   
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     Size
                   </th>
                   
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     <button
                       onClick={() => handleSort('marketCap')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
@@ -268,7 +298,7 @@ export default function EarningsDashboard() {
                     </button>
                   </th>
                   
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     <button
                       onClick={() => handleSort('price')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
@@ -278,7 +308,7 @@ export default function EarningsDashboard() {
                     </button>
                   </th>
                   
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     <button
                       onClick={() => handleSort('epsActual')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
@@ -288,7 +318,7 @@ export default function EarningsDashboard() {
                     </button>
                   </th>
                   
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider font-sans">
                     <button
                       onClick={() => handleSort('revActual')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
@@ -308,19 +338,26 @@ export default function EarningsDashboard() {
                   >
                     {/* Company */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {item.symbol}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.name || 'N/A'}
+                      <div className="flex items-center space-x-3">
+                        <CompanyLogo 
+                          symbol={item.symbol} 
+                          logoUrl={item.logoUrl} 
+                          name={item.name} 
+                        />
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white font-sans">
+                            {item.symbol}
+                          </div>
+                          <div className="text-sm font-normal text-gray-500 dark:text-gray-400 font-sans">
+                            {item.name || 'N/A'}
+                          </div>
                         </div>
                       </div>
                     </td>
                     
                     {/* Size */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSizeBadgeColor(item.size)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full font-sans ${getSizeBadgeColor(item.size)}`}>
                         {item.size || 'Unknown'}
                       </span>
                     </td>
@@ -328,10 +365,10 @@ export default function EarningsDashboard() {
                     {/* Market Cap */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white font-sans">
                           {formatMarketCap(item.marketCap)}
                         </div>
-                        <div className={`text-sm ${getChangeColor(item.change)}`}>
+                        <div className={`text-sm font-normal font-sans ${getChangeColor(item.change)}`}>
                           {item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : 'N/A'}
                         </div>
                       </div>
@@ -340,10 +377,10 @@ export default function EarningsDashboard() {
                     {/* Price */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white font-sans">
                           {item.price ? `$${item.price.toFixed(2)}` : 'N/A'}
                         </div>
-                        <div className={`text-sm ${getChangeColor(item.change)}`}>
+                        <div className={`text-sm font-normal font-sans ${getChangeColor(item.change)}`}>
                           {item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : 'N/A'}
                         </div>
                       </div>
@@ -351,11 +388,11 @@ export default function EarningsDashboard() {
                     
                     {/* EPS */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-sm font-sans">
                         <div className="text-gray-900 dark:text-white font-medium">
                           {item.epsActual ? `$${item.epsActual.toFixed(2)}` : 'N/A'}
                         </div>
-                        <div className="text-gray-600 dark:text-gray-400">
+                        <div className="text-gray-600 dark:text-gray-400 font-normal">
                           {item.epsEst ? `$${item.epsEst.toFixed(2)}` : 'N/A'}
                         </div>
                         <div className={`${getChangeColor(item.epsSurp)} font-medium`}>
@@ -366,11 +403,11 @@ export default function EarningsDashboard() {
                     
                     {/* Revenue */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-sm font-sans">
                         <div className="text-gray-900 dark:text-white font-medium">
                           {formatRevenue(item.revActual)}
                         </div>
-                        <div className="text-gray-600 dark:text-gray-400">
+                        <div className="text-gray-600 dark:text-gray-400 font-normal">
                           {formatRevenue(item.revEst)}
                         </div>
                         <div className={`${getChangeColor(item.revSurp)} font-medium`}>
@@ -386,8 +423,8 @@ export default function EarningsDashboard() {
           
           {filteredAndSortedData.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-lg">No companies found</div>
-              <div className="text-gray-500 text-sm mt-2">
+              <div className="text-gray-400 text-lg font-medium font-sans">No companies found</div>
+              <div className="text-gray-500 text-sm font-normal font-sans mt-2">
                 Try adjusting your search terms
               </div>
             </div>
@@ -395,7 +432,7 @@ export default function EarningsDashboard() {
         </div>
         
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-8 text-center text-sm font-normal text-gray-500 dark:text-gray-400 font-sans">
           Showing {filteredAndSortedData.length} of {data.length} companies
         </div>
       </div>

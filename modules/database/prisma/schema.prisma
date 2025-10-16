@@ -21,6 +21,11 @@ model FinhubData {
   hour             String?   // "amc" | "bmo" | "dmh" | null
   quarter          Int?
   year             Int?
+  
+  // LOGO fields
+  logoUrl          String?   // e.g. "/logos/AAPL.webp"
+  logoSource       String?   // "polygon" | "clearbit" | "yahoo" | "finnhub" | "manual"
+  logoFetchedAt    DateTime?
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -47,6 +52,8 @@ model PolygonData {
   name             String?   // Company name from Polygon API
   priceBoolean     Boolean?
   Boolean          Boolean?
+  priceSource      String?   // 'pre'|'live'|'ah'|'min'|'day'|'prevDay'
+  
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -70,11 +77,33 @@ model FinalReport {
   revActual     BigInt?
   revEst        BigInt?
   revSurp       Float?
+  
+  // LOGO fields (copied from FinhubData)
+  logoUrl       String?   // e.g. "/logos/AAPL.webp"
+  logoSource    String?   // "polygon" | "clearbit" | "yahoo" | "finnhub" | "manual"
+  logoFetchedAt DateTime?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([symbol])
   @@index([createdAt])
   @@map("final_report")
+}
+
+model CronStatus {
+  id            Int       @id @default(autoincrement())
+  jobType       String    @unique // "finnhub" | "polygon" | "final_report"
+  lastRunAt     DateTime
+  status        String    // "success" | "error" | "running"
+  recordsProcessed Int?
+  errorMessage  String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([jobType])
+  @@index([lastRunAt])
+  @@map("cron_status")
 }
 

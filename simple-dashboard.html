@@ -85,6 +85,19 @@
     }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "system-ui", "sans-serif"],
+                        mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -166,20 +179,20 @@
         }
     </style>
 </head>
-   <body class="h-full bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
-       <div id="app" class="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+   <body class="h-full bg-neutral-50 dark:bg-slate-900 transition-colors duration-300">
+       <div id="app" class="min-h-screen bg-neutral-50 dark:bg-slate-900">
         <!-- Header -->
-        <header class="glass-effect shadow-lg border-b border-neutral-200 dark:border-neutral-700" role="banner">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <header class="glass-effect shadow-lg border-b border-neutral-200 dark:border-transparent" role="banner">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                        <div class="text-center sm:text-left">
-                           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Earnings Table</h1>
-                           <p class="mt-2 sm:mt-3 text-blue-700 dark:text-blue-300 text-base sm:text-lg lg:text-xl font-medium">Company earnings and financial data</p>
+                           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-white tracking-tight">Earnings Table</h1>
+                           <p class="mt-1 sm:mt-2 text-blue-900 dark:text-white text-sm sm:text-base lg:text-lg font-medium">Company earnings and financial data</p>
                        </div>
                     
                     <div class="mt-4 sm:mt-0 flex items-center justify-center sm:justify-end space-x-4">
                         <!-- Theme Toggle -->
-                        <button id="theme-toggle" class="p-3 sm:p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 smooth-transition shadow-sm touch-manipulation" aria-label="Toggle dark mode" title="Toggle dark mode">
+                        <button id="theme-toggle" class="p-2 sm:p-3 rounded-xl bg-neutral-100 dark:bg-yellow-300 hover:bg-neutral-200 dark:hover:bg-yellow-400 border border-neutral-300 dark:border-transparent smooth-transition shadow-sm touch-manipulation" aria-label="Toggle dark mode" title="Toggle dark mode">
                             <i data-lucide="moon" class="h-5 w-5 sm:h-5 sm:w-5"></i>
                         </button>
                     </div>
@@ -188,10 +201,10 @@
         </header>
 
            <!-- Main Content -->
-           <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8" role="main">
+           <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 bg-white dark:bg-slate-900" role="main">
 
             <!-- Loading State -->
-            <div id="loading" class="text-center py-12 sm:py-16">
+            <div id="loading" class="text-center py-12 sm:py-16 bg-white dark:bg-slate-800 rounded-xl">
                 <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4 sm:mb-6">
                     <div class="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-2 border-blue-600 border-t-transparent"></div>
                 </div>
@@ -199,11 +212,11 @@
             </div>
 
             <!-- Error State -->
-            <div id="error" class="hidden text-center py-12 sm:py-16">
+            <div id="error" class="hidden text-center py-12 sm:py-16 bg-white dark:bg-slate-800 rounded-xl">
                 <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-50 dark:bg-red-900/20 mb-4 sm:mb-6">
                     <div class="text-red-500 text-xl sm:text-2xl">⚠️</div>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">Error Loading Data</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white mb-3">Error Loading Data</h2>
                 <p id="error-message" class="text-neutral-600 dark:text-neutral-400 mb-4 sm:mb-6 text-base sm:text-lg px-4"></p>
                 <button id="retry-btn" class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 smooth-transition font-medium shadow-sm touch-manipulation">
                     Retry
@@ -211,7 +224,7 @@
             </div>
 
                <!-- Status Bar -->
-               <div id="status-bar" class="hidden mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-neutral-800 rounded-xl px-6 py-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
+               <div id="status-bar" class="hidden mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-800 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-neutral-200 dark:border-transparent shadow-sm">
                    <!-- Search Bar -->
                    <div class="relative w-full sm:w-80">
                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,7 +234,7 @@
                            type="text"
                            id="search-input"
                            placeholder="Search companies..."
-                           class="w-full pl-10 sm:pl-12 pr-4 sm:pr-6 py-3 sm:py-4 border border-neutral-200 dark:border-neutral-700 rounded-xl sm:rounded-2xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent smooth-transition text-base sm:text-lg font-medium shadow-sm touch-manipulation"
+                           class="w-full pl-10 sm:pl-12 pr-4 sm:pr-6 py-2 sm:py-3 lg:py-4 border border-neutral-200 dark:border-white rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent smooth-transition text-sm sm:text-base lg:text-lg font-medium shadow-sm touch-manipulation"
                            oninput="filterData(this.value)"
                        />
                    </div>
@@ -231,10 +244,10 @@
                        <!-- Status Info -->
                        <div class="flex items-center space-x-3">
                            <div class="flex items-center space-x-2">
-                               <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <svg class="w-5 h-5 text-blue-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                </svg>
-                               <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Auto-refresh</span>
+                               <span class="text-sm font-medium text-neutral-700 dark:text-white">Auto-refresh</span>
                            </div>
                            <div class="flex items-center space-x-2">
                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -247,56 +260,50 @@
                            <svg class="w-4 h-4 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                            </svg>
-                           <span id="last-updated" class="text-sm text-neutral-600 dark:text-neutral-400 font-mono">Loading...</span>
+                           <span id="last-updated" class="text-base text-neutral-600 dark:text-white font-sans">Loading...</span>
                        </div>
                    </div>
                </div>
 
                <!-- Table -->
-               <div id="table-container" class="hidden glass-effect rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800">
-                <div class="overflow-x-auto -mx-4 sm:mx-0">
-                    <table class="min-w-full" role="table" aria-label="Company earnings and financial data table">
-                           <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-blue-600">
+               <div id="table-container" class="hidden rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent bg-white dark:bg-slate-800">
+                <div class="overflow-x-auto">
+                    <table class="w-full table-fixed" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
+                           <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                                <tr>
-                                   <th class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-left text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol">
-                                       <div class="flex items-center justify-start">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">Company</span>
-                                           <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
+                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 34%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Company</span>
+                                           <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
                                        </div>
                                    </th>
-                                   <th class="hidden md:table-cell px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('size')">
+                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 24%;">
                                        <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">Size</span>
-                                           <span id="sort-size" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
+                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
                                        </div>
                                    </th>
-                                   <th class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation" onclick="sortTable('marketCap')">
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 14%;">
                                        <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">Market Cap</span>
-                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Price</span>
+                                           <span id="sort-change" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')">
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 14%;">
                                        <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">Price</span>
-                                           <span id="sort-change" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">EPS</span>
+                                           <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')">
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 14%;">
                                        <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">EPS</span>
-                                           <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
-                                       </div>
-                                   </th>
-                                   <th class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')">
-                                       <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-blue-100 smooth-transition">Revenue</span>
-                                           <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Revenue</span>
+                                           <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
                                </tr>
                            </thead>
-                        <tbody id="table-body" class="bg-white dark:bg-neutral-800">
+                        <tbody id="table-body" class="bg-white dark:bg-slate-800">
                             <!-- Data will be inserted here -->
                         </tbody>
                     </table>
@@ -306,13 +313,13 @@
        </div>
 
        <!-- Footer -->
-       <footer class="mt-12 sm:mt-16 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900" role="contentinfo">
+       <footer class="mt-12 sm:mt-16 border-t border-neutral-200 dark:border-transparent bg-neutral-50 dark:bg-slate-900" role="contentinfo">
            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                <div class="text-center">
                    <div class="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3 sm:mb-4">
-                       <i data-lucide="info" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400"></i>
+                       <i data-lucide="info" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-900 dark:text-white"></i>
                    </div>
-                   <h3 class="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Disclaimer</h3>
+                   <h3 class="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white mb-2">Disclaimer</h3>
                    <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-4xl mx-auto leading-relaxed px-2">
                        This earnings table is provided for informational purposes only. I am independent and am not affiliated with any financial institutions or data providers. 
                        Financial data is sourced from Polygon and other third-party providers. I do not guarantee the accuracy, completeness, or timeliness of the information presented. 
@@ -369,6 +376,8 @@
             if (absNum >= 1e12) return `${sign}$${(absNum / 1e12).toFixed(2)}T`;
             if (absNum >= 1e9) return `${sign}$${(absNum / 1e9).toFixed(2)}B`;
             if (absNum >= 1e6) return `${sign}$${(absNum / 1e6).toFixed(2)}M`;
+            // For values less than 1M, show in M format with 2 decimal places
+            if (absNum >= 1000) return `${sign}$${(absNum / 1e6).toFixed(2)}M`;
             return `${sign}$${absNum.toFixed(0)}`;
         }
 
@@ -492,7 +501,7 @@
                        const isVisible = !indicator.closest('th').classList.contains('hidden');
                        if (isVisible) {
                            indicator.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
-                           indicator.className = 'ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 opacity-100 smooth-transition font-bold text-sm sm:text-lg'; // Make visible with accent color
+                           indicator.className = 'ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg'; // Make visible with accent color
                        }
                    }
                }
@@ -509,6 +518,31 @@
                 second: '2-digit'
             });
             document.getElementById('last-updated').textContent = timeString;
+        }
+
+        // Fetch cron status and update timestamp
+        async function fetchCronStatus() {
+            try {
+                const response = await fetch('/api/cron-status');
+                const result = await response.json();
+                
+                if (result.success && result.lastUpdate) {
+                    const lastUpdate = new Date(result.lastUpdate);
+                    const timeString = lastUpdate.toLocaleString('sk-SK', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    document.getElementById('last-updated').textContent = timeString;
+                }
+            } catch (error) {
+                console.error('Error fetching cron status:', error);
+                // Fallback to current time if API fails
+                updateLastUpdatedTime();
+            }
         }
 
         // Data fetching
@@ -535,6 +569,8 @@
                         marketCap: item.marketCap ? Number(item.marketCap) : 0,
                         marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
                         price: item.price || 0,
+                        logoUrl: item.logoUrl || null,
+                        logoSource: item.logoSource || null,
                         change: item.change || 0,
                         epsActual: item.epsActual || 0,
                         epsEst: item.epsEst || 0,
@@ -553,8 +589,8 @@
                     renderTable();
                     showTable();
                     
-                    // Update timestamp
-                    updateLastUpdatedTime();
+                    // Update timestamp from cron status
+                    await fetchCronStatus();
                 } else {
                     throw new Error(result.message || 'Failed to fetch data');
                 }
@@ -612,54 +648,94 @@
             const tbody = document.getElementById('table-body');
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400 text-lg font-medium">No companies found</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="relative w-32 h-32 flex items-center justify-center">
+                                    <!-- Calendar icon -->
+                                    <div class="absolute w-24 h-24 border-4 border-blue-900 dark:border-white rounded-lg">
+                                        <div class="w-full h-6 border-b-4 border-blue-900 dark:border-white rounded-t-lg bg-blue-50 dark:bg-slate-800"></div>
+                                        <div class="p-2">
+                                            <div class="grid grid-cols-7 gap-1">
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Diagonal line (crossed out) -->
+                                    <div class="absolute w-28 h-1 bg-red-500 transform rotate-45"></div>
+                                </div>
+                                <div class="text-sm sm:text-base lg:text-lg font-medium text-blue-900 dark:text-white">No data available for today</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
             tbody.innerHTML = filteredData.map((item, index) => `
-                <tr class="border-b border-neutral-200 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 smooth-transition fade-in ${index % 2 === 0 ? 'bg-white dark:bg-neutral-800' : 'bg-neutral-100 dark:bg-neutral-700'}" style="animation-delay: ${index * 50}ms">
+                <tr class="border-b border-neutral-200 dark:border-transparent hover:bg-neutral-50 dark:hover:bg-slate-700/50 smooth-transition fade-in ${index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-neutral-100 dark:bg-slate-700'}" style="animation-delay: ${index * 50}ms; height: 60px; min-height: 60px;">
                     <!-- Company -->
-                    <td class="px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
-                        <div>
-                            <div class="text-base sm:text-lg font-bold text-neutral-900 dark:text-neutral-100">${item.symbol}</div>
-                            <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden md:block">${item.name}</div>
+        <td class="px-2 sm:px-4 lg:px-6 py-0 relative" style="width: 34%;">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Logo -->
+                <div class="flex-shrink-0 relative">
+                    ${item.logoUrl ? 
+                        `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl object-contain bg-white dark:bg-slate-400 p-1 sm:p-2 border border-neutral-400 dark:border-white shadow-sm" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">${item.symbol}</div>` :
+                        `<div class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">${item.symbol}</div>`
+                    }
+                </div>
+                    <!-- Company Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-white">${item.symbol}</div>
+                        <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block break-words">${item.name}</div>
+                    </div>
                         </div>
                     </td>
                     
-                    <!-- Size -->
-                    <td class="hidden md:table-cell px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center">
-                        <span class="inline-flex px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-md border-2 ${getSizeBadgeColor(item.size)} transform hover:scale-105 transition-all duration-200">
-                            ${item.size?.toUpperCase() || '-'}
-                        </span>
-                    </td>
-                    
-                    <!-- Market Cap -->
-                    <td class="px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
-                        <div>
-                            <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-neutral-100">${formatMarketCap(item.marketCap)}</div>
-                            <div class="text-xs sm:text-sm font-medium ${getChangeColor(item.marketCapDiff)}">
-                                ${item.marketCapDiff ? formatMarketCap(item.marketCapDiff) : '-'}
+                    <!-- Market Cap (with Size) -->
+                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap" style="width: 24%;">
+                        <div class="flex items-center justify-between">
+                            <!-- Size badge on the left -->
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex px-1 sm:px-2 py-0.5 sm:py-1 text-xs font-bold rounded-md border border-neutral-200 dark:border-neutral-600 ${getSizeBadgeColor(item.size)} transform hover:scale-105 transition-all duration-200">
+                                    ${item.size?.toUpperCase() || '-'}
+                                </span>
+                            </div>
+                            <!-- Market Cap on the right -->
+                            <div class="flex-1 text-right ml-2">
+                                <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${formatMarketCap(item.marketCap)}</div>
+                                <div class="text-xs font-medium ${getChangeColor(item.marketCapDiff)}">
+                                    ${item.marketCapDiff ? `${item.marketCapDiff > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : '-'}
+                                </div>
                             </div>
                         </div>
                     </td>
                     
                     <!-- Price -->
-                    <td class="px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
                         <div>
-                            <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-neutral-100">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
-                            <div class="text-xs sm:text-sm font-medium ${getChangeColor(item.change)}">
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            <div class="text-xs font-medium ${getChangeColor(item.change)}">
                                 ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                     </td>
                     
                     <!-- EPS -->
-                    <td class="px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
                         <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
-                            <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
                             </div>
-                            <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden md:block">
+                            <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}
                             </div>
                             <div class="text-xs sm:text-sm font-semibold ${getChangeColor(item.epsSurp)}">
@@ -669,12 +745,12 @@
                     </td>
                     
                     <!-- Revenue -->
-                    <td class="px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
                         <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
-                            <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${formatRevenue(item.revActual)}
                             </div>
-                            <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden md:block">
+                            <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${formatRevenue(item.revEst)}
                             </div>
                             <div class="text-xs sm:text-sm font-semibold ${getChangeColor(item.revSurp)}">
@@ -693,10 +769,46 @@
             filterData(e.target.value);
         });
 
+        // Auto-refresh mechanism
+        let autoRefreshInterval;
+        
+        function startAutoRefresh() {
+            // Clear existing interval
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Check for updates every 30 seconds
+            autoRefreshInterval = setInterval(async () => {
+                try {
+                    // Fetch cron status to get latest timestamp
+                    await fetchCronStatus();
+                    
+                    // Optionally refresh data if needed
+                    // await fetchData();
+                } catch (error) {
+                    console.error('Auto-refresh error:', error);
+                }
+            }, 30000); // 30 seconds
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initTheme();
             fetchData();
+            startAutoRefresh();
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
         });
     </script>
 </body>

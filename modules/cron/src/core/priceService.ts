@@ -57,7 +57,7 @@ async function apiCall<T>(path: string, params: any = {}): Promise<T> {
         timeout: 7000,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       const status = error.response?.status;
       
@@ -67,7 +67,13 @@ async function apiCall<T>(path: string, params: any = {}): Promise<T> {
       }
       
       if (attempt < maxRetries - 1) {
-        const delay = 300 * (2 ** attempt) + Math.random() * 300;
+        // Check for Retry-After header first
+        const retryAfter = Number(error.response?.headers?.['retry-after']);
+        const delay = Number.isFinite(retryAfter) 
+          ? retryAfter * 1000  // Convert seconds to milliseconds
+          : 300 * (2 ** attempt) + Math.random() * 300;  // Exponential backoff with jitter
+        
+        console.log(`⏳ Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms (${Number.isFinite(retryAfter) ? 'server-recommended' : 'exponential backoff'})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -99,6 +105,20 @@ function getNYDate(): string {
   return result;
 }
 
+// Get previous trading day (skip weekends)
+function getPreviousTradingDay(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  let prevDate = new Date(date);
+  prevDate.setDate(prevDate.getDate() - 1);
+  
+  // Skip weekends (Saturday = 6, Sunday = 0)
+  while (prevDate.getDay() === 0 || prevDate.getDay() === 6) {
+    prevDate.setDate(prevDate.getDate() - 1);
+  }
+  
+  return prevDate.toISOString().split('T')[0];
+}
+
 // 1. Grouped prevClose (1 call per day) - cached for 24h
 export async function getPrevCloseMap(nyDateISO?: string): Promise<Map<string, number>> {
   const date = nyDateISO || getNYDate();
@@ -118,8 +138,8 @@ export async function getPrevCloseMap(nyDateISO?: string): Promise<Map<string, n
     const data = await apiCall(`/v2/aggs/grouped/locale/us/market/stocks/${date}`, { adjusted: true });
     const map = new Map<string, number>();
     
-    if (data?.results) {
-      for (const r of data.results) {
+    if ((data as any)?.results) {
+      for (const r of (data as any).results) {
         if (r.T && Number.isFinite(r.c) && r.c > 0) {
           map.set(r.T, Number(r.c));
         }
@@ -128,12 +148,31 @@ export async function getPrevCloseMap(nyDateISO?: string): Promise<Map<string, n
     
     console.log(`→ Found ${map.size} previous close prices`);
     
+    // If no data found for current date, try previous trading day
+    if (map.size === 0) {
+      console.log(`→ No data for ${date}, trying previous trading day...`);
+      const prevDate = getPreviousTradingDay(date);
+      if (prevDate !== date) {
+        console.log(`→ Fetching grouped previous close for ${prevDate}...`);
+        const prevData = await apiCall(`/v2/aggs/grouped/locale/us/market/stocks/${prevDate}`, { adjusted: true });
+        
+        if ((prevData as any)?.results) {
+          for (const r of (prevData as any).results) {
+            if (r.T && Number.isFinite(r.c) && r.c > 0) {
+              map.set(r.T, Number(r.c));
+            }
+          }
+        }
+        console.log(`→ Found ${map.size} previous close prices from ${prevDate}`);
+      }
+    }
+    
     // Cache the result
     prevCloseCache.set(cacheKey, { v: map, t: now });
     
     return map;
   } catch (error) {
-    console.log(`→ Grouped aggs failed: ${error.response?.status || 'Unknown error'}`);
+    console.log(`→ Grouped aggs failed: ${(error as any).response?.status || 'Unknown error'}`);
     return new Map();
   }
 }
@@ -150,16 +189,16 @@ export async function getMarketCapInfo(ticker: string): Promise<{ marketCap: num
   
   try {
     const data = await apiCall(`/v3/reference/tickers/${ticker}`);
-    const marketCap = Number(data?.results?.market_cap) || null;
-    const name = data?.results?.name || null;
-    const shares = Number(data?.results?.share_class_shares_outstanding) || null;
+    const marketCap = Number((data as any)?.results?.market_cap) || null;
+    const name = (data as any)?.results?.name || null;
+    const shares = Number((data as any)?.results?.share_class_shares_outstanding) || null;
     
     // Cache the result (even if null)
     sharesCache.set(ticker, { v: marketCap, t: now });
     
     return { marketCap, name, shares };
   } catch (error) {
-    console.log(`→ Failed to get market cap info for ${ticker}: ${error.response?.status || error.message}`);
+    console.log(`→ Failed to get market cap info for ${ticker}: ${(error as any).response?.status || (error as any).message}`);
     return { marketCap: null, name: null, shares: null };
   }
 }
@@ -189,25 +228,25 @@ export async function getSnapshotsBulk(tickers: string[]): Promise<Snapshot[]> {
       try {
         const data = await apiCall(`/v2/snapshot/locale/us/markets/stocks/tickers/${ticker}`);
         
-        if (data?.ticker) {
-          // Debug: Log raw ticker data for first few symbols
-          if (ticker === 'AAPL' || ticker === 'MSFT' || ticker === 'ATLO') {
-            console.log(`🔍 Raw ticker data for ${ticker}:`, JSON.stringify(data.ticker, null, 2));
+        if ((data as any)?.ticker) {
+          // Debug: Log raw ticker data for SCHW specifically
+          if (ticker === 'SCHW') {
+            console.log(`🔍 Raw ticker data for ${ticker}:`, JSON.stringify((data as any).ticker, null, 2));
           }
           
           return {
             ticker: ticker,
-            preMarket: data.ticker.preMarket,
-            lastTrade: data.ticker.lastTrade,
-            afterHours: data.ticker.afterHours,
-            minute: data.ticker.minute,
-            day: data.ticker.day,
-            prevDay: data.ticker.prevDay,
+            preMarket: (data as any).ticker.preMarket,
+            lastTrade: (data as any).ticker.lastTrade,
+            afterHours: (data as any).ticker.afterHours,
+            minute: (data as any).ticker.minute || (data as any).ticker.min, // Map 'min' to 'minute'
+            day: (data as any).ticker.day,
+            prevDay: (data as any).ticker.prevDay,
           };
         }
         return null;
       } catch (error) {
-        console.log(`→ Failed to get snapshot for ${ticker}: ${error.response?.status || error.message}`);
+        console.log(`→ Failed to get snapshot for ${ticker}: ${(error as any).response?.status || (error as any).message}`);
         return null;
       }
     });
@@ -271,11 +310,17 @@ export function pickPrice(t: any): PriceResult {
   });
   
   const now = Date.now();
-  const best = candidates.find(c => 
-    Number.isFinite(c.p) && 
-    c.p > 0 && 
-    (c.t == null || (c.t <= now + 5 * 60_000 && (now - c.t) <= DAY)) // Allow null timestamps for prevDay
-  );
+  const best = candidates.find(c => {
+    const isValidPrice = Number.isFinite(c.p) && c.p > 0;
+    const isValidTimestamp = c.t == null || (c.t <= now + 5 * 60_000 && (now - c.t) <= DAY);
+    
+    // Debug for SCHW
+    if (t.ticker === 'SCHW') {
+      console.log(`→ SCHW candidate ${c.s}: price=${c.p}, ts=${c.t}, now=${now}, isValidPrice=${isValidPrice}, isValidTimestamp=${isValidTimestamp}`);
+    }
+    
+    return isValidPrice && isValidTimestamp;
+  });
   
   if (best) {
     console.log(`→ Selected price for ${t.ticker || 'unknown'}: ${best.s}:${best.p}`);
@@ -335,7 +380,14 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
       
       // Get current price from snapshot
       const snapshot = snapshotMap.get(symbol);
-      const { price, source: priceSource, ts } = pickPrice(snapshot);
+      
+      // Debug for SCHW
+      if (symbol === 'SCHW') {
+        console.log(`→ SCHW snapshot from map:`, snapshot);
+        console.log(`→ SCHW snapshotMap keys:`, Array.from(snapshotMap.keys()).slice(0, 10));
+      }
+      
+      const { price, source: priceSource } = pickPrice(snapshot);
       
       // Get market cap info (cached)
       const { marketCap: marketCapFromAPI, name: companyName, shares } = await getMarketCapInfo(symbol);
@@ -382,7 +434,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         previousClose,
         change,
         size,
-        name: companyName || snapshot?.name || null,
+        name: companyName || (snapshot as any)?.name || null,
         priceBoolean,
         Boolean: allConditionsMet,
         priceSource,
@@ -390,7 +442,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
       });
       
     } catch (error) {
-      console.log(`→ Error processing ${symbol}: ${error.message}`);
+      console.log(`→ Error processing ${symbol}: ${(error as any).message}`);
       
       // Add failed symbol with minimal data
       results.push({

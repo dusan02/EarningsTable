@@ -59,7 +59,7 @@ export async function retryAxios<T = any>(
       }
       
       const delay = calculateDelay(attempt, finalConfig.baseDelay, finalConfig.maxDelay, finalConfig.jitter);
-      console.warn(`⚠️ Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms... (${error.message})`);
+      console.warn(`⚠️ Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms... (${(error as any).message})`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }

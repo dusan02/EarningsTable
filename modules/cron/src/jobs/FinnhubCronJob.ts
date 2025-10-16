@@ -2,6 +2,7 @@ import { BaseCronJob } from '../core/BaseCronJob.js';
 import { fetchTodayEarnings } from '../finnhub.js';
 import { db } from '../core/DatabaseManager.js';
 import { todayIsoNY } from '../config.js';
+import { processLogosInBatches } from '../core/logoService.js';
 
 export class FinnhubCronJob extends BaseCronJob {
   constructor() {
@@ -15,6 +16,10 @@ export class FinnhubCronJob extends BaseCronJob {
 
   async execute(): Promise<void> {
     console.log('🚀 Starting FinnhubCronJob execution...');
+    
+    // Mark job as running
+    await db.updateCronStatus('finnhub', 'running');
+    
     try {
       const isoDate = todayIsoNY();
       console.log(`📅 Fetching earnings for ${isoDate} (NY time)`);
@@ -24,6 +29,7 @@ export class FinnhubCronJob extends BaseCronJob {
 
       if (rows.length === 0) {
         console.log('⚠️ No earnings reports found for today');
+        await db.updateCronStatus('finnhub', 'success', 0);
         return;
       }
 
@@ -46,10 +52,26 @@ export class FinnhubCronJob extends BaseCronJob {
       console.log('🔄 Copying symbols to PolygonData table...');
       await db.copySymbolsToPolygonData();
       
+      // Process logos for new symbols
+      console.log('🖼️ Checking for symbols that need logo updates...');
+      const symbolsNeedingLogos = await db.getSymbolsNeedingLogoRefresh();
+      
+      if (symbolsNeedingLogos.length > 0) {
+        console.log(`🖼️ Found ${symbolsNeedingLogos.length} symbols needing logo updates`);
+        const logoResult = await processLogosInBatches(symbolsNeedingLogos, 5, 3);
+        console.log(`🖼️ Logo processing completed: ${logoResult.success} success, ${logoResult.failed} failed`);
+      } else {
+        console.log('🖼️ All symbols already have up-to-date logos');
+      }
+      
+      // Mark job as successful
+      await db.updateCronStatus('finnhub', 'success', rows.length);
       console.log('✅ FinnhubCronJob completed successfully');
       
     } catch (error) {
       console.error('❌ FinnhubCronJob failed:', error);
+      // Mark job as failed
+      await db.updateCronStatus('finnhub', 'error', undefined, (error as any)?.message || 'Unknown error');
       throw error;
     }
   }

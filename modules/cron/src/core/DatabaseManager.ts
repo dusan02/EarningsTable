@@ -267,6 +267,10 @@ export class DatabaseManager {
                   name: data.name,
                   priceBoolean: Boolean(data.priceBoolean ?? 0), // Convert to boolean
                   Boolean: Boolean(data.Boolean ?? 0), // Convert to boolean
+                  // Logo fields - only set if provided
+                  ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
+                  ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
+                  ...(data.logoFetchedAt !== undefined && { logoFetchedAt: data.logoFetchedAt }),
                 },
                 update: {
                   symbolBoolean: Boolean(data.symbolBoolean ?? 0), // Convert to boolean
@@ -281,6 +285,10 @@ export class DatabaseManager {
                   name: data.name,
                   priceBoolean: Boolean(data.priceBoolean ?? 0), // Convert to boolean
                   Boolean: Boolean(data.Boolean ?? 0), // Convert to boolean
+                  // Logo fields - only update if provided (preserve existing)
+                  ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
+                  ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
+                  ...(data.logoFetchedAt !== undefined && { logoFetchedAt: data.logoFetchedAt }),
                 },
               })
             )
@@ -371,6 +379,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
+                // Copy logo fields from FinhubData
+                logoUrl: finhubData.logoUrl,
+                logoSource: finhubData.logoSource,
+                logoFetchedAt: finhubData.logoFetchedAt,
               },
               update: {
                 name: polygonData.name,
@@ -385,6 +397,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
+                // Copy logo fields from FinhubData
+                logoUrl: finhubData.logoUrl,
+                logoSource: finhubData.logoSource,
+                logoFetchedAt: finhubData.logoFetchedAt,
               },
             });
           }
@@ -405,9 +421,90 @@ export class DatabaseManager {
         console.log(`✅ Cleared ${result.count} FinalReport records`);
       }
 
-      async disconnect(): Promise<void> {
-        await prisma.$disconnect();
+  /**
+   * Update logo information for a symbol
+   */
+      async updateLogoInfo(symbol: string, logoUrl: string | null, logoSource: string | null): Promise<void> {
+        // Update all records for this symbol (there might be multiple report dates)
+        await prisma.finhubData.updateMany({
+          where: { symbol },
+          data: {
+            logoUrl,
+            logoSource,
+            logoFetchedAt: new Date(),
+          },
+        });
+        console.log(`   → Updated logo info for ${symbol}: ${logoUrl} (${logoSource})`);
       }
+
+  /**
+   * Get symbols that need logo refresh
+   */
+  async getSymbolsNeedingLogoRefresh(): Promise<string[]> {
+    const symbols = await prisma.finhubData.findMany({
+      where: {
+        OR: [
+          { logoUrl: null },
+          { logoFetchedAt: null },
+          {
+            logoFetchedAt: {
+              lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+            },
+          },
+        ],
+      },
+      select: { symbol: true },
+      distinct: ['symbol'],
+    });
+
+    return symbols.map(s => s.symbol);
+  }
+
+  /**
+   * Update cron job status
+   */
+  async updateCronStatus(jobType: string, status: 'success' | 'error' | 'running', recordsProcessed?: number, errorMessage?: string): Promise<void> {
+    await prisma.cronStatus.upsert({
+      where: { jobType },
+      create: {
+        jobType,
+        lastRunAt: new Date(),
+        status,
+        recordsProcessed,
+        errorMessage,
+      },
+      update: {
+        lastRunAt: new Date(),
+        status,
+        recordsProcessed,
+        errorMessage,
+      },
+    });
+  }
+
+  /**
+   * Get last cron run timestamp
+   */
+  async getLastCronRun(jobType: string): Promise<Date | null> {
+    const status = await prisma.cronStatus.findUnique({
+      where: { jobType },
+      select: { lastRunAt: true },
+    });
+    return status?.lastRunAt || null;
+  }
+
+  /**
+   * Get all cron statuses
+   */
+  async getAllCronStatuses(): Promise<any[]> {
+    return await prisma.cronStatus.findMany({
+      orderBy: { lastRunAt: 'desc' },
+    });
+  }
+
+  async disconnect(): Promise<void> {
+    await prisma.$disconnect();
+  }
 }
 
 // Singleton instance
