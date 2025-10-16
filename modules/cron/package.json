@@ -6,6 +6,7 @@
     "type": "module",
     "scripts": {
         "start": "tsx src/main.ts start",
+        "daily-cycle": "tsx src/main.ts daily-cycle",
         "cron": "tsx src/main.ts",
         "finnhub_data": "tsx src/main.ts start-finnhub",
         "finnhub_data:once": "tsx src/run-once.ts finnhub",

@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { db } from './core/DatabaseManager.js';
 import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
+import { DailyCycleManager } from './daily-cycle-manager.js';
 
 const TZ = 'America/New_York'; // správne pre 7:00 NY (zohľadní DST)
 
@@ -19,6 +20,11 @@ async function bootstrap() {
       case 'start':
         // Start all cron jobs
         await startAllCronJobs(once);
+        break;
+
+      case 'daily-cycle':
+        // Start daily cycle manager (03:00 clear, 03:05 start, every 5min until 02:30)
+        await startDailyCycle();
         break;
 
       case 'start-finnhub':
@@ -41,6 +47,7 @@ async function bootstrap() {
 
       case 'list':
         console.log('📋 Available Cron Jobs:');
+        console.log('  - Daily Cycle Manager (03:00 clear, 03:05 start, every 5min until 02:30)');
         console.log('  - Finnhub Earnings Data (daily @ 07:00 NY)');
         console.log('  - Polygon Market Cap Data (every 4 hours)');
         break;
@@ -53,6 +60,7 @@ async function bootstrap() {
 Usage: npm run cron [command] [options]
 
 Commands:
+  daily-cycle        Start daily cycle manager (03:00 clear, 03:05 start, every 5min until 02:30)
   start              Start all cron jobs
   start-finnhub      Start Finnhub cron job only
   start-polygon      Start Polygon cron job only
@@ -66,6 +74,7 @@ Options:
   --force            Force overwrite existing data (Finnhub only)
 
 Examples:
+  npm run cron daily-cycle                        # Start daily cycle manager
   npm run cron start                              # Start all cron jobs (scheduled)
   npm run cron start-finnhub                      # Start only Finnhub cron (scheduled)
   npm run cron start-finnhub --once               # Run Finnhub job once and exit
@@ -79,6 +88,15 @@ Examples:
     console.error('❌ Bootstrap failed:', error);
     process.exit(1);
   }
+}
+
+async function startDailyCycle() {
+  console.log('🚀 Starting Daily Cycle Manager...');
+  const manager = new DailyCycleManager();
+  await manager.start();
+  
+  // Keep-alive
+  await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
 }
 
 async function startAllCronJobs(once: boolean) {

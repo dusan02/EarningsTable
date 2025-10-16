@@ -375,9 +375,6 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
   // Step 3: Process each symbol
   for (const symbol of symbols) {
     try {
-      // Get previous close
-      const previousClose = prevCloseMap.get(symbol) || null;
-      
       // Get current price from snapshot
       const snapshot = snapshotMap.get(symbol);
       
@@ -388,6 +385,10 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
       }
       
       const { price, source: priceSource } = pickPrice(snapshot);
+      
+      // Get previous close - use prevDay.c from snapshot (more reliable than prevCloseMap)
+      let previousClose = snapshot?.prevDay?.c || null;
+      console.log(`→ ${symbol}: using prevDay.c=${previousClose} (prevCloseMap=${prevCloseMap.get(symbol)})`);
       
       // Get market cap info (cached)
       const { marketCap: marketCapFromAPI, name: companyName, shares } = await getMarketCapInfo(symbol);

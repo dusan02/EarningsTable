@@ -502,6 +502,18 @@ export class DatabaseManager {
     });
   }
 
+  async clearAllTables(): Promise<void> {
+    console.log('🛑 Clearing all database tables...');
+    
+    // Clear tables in correct order (respecting foreign key constraints)
+    await prisma.finalReport.deleteMany();
+    await prisma.polygonData.deleteMany();
+    await prisma.finhubData.deleteMany();
+    await prisma.cronStatus.deleteMany();
+    
+    console.log('✅ All tables cleared successfully');
+  }
+
   async disconnect(): Promise<void> {
     await prisma.$disconnect();
   }
