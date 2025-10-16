@@ -551,7 +551,7 @@
                 console.log('Fetching data...');
                 showLoading();
                 
-                const response = await fetch('http://localhost:5555/api/final-report');
+                const response = await fetch('/api/final-report');
                 console.log('Response status:', response.status);
                 
                 if (!response.ok) {

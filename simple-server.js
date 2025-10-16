@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
@@ -8,6 +9,11 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname)); // serve static files
+app.use(
+  "/logos",
+  express.static(path.join(__dirname, "modules", "web", "public", "logos"))
+); // serve logos
 
 // Prisma client
 const prisma = new PrismaClient({
@@ -64,6 +70,12 @@ app.get("/api/health", (req, res) => {
     uptime: process.uptime(),
   });
 });
+
+// Dashboard routes
+const DASHBOARD = path.resolve(__dirname, "simple-dashboard.html");
+
+app.get("/", (req, res) => res.sendFile(DASHBOARD));
+app.get("/dashboard", (req, res) => res.sendFile(DASHBOARD));
 
 // Start server
 app.listen(PORT, () => {
