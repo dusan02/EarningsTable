@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model FinhubData {
+  id               Int       @id @default(autoincrement())
+  reportDate       DateTime
+  symbol           String
+  epsActual        Float?    // môže byť null pred zverejnením
+  epsEstimate      Float?
+  revenueActual    BigInt?   // Finnhub vracia v USD; BigInt pre bezpečný range
+  revenueEstimate  BigInt?
+  hour             String?   // "amc" | "bmo" | "dmh" | null
+  quarter          Int?
+  year             Int?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([reportDate, symbol])
+  @@index([reportDate])
+  @@index([symbol])
+  @@index([reportDate, symbol]) // Composite index for faster upserts
+  @@map("finnhub_data")
+}
+
+model PolygonData {
+  id               Int       @id @default(autoincrement())
+  symbol           String    @unique
+  symbolBoolean    Boolean?
+  marketCap        BigInt?
+  previousMarketCap BigInt?
+  marketCapDiff    BigInt?
+  marketCapBoolean Boolean?
+  price            Float?
+  previousClose    Float?
+  change           Float?
+  size             String?   // Mega, Large, Mid, Small, null
+  name             String?   // Company name from Polygon API
+  priceBoolean     Boolean?
+  Boolean          Boolean?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([symbol])
+  @@index([createdAt]) // For time-based queries
+  @@map("polygon_data")
+}
+
+model FinalReport {
+  id            Int       @id @default(autoincrement())
+  symbol        String    @unique
+  name          String?
+  size          String?
+  marketCap     BigInt?
+  marketCapDiff BigInt?
+  price         Float?
+  change        Float?
+  epsActual     Float?
+  epsEst        Float?
+  epsSurp       Float?
+  revActual     BigInt?
+  revEst        BigInt?
+  revSurp       Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([symbol])
+  @@index([createdAt])
+  @@map("final_report")
+}
+

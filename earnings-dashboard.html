@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'hsl(var(--background))',
+                        foreground: 'hsl(var(--foreground))',
+                        card: 'hsl(var(--card))',
+                        'card-foreground': 'hsl(var(--card-foreground))',
+                        primary: 'hsl(var(--primary))',
+                        'primary-foreground': 'hsl(var(--primary-foreground))',
+                        secondary: 'hsl(var(--secondary))',
+                        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+                        muted: 'hsl(var(--muted))',
+                        'muted-foreground': 'hsl(var(--muted-foreground))',
+                        accent: 'hsl(var(--accent))',
+                        'accent-foreground': 'hsl(var(--accent-foreground))',
+                        destructive: 'hsl(var(--destructive))',
+                        'destructive-foreground': 'hsl(var(--destructive-foreground))',
+                        success: 'hsl(var(--success))',
+                        'success-foreground': 'hsl(var(--success-foreground))',
+                        border: 'hsl(var(--border))',
+                        input: 'hsl(var(--input))',
+                        ring: 'hsl(var(--ring))',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --primary: 221.2 83.2% 53.3%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222.2 84% 4.9%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96%;
+            --accent-foreground: 222.2 84% 4.9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --success: 142.1 76.2% 36.3%;
+            --success-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 221.2 83.2% 53.3%;
+        }
+        
+        .dark {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%;
+            --primary-foreground: 222.2 84% 4.9%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --success: 142.1 70.6% 45.3%;
+            --success-foreground: 144.9 80.4% 10%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 224.3 76.3% 94.1%;
+        }
+    </style>
+</head>
+<body class="h-full bg-background text-foreground">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="border-b border-border bg-card">
+            <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-foreground">Earnings Dashboard</h1>
+                    <p class="text-sm text-muted-foreground">Company earnings and financial data</p>
+                </div>
+                <button id="theme-toggle" class="rounded-full border border-border bg-transparent p-2 hover:bg-accent">
+                    <i data-lucide="moon" class="h-5 w-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Search -->
+            <div class="mb-6">
+                <div class="relative max-w-md">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Search companies..."
+                        class="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    />
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p class="mt-4 text-muted-foreground">Loading earnings data...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="hidden text-center py-12">
+                <div class="text-destructive text-6xl mb-4">⚠️</div>
+                <h2 class="text-2xl font-bold text-foreground mb-2">Error Loading Data</h2>
+                <p id="error-message" class="text-muted-foreground mb-4"></p>
+                <button id="retry-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                    Retry
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div id="table-container" class="hidden rounded-lg border border-border bg-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-border bg-muted/50">
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">
+                                    <button class="flex items-center gap-2 hover:text-primary transition-colors" data-sort="symbol">
+                                        Company
+                                        <i data-lucide="arrow-up-down" class="h-4 w-4"></i>
+                                    </button>
+                                </th>
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">Size</th>
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">
+                                    <button class="flex items-center gap-2 hover:text-primary transition-colors" data-sort="marketCap">
+                                        Market Cap
+                                        <i data-lucide="arrow-up-down" class="h-4 w-4"></i>
+                                    </button>
+                                </th>
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">
+                                    <button class="flex items-center gap-2 hover:text-primary transition-colors" data-sort="price">
+                                        Price
+                                        <i data-lucide="arrow-up-down" class="h-4 w-4"></i>
+                                    </button>
+                                </th>
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">
+                                    <button class="flex items-center gap-2 hover:text-primary transition-colors" data-sort="epsActual">
+                                        EPS
+                                        <i data-lucide="arrow-up-down" class="h-4 w-4"></i>
+                                    </button>
+                                </th>
+                                <th class="text-left p-4 font-semibold text-sm text-foreground">
+                                    <button class="flex items-center gap-2 hover:text-primary transition-colors" data-sort="revActual">
+                                        Revenue
+                                        <i data-lucide="arrow-up-down" class="h-4 w-4"></i>
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="no-results" class="hidden p-12 text-center">
+                    <p class="text-muted-foreground">No companies found matching your search.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Global state
+        let allData = [];
+        let filteredData = [];
+        let sortField = 'marketCap';
+        let sortDirection = 'desc';
+
+        // Theme management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+            updateThemeIcon(initialTheme);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            document.documentElement.classList.toggle('dark', newTheme === 'dark');
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#theme-toggle i');
+            icon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+            lucide.createIcons();
+        }
+
+        // Data formatting
+        function formatMarketCap(value) {
+            if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+            if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+            if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+            return `$${value.toFixed(0)}`;
+        }
+
+        function formatRevenue(value) {
+            if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+            if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+            return `$${value.toFixed(0)}`;
+        }
+
+        function getSizeBadgeColor(size) {
+            switch (size?.toLowerCase()) {
+                case 'mega': return 'bg-primary/10 text-primary border-primary/20';
+                case 'large': return 'bg-success/10 text-success border-success/20';
+                case 'mid': return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20';
+                case 'small': return 'bg-muted text-muted-foreground border-border';
+                default: return 'bg-muted text-muted-foreground border-border';
+            }
+        }
+
+        // Data fetching
+        async function fetchData() {
+            try {
+                showLoading();
+                const response = await fetch('http://localhost:3001/api/final-report');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                
+                if (result.success) {
+                    allData = result.data.map(item => ({
+                        symbol: item.symbol,
+                        name: item.name || 'N/A',
+                        size: item.size || 'Unknown',
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
+                    }));
+                    
+                    filteredData = [...allData];
+                    renderTable();
+                    showTable();
+                } else {
+                    throw new Error(result.message || 'Failed to fetch data');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showError(error.message);
+            }
+        }
+
+        // UI state management
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('table-container').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('table-container').classList.add('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function showTable() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('table-container').classList.remove('hidden');
+        }
+
+        // Sorting
+        function sortData(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'desc';
+            }
+            
+            filteredData.sort((a, b) => {
+                const aValue = a[field];
+                const bValue = b[field];
+                const multiplier = sortDirection === 'asc' ? 1 : -1;
+                return (aValue > bValue ? 1 : -1) * multiplier;
+            });
+            
+            updateSortIcons();
+            renderTable();
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('[data-sort]').forEach(button => {
+                const field = button.getAttribute('data-sort');
+                const icon = button.querySelector('i');
+                
+                if (field === sortField) {
+                    icon.setAttribute('data-lucide', sortDirection === 'asc' ? 'arrow-up' : 'arrow-down');
+                } else {
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // Filtering
+        function filterData(query) {
+            if (!query.trim()) {
+                filteredData = [...allData];
+            } else {
+                const lowerQuery = query.toLowerCase();
+                filteredData = allData.filter(company =>
+                    company.symbol.toLowerCase().includes(lowerQuery) ||
+                    company.name.toLowerCase().includes(lowerQuery)
+                );
+            }
+            
+            // Re-sort filtered data
+            sortData(sortField);
+        }
+
+        // Rendering
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const noResults = document.getElementById('no-results');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            tbody.innerHTML = filteredData.map((company, index) => `
+                <tr class="border-b border-border transition-colors hover:bg-muted/50 ${index % 2 === 0 ? 'bg-card' : 'bg-muted/20'}">
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-foreground">${company.symbol}</span>
+                            <span class="text-sm text-muted-foreground">${company.name}</span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getSizeBadgeColor(company.size)}">
+                            ${company.size}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-foreground">${formatMarketCap(company.marketCap)}</span>
+                            <span class="text-sm font-medium ${company.marketCapDiff >= 0 ? 'text-success' : 'text-destructive'}">
+                                ${company.marketCapDiff >= 0 ? '+' : ''}${company.marketCapDiff.toFixed(2)}%
+                            </span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-foreground">$${company.price.toFixed(2)}</span>
+                            <span class="text-sm font-medium ${company.change >= 0 ? 'text-success' : 'text-destructive'}">
+                                ${company.change >= 0 ? '+' : ''}${company.change.toFixed(2)}%
+                            </span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-semibold text-foreground">$${company.epsActual.toFixed(2)}</span>
+                            <span class="text-sm text-muted-foreground">$${company.epsEst.toFixed(2)}</span>
+                            <span class="text-sm font-semibold ${company.epsSurp >= 0 ? 'text-success' : 'text-destructive'}">
+                                ${company.epsSurp >= 0 ? '+' : ''}${company.epsSurp.toFixed(1)}%
+                            </span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-semibold text-foreground">${formatRevenue(company.revActual)}</span>
+                            <span class="text-sm text-muted-foreground">${formatRevenue(company.revEst)}</span>
+                            <span class="text-sm font-semibold ${company.revSurp >= 0 ? 'text-success' : 'text-destructive'}">
+                                ${company.revSurp >= 0 ? '+' : ''}${company.revSurp.toFixed(1)}%
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Event listeners
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('retry-btn').addEventListener('click', fetchData);
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            filterData(e.target.value);
+        });
+
+        document.querySelectorAll('[data-sort]').forEach(button => {
+            button.addEventListener('click', () => {
+                const field = button.getAttribute('data-sort');
+                sortData(field);
+            });
+        });
+
+        // Initialize
+        initTheme();
+        fetchData();
+
+        // Auto-refresh every 5 minutes
+        setInterval(fetchData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

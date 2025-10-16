@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer - Earnings Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Database Viewer</h1>
+        
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="flex space-x-1 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
+                <button onclick="showTable('finalReport')" id="tab-finalReport" class="tab-btn px-4 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm">
+                    Final Report
+                </button>
+                <button onclick="showTable('finnhub')" id="tab-finnhub" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                    Finnhub
+                </button>
+                <button onclick="showTable('polygonData')" id="tab-polygonData" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                    Polygon Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="glass-effect rounded-xl shadow-xl overflow-hidden">
+            <div id="table-container" class="overflow-x-auto">
+                <!-- Table will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-8">
+            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-4">
+                <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">Loading data...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="hidden text-center py-8">
+            <div class="text-red-500 text-2xl mb-4">⚠️</div>
+            <p id="error-message" class="text-red-600 dark:text-red-400"></p>
+        </div>
+    </div>
+
+    <script>
+        let currentTable = 'finalReport';
+        
+        async function fetchTableData(tableName) {
+            try {
+                const response = await fetch(`http://localhost:3002/api/${tableName}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${tableName}:`, error);
+                throw error;
+            }
+        }
+
+        function formatValue(value, type) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            if (type === 'currency') {
+                const num = parseFloat(value);
+                if (isNaN(num)) return value;
+                if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+                if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+                return `$${num.toFixed(2)}`;
+            }
+            
+            if (type === 'percentage') {
+                const num = parseFloat(value);
+                if (isNaN(num)) return value;
+                return `${num > 0 ? '+' : ''}${num.toFixed(2)}%`;
+            }
+            
+            return value.toString();
+        }
+
+        function renderTable(data, tableName) {
+            if (!data || data.length === 0) {
+                document.getElementById('table-container').innerHTML = '<div class="p-8 text-center text-gray-500 dark:text-gray-400">No data found</div>';
+                return;
+            }
+
+            const columns = Object.keys(data[0]);
+            const tableHTML = `
+                <table class="min-w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            ${columns.map(col => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">${col}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        ${data.map((row, index) => `
+                            <tr class="${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}">
+                                ${columns.map(col => {
+                                    let value = row[col];
+                                    let type = 'text';
+                                    
+                                    if (col.includes('marketCap') || col.includes('revActual') || col.includes('revEst')) {
+                                        type = 'currency';
+                                    } else if (col.includes('Surp') || col.includes('change')) {
+                                        type = 'percentage';
+                                    }
+                                    
+                                    return `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">${formatValue(value, type)}</td>`;
+                                }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('table-container').innerHTML = tableHTML;
+        }
+
+        async function showTable(tableName) {
+            currentTable = tableName;
+            
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+                btn.classList.add('text-gray-600', 'dark:text-gray-300');
+            });
+            
+            document.getElementById(`tab-${tableName}`).classList.remove('text-gray-600', 'dark:text-gray-300');
+            document.getElementById(`tab-${tableName}`).classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+            
+            // Show loading
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('table-container').innerHTML = '';
+            
+            try {
+                const data = await fetchTableData(tableName);
+                document.getElementById('loading').classList.add('hidden');
+                renderTable(data, tableName);
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('error-message').textContent = `Error loading ${tableName}: ${error.message}`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            showTable('finalReport');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+    "name": "@earnings-table/database",
+    "version": "1.0.0",
+    "description": "Database module for EarningsTable application",
+    "private": true,
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate deploy",
+        "prisma:studio": "prisma studio",
+        "prisma:reset": "prisma migrate reset",
+        "prisma:seed": "prisma db seed",
+        "build": "prisma generate"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.20.0"
+    },
+    "devDependencies": {
+        "prisma": "^5.20.0"
+    },
+    "keywords": [
+        "database",
+        "prisma",
+        "sqlite",
+        "earnings"
+    ],
+    "author": "",
+    "license": "MIT"
+}

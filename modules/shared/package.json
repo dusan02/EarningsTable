@@ -1,0 +1,27 @@
+{
+    "name": "@earnings-table/shared",
+    "version": "1.0.0",
+    "description": "Shared utilities and types for EarningsTable application",
+    "private": true,
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.5"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.6.3"
+    },
+    "keywords": [
+        "shared",
+        "utilities",
+        "types",
+        "earnings"
+    ],
+    "author": "",
+    "license": "MIT"
+}
