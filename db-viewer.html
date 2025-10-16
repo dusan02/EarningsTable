@@ -63,11 +63,19 @@
         
         async function fetchTableData(tableName) {
             try {
-                const response = await fetch(`http://localhost:3002/api/${tableName}`);
+                let url;
+                if (tableName === 'finalReport') {
+                    url = 'http://localhost:5555/api/final-report';
+                } else {
+                    url = `http://localhost:5555/api/${tableName}`;
+                }
+                
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return await response.json();
+                const result = await response.json();
+                return result.data || result; // Handle both formats
             } catch (error) {
                 console.error(`Error fetching ${tableName}:`, error);
                 throw error;

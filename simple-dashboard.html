@@ -43,6 +43,7 @@
     <link rel="canonical" href="https://earnings-table.com/">
     
     <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -712,9 +713,9 @@
                             <!-- Market Cap on the right -->
                             <div class="flex-1 text-right ml-2">
                                 <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${formatMarketCap(item.marketCap)}</div>
-                                <div class="text-xs font-medium ${getChangeColor(item.marketCapDiff)}">
-                                    ${item.marketCapDiff ? `${item.marketCapDiff > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : '-'}
-                                </div>
+                            <div class="text-sm font-medium ${getChangeColor(item.marketCapDiff)}">
+                                ${item.marketCapDiff ? `${item.marketCapDiff > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : '-'}
+                            </div>
                             </div>
                         </div>
                     </td>
@@ -723,7 +724,7 @@
                     <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
                         <div>
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
-                            <div class="text-xs font-medium ${getChangeColor(item.change)}">
+                            <div class="text-sm font-medium ${getChangeColor(item.change)}">
                                 ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
                             </div>
                         </div>
@@ -738,7 +739,7 @@
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}
                             </div>
-                            <div class="text-xs sm:text-sm font-semibold ${getChangeColor(item.epsSurp)}">
+                            <div class="text-sm font-semibold ${getChangeColor(item.epsSurp)}">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
                             </div>
                         </div>
@@ -753,7 +754,7 @@
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${formatRevenue(item.revEst)}
                             </div>
-                            <div class="text-xs sm:text-sm font-semibold ${getChangeColor(item.revSurp)}">
+                            <div class="text-sm font-semibold ${getChangeColor(item.revSurp)}">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
                             </div>
                         </div>
