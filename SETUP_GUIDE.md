@@ -46,9 +46,10 @@ NODE_ENV="development"
 
 ### Tabuľky:
 
-1. **FinhubData** - Earnings dáta z Finnhub API
+1. **FinhubData** - Earnings dáta z Finnhub API (s logami)
 2. **PolygonData** - Market cap dáta z Polygon API
-3. **FinalReport** - Kombinované dáta z oboch zdrojov
+3. **FinalReport** - Kombinované dáta z oboch zdrojov (s logami)
+4. **CronStatus** - Stav cron úloh
 
 ### Prisma Studio:
 
@@ -66,9 +67,9 @@ npx prisma studio --port 5556
 
 ### Dostupné úlohy:
 
-1. **Finnhub Cron** - Načítava earnings dáta (denne o 7:00 NY)
+1. **Finnhub Cron** - Načítava earnings dáta a logá (denne o 7:00 NY)
 2. **Polygon Cron** - Načítava market cap dáta (každé 4 hodiny)
-3. **Final Report** - Generuje kombinované reporty
+3. **Final Report** - Generuje kombinované reporty s logami
 
 ### Spustenie cron úloh:
 
@@ -94,6 +95,55 @@ $env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm run run-all
 ```
+
+## 🖼️ Logo systém
+
+### Automatické sťahovanie logov
+
+- **Zdroj**: Finnhub API (primárny), Polygon API, Yahoo Finance, Clearbit
+- **Kvalita**: 256x256px, WebP, 95% kvalita, úplne transparentné pozadie
+- **Ukladanie**: `modules/web/public/logos/` + databáza
+- **Dokumentácia**: [modules/docs/LOGOS.md](modules/docs/LOGOS.md)
+
+### Prečo sú logá krajšie:
+
+- **Vyššia kvalita**: 95% namiesto 80%
+- **Maximum effort**: 6 namiesto 4
+- **Úplne transparentné pozadie**: Žiadne biele pásy ani hranice
+- **Čisté okraje**: Fit 'inside' bez padding-u
+- **Konzistentná veľkosť**: 256x256 pre všetky logá
+- **Lepšie zdroje**: Finnhub poskytuje oficiálne logá
+
+## 📈 Pre-market ceny a zmeny
+
+### Automatické doťahovanie aktuálnych cien
+
+- **Zdroj**: Polygon API (pre-market, after-hours, live obchodovanie)
+- **Priorita**: Pre-market → Live → After-hours → Minute → Day → PrevDay
+- **Zmeny**: Automatický výpočet percentuálnych zmien vs. včerajšia cena
+- **Aktualizácia**: Každé 4 hodiny cez Polygon cron job
+
+### Ako funguje výber cien:
+
+1. **Pre-market ceny** - ak sú dostupné (napr. AXP: 319.5 vs 323.12 = -1.12%)
+2. **Live obchodovanie** - ak je aktívne (napr. TFC: 40.9 vs 41.09 = -0.46%)
+3. **After-hours** - ak je dostupné
+4. **Minute ceny** - posledné minútové dáta
+5. **Dnešné ceny** - ak sú dostupné
+6. **Včerajšie ceny** - fallback (bez zmeny = 0%)
+
+### Prečo nie všetky akcie majú zmeny:
+
+- **Aktívne obchodovanie**: TFC, SLB, HBAN, IMG, CLPS, AXP (majú pre-market/live ceny)
+- **Neaktívne obchodovanie**: STT, FITB (používajú včerajšie ceny, zmena = 0%)
+- **Dostupnosť dát**: Polygon API vracia len dostupné ceny v reálnom čase
+
+### Príklady aktuálnych zmien:
+
+- **AXP**: 319.5 (-1.12%) - pre-market obchodovanie
+- **TFC**: 40.9 (-0.46%) - pre-market obchodovanie
+- **SLB**: 32.75 (-0.52%) - pre-market obchodovanie
+- **STT**: 112.95 (0%) - žiadne aktívne obchodovanie
 
 ## 🌐 Webová aplikácia
 
@@ -180,6 +230,24 @@ curl http://localhost:5555/api/earnings
 - **Príčina**: Chýbajúce DATABASE_URL
 - **Riešenie**: Nastaviť `$env:DATABASE_URL`
 
+### Percentuálne zmeny sa nezobrazujú:
+
+- **Príčina**: `change=0` sa považovalo za `falsy` hodnotu
+- **Riešenie**: Opravené v `DatabaseManager.ts` - `change !== null && change !== undefined`
+- **Test**: Spustiť Polygon cron job a skontrolovať API response
+
+### Neexistujúce pole v databáze:
+
+- **Príčina**: `marketCapFetchedAt` pole neexistovalo v schéme
+- **Riešenie**: Odstránené z `priceService.ts`
+- **Test**: Spustiť Polygon cron job bez chýb
+
+### AXP nemá percentuálnu zmenu:
+
+- **Príčina**: Polygon API nevracia pre-market ceny pre AXP
+- **Riešenie**: Normálne správanie - nie všetky akcie majú aktívne obchodovanie
+- **Test**: Skontrolovať Polygon API response pre AXP vs. TFC
+
 ## 📁 Kľúčové súbory
 
 ### Konfigurácia:
@@ -194,6 +262,8 @@ curl http://localhost:5555/api/earnings
 - `modules/cron/src/jobs/PolygonCronJob.ts` - Polygon cron
 - `modules/cron/src/polygon-fast.ts` - Rýchle Polygon spracovanie
 - `modules/cron/src/run-all-with-stats.ts` - Štatistický skript
+- `modules/cron/src/core/priceService.ts` - Pre-market ceny a zmeny
+- `modules/cron/src/core/DatabaseManager.ts` - Kopírovanie zmien do FinalReport
 
 ### Web aplikácia:
 
@@ -225,6 +295,20 @@ curl http://localhost:5555/api/earnings
 1. Nastaviť DATABASE_URL
 2. Nastaviť API kľúče
 3. Reštartovať služby
+
+### Testovať pre-market ceny:
+
+1. Vymazať dáta z tabuliek
+2. Spustiť Finnhub cron (earnings + logá)
+3. Spustiť Polygon cron (pre-market ceny + zmeny)
+4. Skontrolovať API response pre percentuálne zmeny
+
+### Debugovať percentuálne zmeny:
+
+1. Skontrolovať PolygonData tabuľku v Prisma Studio
+2. Porovnať `price` vs `previousClose` vs `change`
+3. Skontrolovať `priceSource` (pre-market, live, prevDay)
+4. Testovať Polygon API response pre konkrétne symboly
 
 ## 📞 Kontakt a podpora
 

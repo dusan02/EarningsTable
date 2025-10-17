@@ -154,6 +154,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        
         /* Mobile optimizations */
         @media (max-width: 640px) {
             .touch-manipulation {
@@ -170,12 +171,72 @@
             button, th, td {
                 min-height: 44px;
             }
+            
+            /* Mobile table optimizations */
+            .mobile-table {
+                font-size: 12px;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 6px 2px;
+            }
+            
+            /* Hide size badges on mobile */
+            .table-size-badge {
+                display: none;
+            }
+            
+            /* Hide company name on mobile */
+            .company-name {
+                display: none;
+            }
+            
+            /* Mobile search improvements */
+            .mobile-search {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid #e5e7eb;
+                padding: 12px 16px;
+            }
+            
+            .dark .mobile-search {
+                background: rgba(17, 24, 39, 0.95);
+                border-color: #374151;
+            }
         }
         
         /* Tablet optimizations */
         @media (min-width: 641px) and (max-width: 1024px) {
             .touch-manipulation {
                 touch-action: manipulation;
+            }
+            
+            /* Show table on tablet */
+            .table-container {
+                display: block;
+            }
+            
+            
+            /* Show size badges on tablet */
+            .table-size-badge {
+                display: block;
+            }
+        }
+        
+        /* Desktop - show table */
+        @media (min-width: 1025px) {
+            .table-container {
+                display: block;
+            }
+            
+            
+            /* Show size badges on desktop */
+            .table-size-badge {
+                display: block;
             }
         }
     </style>
@@ -225,7 +286,7 @@
             </div>
 
                <!-- Status Bar -->
-               <div id="status-bar" class="hidden mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-800 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-neutral-200 dark:border-transparent shadow-sm">
+               <div id="status-bar" class="hidden mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-800 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-neutral-200 dark:border-transparent shadow-sm mobile-search">
                    <!-- Search Bar -->
                    <div class="relative w-full sm:w-80">
                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +330,7 @@
                <!-- Table -->
                <div id="table-container" class="hidden rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent bg-white dark:bg-slate-800">
                 <div class="overflow-x-auto">
-                    <table class="w-full table-fixed" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
+                    <table class="w-full table-fixed mobile-table" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
                            <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                                <tr>
                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 34%;">
@@ -310,6 +371,7 @@
                     </table>
                 </div>
                </div>
+
            </main>
        </div>
 
@@ -688,15 +750,15 @@
                 <!-- Logo -->
                 <div class="flex-shrink-0 relative">
                     ${item.logoUrl ? 
-                        `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl object-contain bg-white dark:bg-slate-400 p-1 sm:p-2 border border-neutral-400 dark:border-white shadow-sm" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                         <div class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">${item.symbol}</div>` :
-                        `<div class="w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">${item.symbol}</div>`
+                        `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">${item.symbol}</div>` :
+                        `<div class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">${item.symbol}</div>`
                     }
                 </div>
                     <!-- Company Info -->
                     <div class="flex-1 min-w-0">
                         <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-white">${item.symbol}</div>
-                        <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block break-words">${item.name}</div>
+                        <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block break-words company-name">${item.name}</div>
                     </div>
                         </div>
                     </td>
@@ -704,8 +766,8 @@
                     <!-- Market Cap (with Size) -->
                     <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap" style="width: 24%;">
                         <div class="flex items-center justify-between">
-                            <!-- Size badge on the left -->
-                            <div class="flex-shrink-0">
+                            <!-- Size badge on the left (hidden on mobile) -->
+                            <div class="flex-shrink-0 table-size-badge">
                                 <span class="inline-flex px-1 sm:px-2 py-0.5 sm:py-1 text-xs font-bold rounded-md border border-neutral-200 dark:border-neutral-600 ${getSizeBadgeColor(item.size)} transform hover:scale-105 transition-all duration-200">
                                     ${item.size?.toUpperCase() || '-'}
                                 </span>
@@ -762,6 +824,7 @@
                 </tr>
             `).join('');
         }
+
 
         // Event listeners
         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);

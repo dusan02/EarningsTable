@@ -356,7 +356,7 @@ export class DatabaseManager {
             
             // Round decimal values to max 2 decimal places
             const roundedPrice = polygonData.price ? Math.round(polygonData.price * 100) / 100 : null;
-            const roundedChange = polygonData.change ? Math.round(polygonData.change * 100) / 100 : null;
+            const roundedChange = polygonData.change !== null && polygonData.change !== undefined ? Math.round(polygonData.change * 100) / 100 : null;
             const roundedEpsActual = finhubData.epsActual ? Math.round(finhubData.epsActual * 100) / 100 : null;
             const roundedEpsEst = finhubData.epsEstimate ? Math.round(finhubData.epsEstimate * 100) / 100 : null;
             const roundedEpsSurp = epsSurp ? Math.round(epsSurp * 100) / 100 : null;

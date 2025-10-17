@@ -34,7 +34,6 @@ export interface MarketCapData {
   priceBoolean: boolean;
   Boolean: boolean;
   priceSource?: string | null;
-  marketCapFetchedAt?: Date | null;
 }
 
 // In-memory caches with TTL
@@ -438,8 +437,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         name: companyName || (snapshot as any)?.name || null,
         priceBoolean,
         Boolean: allConditionsMet,
-        priceSource,
-        marketCapFetchedAt: new Date()
+        priceSource
       });
       
     } catch (error) {
@@ -460,8 +458,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         name: null,
         priceBoolean: false,
         Boolean: false,
-        priceSource: null,
-        marketCapFetchedAt: new Date()
+        priceSource: null
       });
     }
   }

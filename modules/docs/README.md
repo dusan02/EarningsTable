@@ -81,14 +81,18 @@ FINNHUB_TOKEN="your_finnhub_api_key_here"
 - **Web aplikácia** - Express server s HTML tabuľkou earnings dát
 - **Cron joby** - samostatné, škálovateľné cron joby pre rôzne dáta
 - **Finnhub API** - integrácia s Finnhub API pre earnings dáta
+- **Polygon API** - integrácia s Polygon API pre market cap dáta
+- **Logo systém** - automatické sťahovanie a spracovanie logov spoločností
 - **SQLite databáza** - jednoduchá lokálna databáza
 - **TypeScript** - čistý, čitateľný kód s typovou bezpečnosťou
 
 ## Odkazy
 
-- **Web aplikácia:** http://localhost:3000
-- **Prisma Studio:** http://localhost:5555
+- **Web aplikácia:** http://localhost:5555
+- **Prisma Studio:** http://localhost:5556
 - **Finnhub API:** https://finnhub.io/
+- **Polygon API:** https://polygon.io/
+- **Logo dokumentácia:** [LOGOS.md](./LOGOS.md)
 
 ## Vývoj
 

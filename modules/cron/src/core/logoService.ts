@@ -1,3 +1,20 @@
+/**
+ * Logo Service - Handles downloading and processing company logos
+ * 
+ * Features:
+ * - Downloads logos from multiple sources (Yahoo, Finnhub, Polygon, Clearbit)
+ * - Processes images with clean, borderless settings (256x256, 95% quality, fully transparent)
+ * - Stores logos in web/public/logos/ directory
+ * - Updates database with logo metadata
+ * - Batch processing with concurrency control
+ * 
+ * Logo Sources (in order of preference):
+ * 1. Yahoo Finance (via Clearbit)
+ * 2. Finnhub API
+ * 3. Polygon API
+ * 4. Clearbit (via company homepage)
+ */
+
 import axios from "axios";
 import sharp from "sharp";
 import fs from "fs/promises";
@@ -6,13 +23,46 @@ import { CONFIG } from '../../../shared/src/config.js';
 import { db } from './DatabaseManager.js';
 import pLimit from 'p-limit';
 
-const OUT_DIR = path.join(process.cwd(), "..", "modules", "web", "public", "logos");
+// Get the correct path regardless of where the script is run from
+const getOutDir = () => {
+  const currentDir = process.cwd();
+  if (currentDir.endsWith('modules/cron')) {
+    return path.join(currentDir, "..", "web", "public", "logos");
+  } else {
+    return path.join(currentDir, "modules", "web", "public", "logos");
+  }
+};
+const OUT_DIR = getOutDir();
 const LOGO_TTL_DAYS = 30;
+
+// Logo processing configuration
+const LOGO_CONFIG = {
+  size: 256,
+  quality: 95,
+  effort: 6,
+  background: { r: 0, g: 0, b: 0, alpha: 0 }, // Fully transparent background
+  fit: 'inside' as const, // Fit inside bounds without padding
+  withoutEnlargement: true, // Don't enlarge smaller images
+  sources: ['yahoo', 'finnhub', 'polygon', 'clearbit'] as const
+} as const;
 
 function fromHomepageToDomain(url?: string | null): string | null {
   try { return url ? new URL(url).hostname : null; } catch { return null; }
 }
 
+/**
+ * Fetches and stores a logo for a given symbol
+ * 
+ * @param symbol - Stock symbol (e.g., 'AAPL')
+ * @returns Promise with logoUrl and logoSource
+ * 
+ * Process:
+ * 1. Tries multiple sources in order of preference
+ * 2. Downloads logo image
+ * 3. Processes with Sharp (clean resize, no borders, transparent background)
+ * 4. Saves to web/public/logos/{symbol}.webp
+ * 5. Updates database with logo metadata
+ */
 export async function fetchAndStoreLogo(symbol: string): Promise<{
   logoUrl: string | null; logoSource: string | null;
 }> {
@@ -87,13 +137,19 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
       await fs.mkdir(OUT_DIR, { recursive: true });
       const outPath = path.join(OUT_DIR, `${symbol}.webp`);
       
-      // Process with higher quality settings
+      // Process with clean, borderless settings
       const buf = await sharp(Buffer.from(resp.data))
-        .resize(256, 256, { 
-          fit: "contain", 
-          background: { r: 255, g: 255, b: 255, alpha: 0 } 
+        .resize(LOGO_CONFIG.size, LOGO_CONFIG.size, { 
+          fit: LOGO_CONFIG.fit,
+          background: LOGO_CONFIG.background,
+          withoutEnlargement: LOGO_CONFIG.withoutEnlargement
         })
-        .webp({ quality: 95, effort: 6 })
+        .webp({ 
+          quality: LOGO_CONFIG.quality, 
+          effort: LOGO_CONFIG.effort,
+          lossless: false,
+          nearLossless: false
+        })
         .toBuffer();
       
       await fs.writeFile(outPath, buf);
@@ -118,6 +174,20 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
   return { logoUrl: null, logoSource: null };
 }
 
+/**
+ * Processes multiple logos in batches with concurrency control
+ * 
+ * @param symbols - Array of stock symbols
+ * @param batchSize - Number of symbols to process in each batch
+ * @param concurrency - Maximum concurrent downloads per batch
+ * @returns Promise with success and failed counts
+ * 
+ * Features:
+ * - Batch processing to avoid overwhelming APIs
+ * - Concurrency control to limit simultaneous requests
+ * - Progress logging for each batch
+ * - Error handling for individual symbols
+ */
 export async function processLogosInBatches(symbols: string[], batchSize: number, concurrency: number): Promise<{ success: number; failed: number }> {
   const limit = pLimit(concurrency);
   let successCount = 0;
