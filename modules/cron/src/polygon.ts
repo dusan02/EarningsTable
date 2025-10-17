@@ -398,7 +398,6 @@ export async function fetchMarketCapDataForSymbols(symbols: string[]): Promise<P
     priceBoolean: result.priceBoolean,
     Boolean: result.Boolean,
     priceSource: result.priceSource,
-    marketCapFetchedAt: result.marketCapFetchedAt
   }));
   
   console.log(`✓ Completed fetching market cap data for ${symbols.length} symbols using PriceService`);
