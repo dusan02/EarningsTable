@@ -500,7 +500,7 @@ export async function processSymbolsInBatches(
     results.push(...batchResults);
     
     // Small delay between batches to prevent overwhelming the API
-    if (i + batchSize < symbols.length) {
+    if (i + BATCH_SIZE < symbols.length) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
   }

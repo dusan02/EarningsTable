@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+ import React, { useState, useMemo } from 'react';
 
 interface FinalReportData {
   symbol: string;
@@ -112,14 +112,14 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
           <img 
             src={logoUrl} 
             alt={`${symbol} logo`} 
-            className="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 object-contain"
+            className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 object-contain"
             onError={(e) => {
               // Hide image on error and show fallback
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
-          <div className="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">
+          <div className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">
             {symbol}
           </div>
         </div>
@@ -129,7 +129,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
     // Fallback: show initials in a square
     return (
       <div className="flex-shrink-0 relative">
-        <div className="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">
+        <div className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">
           {symbol}
         </div>
       </div>
@@ -190,12 +190,19 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
       {/* Table */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          {/* Mobile scroll indicator */}
+          <div className="md:hidden bg-blue-50 dark:bg-blue-900/20 px-4 py-2 text-center">
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+              ← Swipe left/right to see more columns →
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 touch-pan-x">
+            <table className="min-w-[1200px] divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                 <tr>
                   <th 
-                    className="px-6 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans"
+                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[200px] min-w-[200px]"
                     onClick={() => handleSort('symbol')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -205,7 +212,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans bg-blue-100 dark:bg-blue-800/50"
+                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans bg-blue-100 dark:bg-blue-800/50 w-[150px] min-w-[150px]"
                     onClick={() => handleSort('marketCap')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -215,7 +222,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans"
+                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[120px] min-w-[120px]"
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -225,7 +232,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans"
+                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px]"
                     onClick={() => handleSort('epsSurp')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -235,7 +242,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-6 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans"
+                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px]"
                     onClick={() => handleSort('revSurp')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -253,18 +260,18 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     className="hover:bg-neutral-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
                   >
                     {/* Company */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap w-[200px] min-w-[200px]">
                       <div className="flex items-center space-x-3">
                         <CompanyLogo 
                           symbol={item.symbol} 
                           logoUrl={item.logoUrl} 
                           name={item.name} 
                         />
-                        <div>
-                          <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans truncate">
                             {item.symbol}
                           </div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium font-sans">
+                          <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium font-sans truncate">
                             {item.name}
                           </div>
                         </div>
@@ -272,7 +279,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     </td>
                     
                     {/* Market Cap */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-4 whitespace-nowrap text-center w-[150px] min-w-[150px]">
                       <div>
                         <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans">
                           {formatMarketCap(item.marketCap)}
@@ -284,7 +291,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     </td>
                     
                     {/* Price */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-4 whitespace-nowrap text-center w-[120px] min-w-[120px]">
                       <div>
                         <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans">
                           {item.price ? `$${item.price.toFixed(2)}` : '-'}
@@ -296,7 +303,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     </td>
                     
                     {/* EPS */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-4 whitespace-nowrap text-center w-[180px] min-w-[180px]">
                       <div className="space-y-0.5 text-xs font-sans">
                         <div className="text-sm font-bold text-neutral-900 dark:text-white">
                           <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>{item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
@@ -311,7 +318,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     </td>
                     
                     {/* Revenue */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-4 whitespace-nowrap text-center w-[180px] min-w-[180px]">
                       <div className="space-y-0.5 text-xs font-sans">
                         <div className="text-sm font-bold text-neutral-900 dark:text-white">
                           <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>{item.revActual ? formatRevenue(item.revActual) : '-'}
