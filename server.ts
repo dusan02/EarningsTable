@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(__dirname));
 
 // API Routes
 app.get('/api/final-report', getFinalReport);
@@ -26,9 +26,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve React app for all other routes
+// Serve simple dashboard for all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'simple-dashboard.html'));
 });
 
 // Error handling middleware

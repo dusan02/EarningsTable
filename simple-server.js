@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname)); // serve static files
+app.use(express.static(path.join(__dirname, "build"))); // serve React build files
 app.use(
   "/logos",
   express.static(path.join(__dirname, "modules", "web", "public", "logos"))
@@ -71,11 +71,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Dashboard routes
-const DASHBOARD = path.resolve(__dirname, "simple-dashboard.html");
+// Dashboard routes - now using React app (old ugly version)
+const REACT_APP = path.resolve(__dirname, "build", "index.html");
 
-app.get("/", (req, res) => res.sendFile(DASHBOARD));
-app.get("/dashboard", (req, res) => res.sendFile(DASHBOARD));
+app.get("/", (req, res) => res.sendFile(REACT_APP));
+app.get("/dashboard", (req, res) => res.sendFile(REACT_APP));
 
 // Start server
 app.listen(PORT, () => {
