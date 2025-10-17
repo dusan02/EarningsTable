@@ -6,14 +6,14 @@ const { PrismaClient } = require("@prisma/client");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(__dirname)); // serve static files
-app.use(
-  "/logos",
-  express.static(path.join(__dirname, "modules", "web", "public", "logos"))
-); // serve logos
+// Middleware - minimal setup to debug redirects
+// app.use(cors()); // temporarily removed to debug redirects
+// app.use(express.json()); // temporarily removed to debug redirects
+// app.use(express.static(__dirname)); // serve static files - removed to prevent redirects
+// app.use(
+//   "/logos",
+//   express.static(path.join(__dirname, "modules", "web", "public", "logos"))
+// ); // serve logos
 
 // Prisma client
 const prisma = new PrismaClient({

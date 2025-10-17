@@ -158,7 +158,7 @@ app.get('/api/final-report', async (req, res) => {
   }
 });
 
-// Hlavná HTML stránka - serve simple dashboard directly
+// Hlavná HTML stránka - serve simple dashboard directly (no redirect)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../../../simple-dashboard.html'));
 });
