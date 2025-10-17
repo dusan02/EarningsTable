@@ -6,14 +6,20 @@ const { PrismaClient } = require("@prisma/client");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware - minimal setup to debug redirects
-// app.use(cors()); // temporarily removed to debug redirects
-// app.use(express.json()); // temporarily removed to debug redirects
-// app.use(express.static(__dirname)); // serve static files - removed to prevent redirects
-// app.use(
-//   "/logos",
-//   express.static(path.join(__dirname, "modules", "web", "public", "logos"))
-// ); // serve logos
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve logos from the correct directory
+app.use(
+  "/logos",
+  express.static(path.join(__dirname, "modules", "web", "public", "logos"))
+);
+
+// Serve favicon
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, "favicon.svg"));
+});
 
 // Prisma client
 const prisma = new PrismaClient({
@@ -76,6 +82,9 @@ const DASHBOARD = path.resolve(__dirname, "simple-dashboard.html");
 
 app.get("/", (req, res) => res.sendFile(DASHBOARD));
 app.get("/dashboard", (req, res) => res.sendFile(DASHBOARD));
+app.get("/test-logos", (req, res) =>
+  res.sendFile(path.join(__dirname, "test-logos.html"))
+);
 
 // Start server
 app.listen(PORT, () => {
