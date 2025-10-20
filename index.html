@@ -162,7 +162,7 @@
         .gutter-stable { scrollbar-gutter: stable both-edges; }
 
         
-        /* Mobile optimizations */
+        /* Mobile optimizations - Card Layout */
         @media (max-width: 640px) {
             .touch-manipulation {
                 touch-action: manipulation;
@@ -179,24 +179,14 @@
                 min-height: 44px;
             }
             
-            /* Mobile table optimizations */
-            .mobile-table {
-                font-size: 12px;
+            /* Hide table on mobile, show cards */
+            .table-container {
+                display: none !important;
             }
             
-            .mobile-table th,
-            .mobile-table td {
-                padding: 6px 2px;
-            }
-            
-            /* Hide size badges on mobile */
-            .table-size-badge {
-                display: none;
-            }
-            
-            /* Hide company name on mobile */
-            .company-name {
-                display: none;
+            /* Show card container on mobile */
+            .card-container {
+                display: block !important;
             }
             
             /* Mobile search improvements */
@@ -214,9 +204,200 @@
                 background: rgba(17, 24, 39, 0.95);
                 border-color: #374151;
             }
+            
+            /* Card styling */
+            .company-card {
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding: 16px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
+            }
+            
+            .dark .company-card {
+                background: #1e293b;
+                border-color: #334155;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+            
+            .company-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .dark .company-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+            
+            /* Card header */
+            .card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+            }
+            
+            .card-company-info {
+                display: flex;
+                align-items: center;
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .card-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 8px;
+                margin-right: 12px;
+                flex-shrink: 0;
+            }
+            
+            .card-symbol {
+                font-size: 18px;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 2px;
+            }
+            
+            .dark .card-symbol {
+                color: #f9fafb;
+            }
+            
+            .card-name {
+                font-size: 12px;
+                color: #6b7280;
+                line-height: 1.2;
+            }
+            
+            .dark .card-name {
+                color: #9ca3af;
+            }
+            
+            .card-size-badge {
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                border: 1px solid;
+            }
+            
+            /* Card metrics grid */
+            .card-metrics {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            
+            .card-metric {
+                text-align: center;
+                padding: 8px;
+                background: #f9fafb;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+            }
+            
+            .dark .card-metric {
+                background: #334155;
+                border-color: #475569;
+            }
+            
+            .card-metric-label {
+                font-size: 10px;
+                color: #6b7280;
+                font-weight: 600;
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }
+            
+            .dark .card-metric-label {
+                color: #9ca3af;
+            }
+            
+            .card-metric-value {
+                font-size: 14px;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 2px;
+            }
+            
+            .dark .card-metric-value {
+                color: #f9fafb;
+            }
+            
+            .card-metric-change {
+                font-size: 12px;
+                font-weight: 600;
+            }
+            
+            /* Card earnings section */
+            .card-earnings {
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid #e5e7eb;
+            }
+            
+            .dark .card-earnings {
+                border-color: #334155;
+            }
+            
+            .card-earnings-title {
+                font-size: 12px;
+                font-weight: 600;
+                color: #6b7280;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+            }
+            
+            .dark .card-earnings-title {
+                color: #9ca3af;
+            }
+            
+            .card-earnings-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            
+            .card-earnings-item {
+                text-align: center;
+                padding: 6px;
+                background: #f3f4f6;
+                border-radius: 6px;
+                border: 1px solid #d1d5db;
+            }
+            
+            .dark .card-earnings-item {
+                background: #374151;
+                border-color: #4b5563;
+            }
+            
+            .card-earnings-label {
+                font-size: 9px;
+                color: #6b7280;
+                font-weight: 600;
+                text-transform: uppercase;
+                margin-bottom: 2px;
+            }
+            
+            .dark .card-earnings-label {
+                color: #9ca3af;
+            }
+            
+            .card-earnings-value {
+                font-size: 11px;
+                font-weight: 700;
+                color: #1f2937;
+            }
+            
+            .dark .card-earnings-value {
+                color: #f9fafb;
+            }
         }
         
-        /* Tablet optimizations */
+        /* Tablet optimizations - Hybrid Layout */
         @media (min-width: 641px) and (max-width: 1024px) {
             .touch-manipulation {
                 touch-action: manipulation;
@@ -224,12 +405,31 @@
             
             /* Show table on tablet */
             .table-container {
-                display: block;
+                display: block !important;
             }
             
+            /* Hide cards on tablet */
+            .card-container {
+                display: none !important;
+            }
             
             /* Show size badges on tablet */
             .table-size-badge {
+                display: block;
+            }
+            
+            /* Tablet table optimizations */
+            .mobile-table {
+                font-size: 13px;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 8px 4px;
+            }
+            
+            /* Show company name on tablet */
+            .company-name {
                 display: block;
             }
         }
@@ -385,6 +585,13 @@
                             <!-- Data will be inserted here -->
                         </tbody>
                     </table>
+                </div>
+               </div>
+
+               <!-- Card Container (Mobile) -->
+               <div id="card-container" class="hidden card-container">
+                   <div id="card-body">
+                       <!-- Cards will be inserted here -->
                 </div>
                </div>
 
@@ -708,6 +915,7 @@
             document.getElementById('error').classList.add('hidden');
             document.getElementById('status-bar').classList.add('hidden');
             document.getElementById('table-container').classList.add('hidden');
+            document.getElementById('card-container').classList.add('hidden');
         }
 
         function showError(message) {
@@ -715,6 +923,7 @@
             document.getElementById('error').classList.remove('hidden');
             document.getElementById('status-bar').classList.add('hidden');
             document.getElementById('table-container').classList.add('hidden');
+            document.getElementById('card-container').classList.add('hidden');
             document.getElementById('error-message').textContent = message;
         }
 
@@ -723,6 +932,7 @@
             document.getElementById('error').classList.add('hidden');
             document.getElementById('status-bar').classList.remove('hidden');
             document.getElementById('table-container').classList.remove('hidden');
+            document.getElementById('card-container').classList.remove('hidden');
         }
 
         // Filtering
@@ -748,12 +958,11 @@
         // Rendering
         function renderTable() {
             const tbody = document.getElementById('table-body');
+            const cardBody = document.getElementById('card-body');
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">
-                            <div class="flex flex-col items-center space-y-3">
+                const emptyState = `
+                    <div class="flex flex-col items-center space-y-3 py-12">
                                 <div class="relative w-32 h-32 flex items-center justify-center">
                                     <!-- Calendar icon -->
                                     <div class="absolute w-24 h-24 border-4 border-blue-900 dark:border-white rounded-lg">
@@ -775,9 +984,10 @@
                                 </div>
                                 <div class="text-sm sm:text-base lg:text-lg font-medium text-blue-900 dark:text-white">No data available for today</div>
                             </div>
-                        </td>
-                    </tr>
                 `;
+                
+                tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">${emptyState}</td></tr>`;
+                cardBody.innerHTML = emptyState;
                 return;
             }
             
@@ -861,6 +1071,89 @@
                         </div>
                     </td>
                 </tr>
+            `).join('');
+            
+            // Render cards for mobile
+            cardBody.innerHTML = filteredData.map((item, index) => `
+                <div class="company-card fade-in" style="animation-delay: ${index * 50}ms;">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <div class="card-company-info">
+                            <!-- Logo -->
+                            <div class="flex-shrink-0">
+                                ${item.logoUrl ? 
+                                    `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="card-logo object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                     <div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm hidden">${item.symbol}</div>` :
+                                    `<div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm">${item.symbol}</div>`
+                                }
+                            </div>
+                            <!-- Company Info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="card-symbol">${item.symbol}</div>
+                                <div class="card-name">${item.name}</div>
+                            </div>
+                        </div>
+                        <!-- Size Badge -->
+                        <div class="card-size-badge ${getSizeBadgeColor(item.size)}">
+                            ${item.size?.toUpperCase() || '-'}
+                        </div>
+                    </div>
+                    
+                    <!-- Card Metrics -->
+                    <div class="card-metrics">
+                        <!-- Market Cap -->
+                        <div class="card-metric">
+                            <div class="card-metric-label">Market Cap</div>
+                            <div class="card-metric-value">${formatMarketCap(item.marketCap)}</div>
+                            <div class="card-metric-change ${getChangeColor(item.marketCapDiff)}">
+                                ${item.marketCapDiff != null ? `${signPrefix(item.marketCapDiff)}${formatCapDiffUSD(item.marketCapDiff)}` : '-'}
+                            </div>
+                        </div>
+                        
+                        <!-- Price -->
+                        <div class="card-metric">
+                            <div class="card-metric-label">Price</div>
+                            <div class="card-metric-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            <div class="card-metric-change ${getChangeColor(item.change)}">
+                                ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Earnings Section -->
+                    <div class="card-earnings">
+                        <div class="card-earnings-title">Earnings</div>
+                        <div class="card-earnings-grid">
+                            <!-- EPS -->
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">EPS Act</div>
+                                <div class="card-earnings-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
+                            </div>
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">EPS Est</div>
+                                <div class="card-earnings-value">${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}</div>
+                            </div>
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">EPS Surp</div>
+                                <div class="card-earnings-value ${getChangeColor(item.epsSurp)}">${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}</div>
+                            </div>
+                            
+                            <!-- Revenue -->
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">Rev Act</div>
+                                <div class="card-earnings-value">${formatRevenue(item.revActual)}</div>
+                            </div>
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">Rev Est</div>
+                                <div class="card-earnings-value">${formatRevenue(item.revEst)}</div>
+                            </div>
+                            <div class="card-earnings-item">
+                                <div class="card-earnings-label">Rev Surp</div>
+                                <div class="card-earnings-value ${getChangeColor(item.revSurp)}">${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `).join('');
         }
 
