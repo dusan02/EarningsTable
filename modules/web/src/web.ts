@@ -142,6 +142,8 @@ app.get('/api/final-report', async (req, res) => {
       logoUrl: report.logoUrl,
       logoSource: report.logoSource,
       logoFetchedAt: report.logoFetchedAt ? report.logoFetchedAt.toISOString() : null,
+      // Map change to changePercent for frontend compatibility
+      changePercent: report.change,
     }));
 
     res.json({

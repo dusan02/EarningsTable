@@ -614,7 +614,8 @@ export function pickPrice(t: any): PriceResult {
   
   // Get current session to determine if we should allow prevDay fallback
   const currentSession = getCurrentSession();
-  const allowPrevDayFallback = currentSession === 'afterhours' || currentSession === 'regular';
+  // Only allow prevDay fallback during after-hours, not during regular trading hours
+  const allowPrevDayFallback = currentSession === 'afterhours';
   
   const candidates = [
     t?.preMarket?.price != null && { p: +t.preMarket.price, t: normTs(t.preMarket.timestamp), s: 'pre', session: 'premarket' as const },
@@ -640,10 +641,11 @@ export function pickPrice(t: any): PriceResult {
     if (timeDiff !== 0) return timeDiff;
     
     // Finally by source priority (session-aware default ordering)
+    // Prioritize live/min data over day data to get most current prices
     const orderBySession: Record<'premarket' | 'regular' | 'afterhours', string[]> = {
-      premarket: ['pre', 'live', 'min', 'day', 'ah', 'prevDay'],
-      regular:   ['live', 'min', 'day', 'pre', 'ah', 'prevDay'],
-      afterhours:['ah', 'live', 'day', 'min', 'pre', 'prevDay'],
+      premarket: ['pre', 'live', 'min', 'ah', 'day', 'prevDay'],
+      regular:   ['live', 'min', 'ah', 'day', 'pre', 'prevDay'],
+      afterhours:['ah', 'live', 'min', 'day', 'pre', 'prevDay'],
     };
     const order = orderBySession[currentSession] || ['pre', 'live', 'ah', 'min', 'day', 'prevDay'];
     return order.indexOf(a.s) - order.indexOf(b.s);
@@ -657,8 +659,9 @@ export function pickPrice(t: any): PriceResult {
     let isValidTimestamp = c.t != null; // require timestamp for normal candidates
     if (c.t != null) {
       if (c.session === currentSession) {
-        // For current session, allow up to 20 minutes old and up to 30 seconds in future (timezone sync)
-        isValidTimestamp = c.t <= now + 30 * 1000 && (now - c.t) <= 20 * 60_000;
+        // For current session, be more lenient with min/live data (up to 30 minutes old)
+        const maxAge = (c.s === 'min' || c.s === 'live') ? 30 * 60_000 : 20 * 60_000;
+        isValidTimestamp = c.t <= now + 30 * 1000 && (now - c.t) <= maxAge;
       } else {
         // For other sessions, use stricter validation
         isValidTimestamp = c.t <= now + 30 * 1000 && (now - c.t) <= DAY;
