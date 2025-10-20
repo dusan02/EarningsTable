@@ -105,6 +105,17 @@ modules/web/public/logos/
 - Example: `AAPL.webp`, `MSFT.webp`
 - Case: Uppercase symbols
 
+### Storage Path Resolution
+
+The logo service uses an absolute path to ensure logos are always stored in the correct location:
+
+```typescript
+// Always points to the correct web public logos folder
+const OUT_DIR = path.resolve(process.cwd(), "..", "web", "public", "logos");
+```
+
+This eliminates path ambiguity issues that could cause logos to be stored in incorrect directories.
+
 ## API Endpoints
 
 ### Logo Files
@@ -155,7 +166,7 @@ const LOGO_CONFIG = {
   quality: 95, // WebP quality (1-100)
   effort: 6, // Compression effort (1-6)
   background: { r: 0, g: 0, b: 0, alpha: 0 }, // Fully transparent
-  fit: 'inside', // No padding, clean edges
+  fit: "inside", // No padding, clean edges
   withoutEnlargement: true, // Preserve original quality
   sources: ["yahoo", "finnhub", "polygon", "clearbit"],
 };
@@ -223,6 +234,32 @@ const BATCH_CONFIG = {
 2. Verify network connectivity
 3. Check symbol validity
 4. Review error logs for specific failures
+
+### Path Issues (Fixed)
+
+**Problem**: Logos were being stored in incorrect directories due to path resolution ambiguity.
+
+**Solution**: Use absolute path resolution to ensure logos are always stored in the correct location:
+
+```typescript
+// Before (ambiguous)
+const getOutDir = () => {
+  const currentDir = process.cwd();
+  if (
+    currentDir.includes("modules/cron") ||
+    currentDir.endsWith("modules\\cron")
+  ) {
+    return path.join(currentDir, "..", "web", "public", "logos");
+  } else {
+    return path.join(currentDir, "modules", "web", "public", "logos");
+  }
+};
+
+// After (unambiguous)
+const OUT_DIR = path.resolve(process.cwd(), "..", "web", "public", "logos");
+```
+
+This ensures logos are always stored in `modules/web/public/logos/` regardless of where the script is executed from.
 
 ## Future Improvements
 

@@ -18,7 +18,7 @@ async function main() {
   
   // 2) Soft clear dát
   console.log("🗑️ Clearing database...");
-  await run("npx", ["ts-node", "scripts/clear-db.ts"]);
+  await run("npx", ["tsx", "modules/cron/src/clear-db-cron.ts"]);
   
   // 3) Štart
   console.log("🚀 Starting services...");

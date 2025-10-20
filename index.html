@@ -154,6 +154,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Scrollbar utilities to prevent flash */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .contain-layout { contain: layout; }
+        .anchor-none { overflow-anchor: none; }
+        .gutter-stable { scrollbar-gutter: stable both-edges; }
+
         
         /* Mobile optimizations */
         @media (max-width: 640px) {
@@ -453,6 +460,28 @@
             return `${sign}$${absNum.toFixed(0)}`;
         }
 
+        // Robust formatter for Market Cap Diff with dynamic units and small-value precision
+        function formatCapDiffUSD(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return '-';
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+            if (abs >= 1e9)  return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+            if (abs >= 5e6)  return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+            if (abs >= 1e6)  return `${sign}$${(abs / 1e6).toFixed(3)}M`; // finer for small diffs
+            if (abs >= 1e3)  return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+            return `${sign}$${abs.toFixed(0)}`;
+        }
+
+        // Sign prefix with epsilon so near-zero doesn't show +/-
+        const EPS_DIFF = 1e-6; // ~$1 at M/B scales
+        function signPrefix(v) {
+            const n = Number(v);
+            if (!Number.isFinite(n) || Math.abs(n) < EPS_DIFF) return '';
+            return n > 0 ? '+' : '';
+        }
+
         function formatRevenue(value) {
             if (!value) return '-';
             const num = Number(value);
@@ -472,9 +501,10 @@
         }
 
         function getChangeColor(value) {
-            if (!value) return 'text-gray-600';
-            if (value > 0) return 'text-green-600';
-            if (value < 0) return 'text-red-600';
+            const n = Number(value);
+            if (!Number.isFinite(n) || Math.abs(n) < EPS_DIFF) return 'text-gray-600';
+            if (n > 0) return 'text-green-600';
+            if (n < 0) return 'text-red-600';
             return 'text-gray-600';
         }
 
@@ -784,8 +814,8 @@
                             <!-- Market Cap on the right -->
                             <div class="flex-1 text-right ml-2">
                                 <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${formatMarketCap(item.marketCap)}</div>
-                            <div class="text-sm font-medium ${getChangeColor(item.marketCapDiff)}">
-                                ${item.marketCapDiff ? `${item.marketCapDiff > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : '-'}
+                            <div class="text-sm font-medium ${getChangeColor(item.marketCapDiff)}" title="Market cap change vs previous adjusted close">
+                                ${item.marketCapDiff != null ? `${signPrefix(item.marketCapDiff)}${formatCapDiffUSD(item.marketCapDiff)}` : '-'}
                             </div>
                             </div>
                         </div>

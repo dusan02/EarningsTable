@@ -94,6 +94,9 @@ npx tsx src/generate-final-report.ts
 $env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm run run-all
+
+# 6. Vymazať dáta (centralizovaný script)
+npx tsx src/clear-db-cron.ts
 ```
 
 ## 🖼️ Logo systém

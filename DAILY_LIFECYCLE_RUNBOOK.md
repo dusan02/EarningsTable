@@ -47,15 +47,16 @@ This document provides a comprehensive overview of the daily operations, lifecyc
 ### 🔄 Transaction Implementation
 
 ```typescript
-const result = await db.prisma.$transaction([
-  db.prisma.finalReport.deleteMany({}),
-  db.prisma.polygonData.deleteMany({}),
-  db.prisma.finhubData.deleteMany({}),
-]);
+// Centralized in DatabaseManager.clearAllTables()
+await prisma.finalReport.deleteMany();
+await prisma.polygonData.deleteMany();
+await prisma.finhubData.deleteMany();
+await prisma.cronStatus.deleteMany();
 ```
 
-- **Returns**: Count of deleted records for each table
-- **Location**: `modules/cron/src/manager.ts` lines 37-41
+- **Returns**: Success confirmation
+- **Location**: `modules/cron/src/core/DatabaseManager.ts` lines 505-515
+- **Usage**: Called by `modules/cron/src/manager.ts` and `modules/cron/src/clear-db-cron.ts`
 
 ### 💾 Backup Strategy
 
@@ -457,8 +458,11 @@ npm run restart --full
 # Soft restart (no data clear)
 npm run restart --soft
 
-# Clear data only
+# Clear data only (uses centralized DatabaseManager.clearAllTables())
 npm run restart --clear-only
+
+# Direct database clear (standalone)
+npx tsx modules/cron/src/clear-db-cron.ts
 
 # Regenerate Prisma client
 npm run prisma:generate

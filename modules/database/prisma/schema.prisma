@@ -46,8 +46,14 @@ model PolygonData {
   marketCapDiff    BigInt?
   marketCapBoolean Boolean?
   price            Float?
-  previousClose    Float?
-  change           Float?
+  previousCloseRaw Float?
+  previousCloseAdj Float?
+  previousCloseSource String?
+  changeFromPrevClosePct Float?
+  changeFromOpenPct Float?
+  sessionRef String?   // 'premarket' | 'regular' | 'afterhours'
+  qualityFlags Json? // JSON array of quality flags
+  change           Float?   // Keep for backward compatibility
   size             String?   // Mega, Large, Mid, Small, null
   name             String?   // Company name from Polygon API
   priceBoolean     Boolean?

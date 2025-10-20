@@ -30,20 +30,12 @@ async function withLock<T>(name: string, fn: () => Promise<T>): Promise<T | null
 
 // --- clearAllData funkcia ---
 async function clearAllData(): Promise<void> {
-  console.log("🗑️  Clearing FinalReport, PolygonData, FinhubData...");
+  console.log("🗑️  Clearing all database tables...");
   
   try {
-    // Transakčné mazanie všetkých tabuliek
-    const result = await db.prisma.$transaction([
-      db.prisma.finalReport.deleteMany({}),
-      db.prisma.polygonData.deleteMany({}),
-      db.prisma.finhubData.deleteMany({}),
-    ]);
-    
-    console.log(`✅ Cleared all tables:`);
-    console.log(`   - FinalReport: ${result[0].count} records`);
-    console.log(`   - PolygonData: ${result[1].count} records`);
-    console.log(`   - FinhubData: ${result[2].count} records`);
+    // Use the centralized DatabaseManager method
+    await db.clearAllTables();
+    console.log('✅ All tables cleared successfully');
     
   } catch (error) {
     console.error('❌ Error clearing database:', error);

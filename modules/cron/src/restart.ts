@@ -110,8 +110,9 @@ class ApplicationRestarter {
       await execAsync(`copy modules\\database\\prisma\\dev.db ${backupPath}`);
       console.log(`✅ Database backed up to ${backupPath}`);
 
-      // Use the new clear-db utility
-      await execAsync('npx tsx src/utils/clear-db.ts');
+      // Use the centralized DatabaseManager method
+      const { db } = await import('./core/DatabaseManager.js');
+      await db.clearAllTables();
       
       console.log('✅ Database cleared successfully');
       
@@ -121,67 +122,8 @@ class ApplicationRestarter {
     }
   }
 
-  async clearFinhubData(): Promise<void> {
-    console.log('🗑️ Clearing FinhubData...');
-    
-    try {
-      const clearScript = `
-        import { PrismaClient } from '@prisma/client';
-        const prisma = new PrismaClient();
-        
-        async function clearFinhubData() {
-          const result = await prisma.finhubData.deleteMany();
-          console.log(\`✅ Cleared \${result.count} FinhubData records\`);
-          await prisma.$disconnect();
-        }
-        
-        clearFinhubData().catch(console.error);
-      `;
-      
-      const fs = await import('fs');
-      fs.writeFileSync('./temp_clear_finnhub.js', clearScript);
-      
-      await execAsync('node temp_clear_finnhub.js');
-      await execAsync('del temp_clear_finnhub.js');
-      
-      console.log('✅ FinhubData cleared successfully');
-      
-    } catch (error) {
-      console.error('❌ FinhubData clear failed:', error);
-      throw error;
-    }
-  }
-
-  async clearPolygonData(): Promise<void> {
-    console.log('🗑️ Clearing PolygonData...');
-    
-    try {
-      const clearScript = `
-        import { PrismaClient } from '@prisma/client';
-        const prisma = new PrismaClient();
-        
-        async function clearPolygonData() {
-          const result = await prisma.polygonData.deleteMany();
-          console.log(\`✅ Cleared \${result.count} PolygonData records\`);
-          await prisma.$disconnect();
-        }
-        
-        clearPolygonData().catch(console.error);
-      `;
-      
-      const fs = await import('fs');
-      fs.writeFileSync('./temp_clear_polygon.js', clearScript);
-      
-      await execAsync('node temp_clear_polygon.js');
-      await execAsync('del temp_clear_polygon.js');
-      
-      console.log('✅ PolygonData cleared successfully');
-      
-    } catch (error) {
-      console.error('❌ PolygonData clear failed:', error);
-      throw error;
-    }
-  }
+  // Note: Individual table clearing methods removed - use clearDatabase() instead
+  // which uses the centralized DatabaseManager.clearAllTables() method
 
   async cleanPrismaCache(): Promise<void> {
     console.log('🧹 Cleaning Prisma cache to prevent file locking...');

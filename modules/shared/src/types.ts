@@ -48,8 +48,14 @@ export type PolygonData = {
   marketCapDiff?: bigint | null;
   marketCapBoolean?: boolean | null;
   price?: number | null;
-  previousClose?: number | null;
-  change?: number | null;
+  previousCloseRaw?: number | null;
+  previousCloseAdj?: number | null;
+  previousCloseSource?: string | null;
+  changeFromPrevClosePct?: number | null;
+  changeFromOpenPct?: number | null;
+  sessionRef?: 'premarket' | 'regular' | 'afterhours' | null;
+  qualityFlags?: string[] | null; // Array of quality flags
+  change?: number | null; // Keep for backward compatibility
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
@@ -70,12 +76,19 @@ export type CreatePolygonData = {
   marketCapDiff?: bigint | null;
   marketCapBoolean?: boolean | null;
   price?: number | null;
-  previousClose?: number | null;
-  change?: number | null;
+  previousCloseRaw?: number | null;
+  previousCloseAdj?: number | null;
+  previousCloseSource?: string | null;
+  changeFromPrevClosePct?: number | null;
+  changeFromOpenPct?: number | null;
+  sessionRef?: 'premarket' | 'regular' | 'afterhours' | null;
+  qualityFlags?: string[] | null; // Array of quality flags
+  change?: number | null; // Keep for backward compatibility
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
   Boolean?: boolean | null;
+  priceSource?: 'pre'|'live'|'ah'|'min'|'day'|'prevDay' | null;
   // Logo fields
   logoUrl?: string | null;
   logoSource?: string | null;

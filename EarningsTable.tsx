@@ -137,7 +137,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-slate-900 transition-colors duration-300">
+    <div className="h-screen overflow-y-hidden bg-neutral-50 dark:bg-slate-900 transition-colors duration-300">
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 shadow-lg border-b border-neutral-200 dark:border-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -197,7 +197,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
             </div>
           </div>
           
-          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 touch-pan-x">
+          <div className="overflow-x-auto overflow-y-hidden no-scrollbar contain-layout anchor-none gutter-stable scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 touch-pan-x will-change-transform">
             <table className="min-w-[1200px] divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                 <tr>

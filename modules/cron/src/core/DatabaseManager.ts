@@ -1,6 +1,7 @@
 import { prisma } from '../../../shared/src/prismaClient.js';
 import { CreateFinhubData, CreatePolygonData, CreateFinalReport } from '../../../shared/src/types.js';
 import { Prisma } from '@prisma/client';
+import Decimal from 'decimal.js';
 
 export class DatabaseManager {
   public prisma = prisma;
@@ -32,9 +33,14 @@ export class DatabaseManager {
     const prevMC = incoming.previousMarketCap ?? null;
     const changePct = incoming.change ?? null;
 
-    // marketCapDiff = previousMarketCap * (change / 100)
-    const marketCapDiff = prevMC != null && changePct != null ? Math.round(prevMC * (changePct / 100)) : null;
-    const currentMarketCap = prevMC != null && marketCapDiff != null ? prevMC + marketCapDiff : null;
+    let marketCapDiff: bigint | null = null;
+    let currentMarketCap: bigint | null = null;
+    if (prevMC != null && Number.isFinite(changePct)) {
+      const diffDec = new Decimal(prevMC).times(new Decimal(changePct as number).div(100));
+      const currDec = new Decimal(prevMC).plus(diffDec);
+      marketCapDiff = BigInt(diffDec.toFixed(0));
+      currentMarketCap = BigInt(currDec.toFixed(0));
+    }
 
     await prisma.finalReport.upsert({
       where: { symbol: incoming.symbol },
@@ -42,8 +48,8 @@ export class DatabaseManager {
         symbol: incoming.symbol,
         name: incoming.name ?? null,
         size: incoming.size ?? null,
-        marketCap: currentMarketCap != null ? BigInt(currentMarketCap) : null,
-        marketCapDiff: marketCapDiff != null ? BigInt(marketCapDiff) : null,
+        marketCap: currentMarketCap,
+        marketCapDiff: marketCapDiff,
         price: incoming.price ?? null,
         change: changePct ?? null,
         epsActual: incoming.epsActual ?? null,
@@ -53,15 +59,15 @@ export class DatabaseManager {
           : null),
         revActual: incoming.revActual != null ? BigInt(incoming.revActual) : null,
         revEst: incoming.revEst != null ? BigInt(incoming.revEst) : null,
-        revSurp: (incoming.revActual != null && incoming.revEst != null && Number(incoming.revEst) !== 0
-          ? ((Number(incoming.revActual) / Number(incoming.revEst)) * 100) - 100
+        revSurp: (incoming.revActual != null && incoming.revEst != null && incoming.revEst !== 0
+          ? new Decimal(incoming.revActual).div(incoming.revEst).times(100).minus(100).toNumber()
           : null),
       },
       update: {
         name: incoming.name ?? null,
         size: incoming.size ?? null,
-        marketCap: currentMarketCap != null ? BigInt(currentMarketCap) : null,
-        marketCapDiff: marketCapDiff != null ? BigInt(marketCapDiff) : null,
+        marketCap: currentMarketCap,
+        marketCapDiff: marketCapDiff,
         price: incoming.price ?? null,
         change: changePct ?? null,
         epsActual: incoming.epsActual ?? null,
@@ -71,8 +77,8 @@ export class DatabaseManager {
           : null),
         revActual: incoming.revActual != null ? BigInt(incoming.revActual) : null,
         revEst: incoming.revEst != null ? BigInt(incoming.revEst) : null,
-        revSurp: (incoming.revActual != null && incoming.revEst != null && Number(incoming.revEst) !== 0
-          ? ((Number(incoming.revActual) / Number(incoming.revEst)) * 100) - 100
+        revSurp: (incoming.revActual != null && incoming.revEst != null && incoming.revEst !== 0
+          ? new Decimal(incoming.revActual).div(incoming.revEst).times(100).minus(100).toNumber()
           : null),
       },
     });
@@ -133,11 +139,17 @@ export class DatabaseManager {
   }
 
   async getFinhubDataByDate(date: Date) {
+    const y = date.getUTCFullYear();
+    const m = date.getUTCMonth();
+    const d = date.getUTCDate();
+    const start = new Date(Date.UTC(y, m, d, 0, 0, 0));
+    const end = new Date(Date.UTC(y, m, d + 1, 0, 0, 0));
+
     return await prisma.finhubData.findMany({
       where: {
         reportDate: {
-          gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-          lt: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1),
+          gte: start,
+          lt: end,
         }
       },
       orderBy: {
@@ -154,46 +166,66 @@ export class DatabaseManager {
 
       // PolygonData operations
       async upsertPolygonData(data: CreatePolygonData[]): Promise<void> {
-        console.log(`→ Upserting ${data.length} polygon symbols...`);
-        
-        for (const record of data) {
-          await prisma.polygonData.upsert({
-            where: {
-              symbol: record.symbol,
-            },
-            update: {
-              symbolBoolean: record.symbolBoolean ?? false,
-              marketCap: record.marketCap ?? null,
-              previousMarketCap: record.previousMarketCap ?? null,
-              marketCapDiff: record.marketCapDiff ?? null,
-              marketCapBoolean: record.marketCapBoolean ?? false,
-              price: record.price ?? null,
-              previousClose: record.previousClose ?? null,
-              change: record.change ?? null,
-              size: record.size ?? null,
-              name: record.name ?? null,
-              priceBoolean: record.priceBoolean ?? false,
-              Boolean: record.Boolean ?? false,
-            },
-            create: {
-              symbol: record.symbol,
-              symbolBoolean: record.symbolBoolean ?? false,
-              marketCap: record.marketCap ?? null,
-              previousMarketCap: record.previousMarketCap ?? null,
-              marketCapDiff: record.marketCapDiff ?? null,
-              marketCapBoolean: record.marketCapBoolean ?? false,
-              price: record.price ?? null,
-              previousClose: record.previousClose ?? null,
-              change: record.change ?? null,
-              size: record.size ?? null,
-              name: record.name ?? null,
-              priceBoolean: record.priceBoolean ?? false,
-              Boolean: record.Boolean ?? false,
-            },
-          });
+        console.log(`→ Upserting ${data.length} polygon symbols (batched)...`);
+        if (data.length === 0) return;
+
+        const batchSize = 100;
+        let total = 0;
+        for (let i = 0; i < data.length; i += batchSize) {
+          const batch = data.slice(i, i + batchSize);
+          await prisma.$transaction(
+            batch.map(record =>
+              prisma.polygonData.upsert({
+                where: { symbol: record.symbol },
+                update: {
+                  symbolBoolean: record.symbolBoolean ?? false,
+                  marketCap: record.marketCap ?? null,
+                  previousMarketCap: record.previousMarketCap ?? null,
+                  marketCapDiff: record.marketCapDiff ?? null,
+                  marketCapBoolean: record.marketCapBoolean ?? false,
+                  price: record.price ?? null,
+                  previousCloseRaw: record.previousCloseRaw ?? null,
+                  previousCloseAdj: record.previousCloseAdj ?? null,
+                  previousCloseSource: record.previousCloseSource ?? null,
+                  changeFromPrevClosePct: record.changeFromPrevClosePct ?? null,
+                  changeFromOpenPct: record.changeFromOpenPct ?? null,
+                  sessionRef: record.sessionRef ?? null,
+                  qualityFlags: record.qualityFlags ?? null,
+                  change: record.change ?? null,
+                  size: record.size ?? null,
+                  name: record.name ?? null,
+                  priceBoolean: record.priceBoolean ?? false,
+                  Boolean: record.Boolean ?? false,
+                  priceSource: record.priceSource ?? null,
+                },
+                create: {
+                  symbol: record.symbol,
+                  symbolBoolean: record.symbolBoolean ?? false,
+                  marketCap: record.marketCap ?? null,
+                  previousMarketCap: record.previousMarketCap ?? null,
+                  marketCapDiff: record.marketCapDiff ?? null,
+                  marketCapBoolean: record.marketCapBoolean ?? false,
+                  price: record.price ?? null,
+                  previousCloseRaw: record.previousCloseRaw ?? null,
+                  previousCloseAdj: record.previousCloseAdj ?? null,
+                  previousCloseSource: record.previousCloseSource ?? null,
+                  changeFromPrevClosePct: record.changeFromPrevClosePct ?? null,
+                  changeFromOpenPct: record.changeFromOpenPct ?? null,
+                  sessionRef: record.sessionRef ?? null,
+                  qualityFlags: record.qualityFlags ?? null,
+                  change: record.change ?? null,
+                  size: record.size ?? null,
+                  name: record.name ?? null,
+                  priceBoolean: record.priceBoolean ?? false,
+                  Boolean: record.Boolean ?? false,
+                  priceSource: record.priceSource ?? null,
+                },
+              })
+            )
+          );
+          total += batch.length;
         }
-        
-        console.log(`✓ Successfully upserted ${data.length} polygon symbols`);
+        console.log(`✓ Successfully upserted ${total} polygon symbols`);
       }
 
       async copySymbolsToPolygonData(): Promise<void> {
@@ -222,18 +254,16 @@ export class DatabaseManager {
         console.log(`✓ PolygonData: inserted ${symbols.length} (deduped) symbols`);
       }
 
-      async getUniqueSymbolsFromPolygonData(): Promise<string[]> {
+      async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
         const symbols = await prisma.polygonData.findMany({
-          select: {
-            symbol: true,
-          },
+          select: { symbol: true },
+          ...(onlyReady ? { where: { Boolean: true } } : {}),
         });
-        
         return symbols.map(s => s.symbol);
       }
 
-      async getPolygonSymbols(): Promise<string[]> {
-        return this.getUniqueSymbolsFromPolygonData();
+      async getPolygonSymbols(onlyReady = false): Promise<string[]> {
+        return this.getUniqueSymbolsFromPolygonData(onlyReady);
       }
 
       async updatePolygonMarketCapData(marketData: any[]): Promise<void> {
@@ -261,12 +291,19 @@ export class DatabaseManager {
                   marketCapDiff: data.marketCapDiff,
                   marketCapBoolean: Boolean(data.marketCapBoolean ?? 0), // Convert to boolean
                   price: data.price,
-                  previousClose: data.previousClose,
+                  previousCloseRaw: data.previousCloseRaw,
+                  previousCloseAdj: data.previousCloseAdj,
+                  previousCloseSource: data.previousCloseSource,
+                  changeFromPrevClosePct: data.changeFromPrevClosePct,
+                  changeFromOpenPct: data.changeFromOpenPct,
+                  sessionRef: data.sessionRef,
+                  qualityFlags: data.qualityFlags,
                   change: data.change,
                   size: data.size,
                   name: data.name,
                   priceBoolean: Boolean(data.priceBoolean ?? 0), // Convert to boolean
                   Boolean: Boolean(data.Boolean ?? 0), // Convert to boolean
+                  priceSource: data.priceSource,
                   // Logo fields - only set if provided
                   ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
                   ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
@@ -279,12 +316,19 @@ export class DatabaseManager {
                   marketCapDiff: data.marketCapDiff,
                   marketCapBoolean: Boolean(data.marketCapBoolean ?? 0), // Convert to boolean
                   price: data.price,
-                  previousClose: data.previousClose,
+                  previousCloseRaw: data.previousCloseRaw,
+                  previousCloseAdj: data.previousCloseAdj,
+                  previousCloseSource: data.previousCloseSource,
+                  changeFromPrevClosePct: data.changeFromPrevClosePct,
+                  changeFromOpenPct: data.changeFromOpenPct,
+                  sessionRef: data.sessionRef,
+                  qualityFlags: data.qualityFlags,
                   change: data.change,
                   size: data.size,
                   name: data.name,
                   priceBoolean: Boolean(data.priceBoolean ?? 0), // Convert to boolean
                   Boolean: Boolean(data.Boolean ?? 0), // Convert to boolean
+                  priceSource: data.priceSource,
                   // Logo fields - only update if provided (preserve existing)
                   ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
                   ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
@@ -346,12 +390,12 @@ export class DatabaseManager {
           
           if (finhubData && polygonData) {
             // Calculate percentage differences
-            const epsSurp = finhubData.epsActual && finhubData.epsEstimate 
+            const epsSurp = (finhubData.epsActual != null && finhubData.epsEstimate != null && finhubData.epsEstimate !== 0)
               ? ((finhubData.epsActual / finhubData.epsEstimate) * 100) - 100
               : null;
             
-            const revSurp = finhubData.revenueActual && finhubData.revenueEstimate 
-              ? ((Number(finhubData.revenueActual) / Number(finhubData.revenueEstimate)) * 100) - 100
+            const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0)
+              ? new Decimal(finhubData.revenueActual.toString()).div(finhubData.revenueEstimate.toString()).times(100).minus(100).toNumber()
               : null;
             
             // Round decimal values to max 2 decimal places
@@ -379,10 +423,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
-                // Copy logo fields from FinhubData
-                logoUrl: finhubData.logoUrl,
-                logoSource: finhubData.logoSource,
-                logoFetchedAt: finhubData.logoFetchedAt,
+                // Prefer Polygon logos; fallback to FinhubData
+                logoUrl: polygonData.logoUrl ?? finhubData.logoUrl,
+                logoSource: polygonData.logoSource ?? finhubData.logoSource,
+                logoFetchedAt: polygonData.logoFetchedAt ?? finhubData.logoFetchedAt,
               },
               update: {
                 name: polygonData.name,
@@ -397,10 +441,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
-                // Copy logo fields from FinhubData
-                logoUrl: finhubData.logoUrl,
-                logoSource: finhubData.logoSource,
-                logoFetchedAt: finhubData.logoFetchedAt,
+                // Prefer Polygon logos; fallback to FinhubData
+                logoUrl: polygonData.logoUrl ?? finhubData.logoUrl,
+                logoSource: polygonData.logoSource ?? finhubData.logoSource,
+                logoFetchedAt: polygonData.logoFetchedAt ?? finhubData.logoFetchedAt,
               },
             });
           }

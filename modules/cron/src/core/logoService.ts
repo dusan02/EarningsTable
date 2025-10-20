@@ -23,16 +23,8 @@ import { CONFIG } from '../../../shared/src/config.js';
 import { db } from './DatabaseManager.js';
 import pLimit from 'p-limit';
 
-// Get the correct path regardless of where the script is run from
-const getOutDir = () => {
-  const currentDir = process.cwd();
-  if (currentDir.endsWith('modules/cron')) {
-    return path.join(currentDir, "..", "web", "public", "logos");
-  } else {
-    return path.join(currentDir, "modules", "web", "public", "logos");
-  }
-};
-const OUT_DIR = getOutDir();
+// Absolute path to logo directory - always points to the correct web public logos folder
+const OUT_DIR = path.resolve(process.cwd(), "..", "web", "public", "logos");
 const LOGO_TTL_DAYS = 30;
 
 // Logo processing configuration

@@ -15,3 +15,16 @@ export class ClearDatabaseCronJob {
     }
   }
 }
+
+// Standalone execution
+async function main() {
+  const clearJob = new ClearDatabaseCronJob();
+  await clearJob.execute();
+  await db.disconnect();
+}
+
+// Run if called directly
+if (import.meta.url.endsWith('clear-db-cron.ts') || process.argv[1]?.includes('clear-db-cron.ts')) {
+  console.log('🚀 Running main function...');
+  main().catch(console.error);
+}
