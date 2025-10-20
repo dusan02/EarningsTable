@@ -36,7 +36,8 @@ const argv = yargs(hideBin(process.argv))
   .parse() as { force: boolean; once: boolean };
 
 const TZ = process.env.TZ || 'America/New_York';
-const SCHEDULE = '*/5 * * * 1-5'; // every 5 minutes, Mon–Fri
+const CLEAR_SCHEDULE = '0 7 * * 1-5'; // 07:00 every weekday (Mon-Fri)
+const CRON_SCHEDULE = '*/5 * * * 1-5'; // Every 5 minutes, Mon-Fri
 const FORCE_RUN_ENV = process.env.FORCE_RUN === '1' || process.env.FORCE_RUN === 'true';
 const SKIP_RESET_CHECK = process.env.SKIP_RESET_CHECK === '1' || process.env.SKIP_RESET_CHECK === 'true';
 const USE_REDIS_LOCK = process.env.USE_REDIS_LOCK === '1' || process.env.USE_REDIS_LOCK === 'true';
@@ -60,9 +61,22 @@ function isNyseHolidayNY(dt: DateTime): boolean {
   return false;
 }
 
-async function ensureDailyResetNY(): Promise<void> {
-  // No-op placeholder. If you need to hard reset before open, implement here.
-  // Example: await db.clearAllTables();
+async function clearAllData(): Promise<void> {
+  console.log('🗑️ [CRON] Clearing all database data at 07:00...');
+  try {
+    // Import clear script functionality
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+    
+    // Run the clear script
+    const { stdout, stderr } = await execAsync('node ../../clear-all-data.js');
+    console.log('✅ [CRON] Database cleared successfully');
+    if (stderr) console.log('⚠️ [CRON] Clear warnings:', stderr);
+  } catch (error) {
+    console.error('❌ [CRON] Failed to clear database:', error);
+    throw error;
+  }
 }
 
 async function withRedisMutex<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
@@ -104,13 +118,9 @@ async function runPipelineOnce(label: string): Promise<void> {
     try {
       // Update cron status to running
       await db.updateCronStatus('pipeline', 'running');
-      // Optional daily reset hook
+      // Optional daily reset hook - now handled by separate 07:00 schedule
       if (!SKIP_RESET_CHECK) {
-        try {
-          await ensureDailyResetNY();
-        } catch (e: any) {
-          console.warn('[cron] daily reset failed (continuing):', e?.message || e);
-        }
+        console.log('[cron] Daily reset now handled by separate 07:00 schedule');
       } else {
         console.log('[cron] SKIP_RESET_CHECK=1 → skipping daily reset');
       }
@@ -174,18 +184,46 @@ async function main() {
     }
   }
 
+  // 1. Schedule database clearing at 07:00 every weekday
   cron.schedule(
-    SCHEDULE,
+    CLEAR_SCHEDULE,
     async () => {
       const now = nowNY();
       if (!isMonFriNY(now)) return;
       if (isNyseHolidayNY(now)) return;
-      await runPipelineOnce('scheduled');
+      await withRedisMutex('clear-data', clearAllData);
     },
     { timezone: TZ }
   );
 
-  console.log(`[cron] Scheduler armed: "${SCHEDULE}" in ${TZ} (Mon–Fri, every 5 minutes)`);
+  // 2. Schedule cron jobs every 5 minutes (07:05-06:50 next day)
+  cron.schedule(
+    CRON_SCHEDULE,
+    async () => {
+      const now = nowNY();
+      if (!isMonFriNY(now)) return;
+      if (isNyseHolidayNY(now)) return;
+      
+      // Check if we should run (not between 07:00-07:04)
+      const hour = now.hour;
+      const minute = now.minute;
+      
+      // Skip if it's exactly 07:00-07:04 (data clearing time)
+      if (hour === 7 && minute >= 0 && minute <= 4) {
+        console.log(`[cron] Skipping run at ${now.toFormat('HH:mm')} - data clearing time`);
+        return;
+      }
+      
+      // Run for all other times (07:05-06:55 next day)
+      await withRedisMutex('run-pipeline', () => runPipelineOnce('scheduled'));
+    },
+    { timezone: TZ }
+  );
+
+  console.log(`[cron] Scheduler armed:`);
+  console.log(`  🗑️  Clear data: "${CLEAR_SCHEDULE}" (07:00 Mon-Fri)`);
+  console.log(`  📊 Cron jobs: "${CRON_SCHEDULE}" (07:05-06:55 every 5min Mon-Fri, weekends OFF)`);
+  console.log(`  🌍 Timezone: ${TZ}`);
   console.log('[cron] Press Ctrl+C to stop');
 }
 
