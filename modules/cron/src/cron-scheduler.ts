@@ -33,7 +33,7 @@ async function withMutex<T>(label: string, fn: () => Promise<T>): Promise<T | nu
 const argv = yargs(hideBin(process.argv))
   .option('force', { type: 'boolean', default: false })
   .option('once', { type: 'boolean', default: false })
-  .parseSync();
+  .parse() as { force: boolean; once: boolean };
 
 const TZ = process.env.TZ || 'America/New_York';
 const SCHEDULE = '*/5 * * * 1-5'; // every 5 minutes, Mon–Fri

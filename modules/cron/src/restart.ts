@@ -350,9 +350,9 @@ class ApplicationRestarter {
       if (options.clearDb) {
         await this.clearDatabase();
       } else if (options.clearFinhub) {
-        await this.clearFinhubData();
+        await this.clearDatabase();
       } else if (options.clearPolygon) {
-        await this.clearPolygonData();
+        await this.clearDatabase();
       }
 
       // Application restart (kill + start services)

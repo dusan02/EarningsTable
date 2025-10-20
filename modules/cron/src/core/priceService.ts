@@ -261,19 +261,19 @@ function safePctChange(current: number | null, previous: number | null): number 
   }
   
   // Guard against zero or very low previous close (penny stocks, halts, etc.)
-  if (previous <= 1e-4) {
+  if (previous! <= 1e-4) {
     return null;
   }
   
   // Guard against negative prices
-  if (current <= 0 || previous <= 0) {
+  if (current! <= 0 || previous! <= 0) {
     return null;
   }
   
   try {
     // Calculate percentage change using Decimal.js for precision
-    const currentDecimal = new Decimal(current);
-    const previousDecimal = new Decimal(previous);
+    const currentDecimal = new Decimal(current!);
+    const previousDecimal = new Decimal(previous!);
     const change = currentDecimal.minus(previousDecimal).div(previousDecimal).times(100);
     
     // Do not hard-cap; spike handling is done via corporate actions + quality flags
