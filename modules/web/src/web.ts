@@ -12,7 +12,20 @@ const PORT = process.env.PORT || 5555;
 
 // Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Static files with cache control
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  extensions: ["html"],
+  setHeaders(res, filePath) {
+    if (filePath.endsWith("index.html")) {
+      // vždy načítaj čerstvé
+      res.setHeader("Cache-Control", "no-store, max-age=0");
+    } else {
+      // assety kešuj agresívne (immutable)
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    }
+  },
+}));
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -160,15 +173,11 @@ app.get('/api/final-report', async (req, res) => {
   }
 });
 
-// Hlavná HTML stránka - serve simple dashboard directly (no redirect)
+// Hlavná HTML stránka - serve index.html with mobile cards support
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../../simple-dashboard.html'));
+  res.sendFile(path.join(__dirname, '../../../index.html'));
 });
 
-// Serve simple dashboard
-app.get('/simple-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../../simple-dashboard.html'));
-});
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

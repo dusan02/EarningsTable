@@ -55,12 +55,12 @@ export class DatabaseManager {
         epsActual: incoming.epsActual ?? null,
         epsEst: incoming.epsEst ?? null,
         epsSurp: incoming.epsSurp ?? (incoming.epsActual != null && incoming.epsEst != null && incoming.epsEst !== 0
-          ? ((incoming.epsActual / incoming.epsEst) * 100) - 100
+          ? ((incoming.epsActual - incoming.epsEst) / Math.abs(incoming.epsEst)) * 100
           : null),
         revActual: incoming.revActual != null ? BigInt(incoming.revActual) : null,
         revEst: incoming.revEst != null ? BigInt(incoming.revEst) : null,
         revSurp: (incoming.revActual != null && incoming.revEst != null && incoming.revEst !== 0
-          ? new Decimal(incoming.revActual).div(incoming.revEst).times(100).minus(100).toNumber()
+          ? new Decimal(incoming.revActual).minus(incoming.revEst).div(new Decimal(incoming.revEst).abs()).times(100).toNumber()
           : null),
       },
       update: {
@@ -73,12 +73,12 @@ export class DatabaseManager {
         epsActual: incoming.epsActual ?? null,
         epsEst: incoming.epsEst ?? null,
         epsSurp: incoming.epsSurp ?? (incoming.epsActual != null && incoming.epsEst != null && incoming.epsEst !== 0
-          ? ((incoming.epsActual / incoming.epsEst) * 100) - 100
+          ? ((incoming.epsActual - incoming.epsEst) / Math.abs(incoming.epsEst)) * 100
           : null),
         revActual: incoming.revActual != null ? BigInt(incoming.revActual) : null,
         revEst: incoming.revEst != null ? BigInt(incoming.revEst) : null,
         revSurp: (incoming.revActual != null && incoming.revEst != null && incoming.revEst !== 0
-          ? new Decimal(incoming.revActual).div(incoming.revEst).times(100).minus(100).toNumber()
+          ? new Decimal(incoming.revActual).minus(incoming.revEst).div(new Decimal(incoming.revEst).abs()).times(100).toNumber()
           : null),
       },
     });
@@ -392,13 +392,13 @@ export class DatabaseManager {
           });
           
           if (finhubData && polygonData) {
-            // Calculate percentage differences
+            // Calculate percentage differences using correct formula: ((actual - estimate) / |estimate|) * 100
             const epsSurp = (finhubData.epsActual != null && finhubData.epsEstimate != null && finhubData.epsEstimate !== 0)
-              ? ((finhubData.epsActual / finhubData.epsEstimate) * 100) - 100
+              ? ((finhubData.epsActual - finhubData.epsEstimate) / Math.abs(finhubData.epsEstimate)) * 100
               : null;
             
             const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0n)
-              ? new Decimal(finhubData.revenueActual.toString()).div(finhubData.revenueEstimate.toString()).times(100).minus(100).toNumber()
+              ? new Decimal(finhubData.revenueActual.toString()).minus(finhubData.revenueEstimate.toString()).div(new Decimal(finhubData.revenueEstimate.toString()).abs()).times(100).toNumber()
               : null;
             
             // Round decimal values to max 2 decimal places

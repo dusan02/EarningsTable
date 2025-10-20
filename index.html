@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
+    <!-- build: 2025-10-20T19:42Z -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -211,36 +212,54 @@
             
             /* Card styling */
             .company-card {
-                background: white;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
                 border: 1px solid #e5e7eb;
                 border-radius: 12px;
                 margin-bottom: 12px;
                 padding: 16px;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                transition: all 0.2s ease;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .company-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #22c55e, #f97316, #3b82f6, #a855f7);
+                opacity: 0.7;
             }
             
             .dark .company-card {
-                background: #1e293b;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border-color: #334155;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
             
             .company-card:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            .company-card:hover::before {
+                opacity: 1;
             }
             
             .dark .company-card:hover {
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             }
             
             /* Card header */
             .card-header {
-                display: flex;
+                display: grid;
+                grid-template-columns: auto 1fr auto;
                 align-items: center;
-                justify-content: space-between;
-                margin-bottom: 12px;
+                gap: 12px;
+                margin-bottom: 8px;
             }
             
             .card-company-info {
@@ -250,19 +269,52 @@
                 min-width: 0;
             }
             
+            .card-header-item {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .card-header-item:first-child {
+                justify-content: flex-start;
+            }
+            
+            .card-header-item:last-child {
+                justify-content: flex-end;
+            }
+            
+            .card-ticker-name-combined {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                text-align: center;
+            }
+            
+            .card-separator {
+                color: #9ca3af;
+                font-weight: 300;
+                font-size: 14px;
+            }
+            
+            .dark .card-separator {
+                color: #6b7280;
+            }
+            
             .card-logo {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
-                margin-right: 12px;
+                width: 40px;
+                height: 40px;
+                border-radius: 6px;
+                margin-right: 1px;
                 flex-shrink: 0;
             }
             
             .card-symbol {
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 700;
                 color: #1f2937;
-                margin-bottom: 2px;
+                margin-bottom: 0px;
             }
             
             .dark .card-symbol {
@@ -270,135 +322,132 @@
             }
             
             .card-name {
-                font-size: 12px;
-                color: #6b7280;
-                line-height: 1.2;
+                font-size: 13px; /* Increased from 11px */
+                color: #1f2937; /* Black for mobile */
+                line-height: 1.1;
             }
             
             .dark .card-name {
-                color: #9ca3af;
+                color: #f9fafb; /* White for dark mode mobile */
             }
             
             .card-size-badge {
                 padding: 4px 8px;
                 border-radius: 6px;
-                font-size: 10px;
+                font-size: 12px; /* Increased from 10px */
                 font-weight: 700;
                 text-transform: uppercase;
                 border: 1px solid;
             }
             
-            /* Card metrics grid */
-            .card-metrics {
+            /* Card data grid - 4 columns */
+            .card-data-grid {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                grid-template-columns: 1.2fr 1fr 1fr 1fr; /* First column (MARKET CAP) is wider */
+                gap: 0px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px; /* Slightly more rounded */
+                padding: 14px; /* Slightly more padding */
+                position: relative;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
             }
             
-            .card-metric {
-                text-align: center;
-                padding: 8px;
-                background: #f9fafb;
-                border-radius: 8px;
-                border: 1px solid #e5e7eb;
+            .dark .card-data-grid {
+                background: transparent;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
             }
             
-            .dark .card-metric {
-                background: #334155;
-                border-color: #475569;
+            .card-data-column {
+                text-align: left; /* Changed from center to left for better readability */
+                padding: 12px 8px;
+                background: transparent;
+                border-radius: 0px;
+                border: none;
+                transition: all 0.2s ease;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                min-height: 80px;
             }
             
-            .card-metric-label {
-                font-size: 10px;
-                color: #6b7280;
-                font-weight: 600;
-                text-transform: uppercase;
-                margin-bottom: 4px;
+            .card-data-column:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 20%;
+                bottom: 20%;
+                width: 1px;
+                background: rgba(255, 255, 255, 0.2);
             }
             
-            .dark .card-metric-label {
-                color: #9ca3af;
+            .dark .card-data-column:not(:last-child)::after {
+                background: rgba(255, 255, 255, 0.1);
             }
             
-            .card-metric-value {
-                font-size: 14px;
-                font-weight: 700;
-                color: #1f2937;
-                margin-bottom: 2px;
+            .dark .card-data-column {
+                background: transparent;
+                border: none;
             }
             
-            .dark .card-metric-value {
-                color: #f9fafb;
-            }
-            
-            .card-metric-change {
-                font-size: 12px;
-                font-weight: 600;
-            }
-            
-            /* Card earnings section */
-            .card-earnings {
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid #e5e7eb;
-            }
-            
-            .dark .card-earnings {
-                border-color: #334155;
-            }
-            
-            .card-earnings-title {
-                font-size: 12px;
-                font-weight: 600;
-                color: #6b7280;
-                text-transform: uppercase;
-                margin-bottom: 8px;
-            }
-            
-            .dark .card-earnings-title {
-                color: #9ca3af;
-            }
-            
-            .card-earnings-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            
-            .card-earnings-item {
-                text-align: center;
-                padding: 6px;
-                background: #f3f4f6;
+            .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
                 border-radius: 6px;
-                border: 1px solid #d1d5db;
+                transform: translateY(-1px); /* Subtle lift effect */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
             }
             
-            .dark .card-earnings-item {
-                background: #374151;
-                border-color: #4b5563;
+            .dark .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
             }
             
-            .card-earnings-label {
-                font-size: 9px;
-                color: #6b7280;
-                font-weight: 600;
+            .card-data-label {
+                font-size: 11px; /* Reduced from 13px to fit MARKET CAP on one line */
+                color: #374151;
+                font-weight: 700;
                 text-transform: uppercase;
-                margin-bottom: 2px;
+                margin-bottom: 6px;
+                letter-spacing: 0.2px; /* Reduced letter spacing */
             }
             
-            .dark .card-earnings-label {
-                color: #9ca3af;
+            .dark .card-data-label {
+                color: #e5e7eb;
             }
             
-            .card-earnings-value {
-                font-size: 11px;
+            .card-data-value {
+                font-size: 18px; /* Increased from 15px */
                 font-weight: 700;
                 color: #1f2937;
+                margin-bottom: 4px; /* Increased spacing */
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             }
             
-            .dark .card-earnings-value {
+            .dark .card-data-value {
                 color: #f9fafb;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             }
+            
+            .card-data-estimate {
+                font-size: 12px; /* Increased from 10px */
+                color: #4b5563; /* Darker for better contrast */
+                font-weight: 500;
+                margin-bottom: 4px; /* Increased spacing */
+                font-style: italic;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+            }
+            
+            .dark .card-data-estimate {
+                color: #d1d5db; /* Lighter for better contrast in dark mode */
+            }
+            
+            .card-data-change {
+                font-size: 13px; /* Increased from 11px */
+                font-weight: 700;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+            }
+            
         }
         
         /* Tablet optimizations - Hybrid Layout */
@@ -458,26 +507,27 @@
         <header class="glass-effect shadow-lg border-b border-neutral-200 dark:border-transparent" role="banner">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                       <div class="text-center sm:text-left">
-                           <div class="flex items-center justify-center sm:justify-start space-x-3">
-                               <!-- Bar chart icon -->
-                               <div class="flex items-center space-x-1">
-                                   <div class="w-2 h-4 bg-green-500 rounded-sm"></div>
-                                   <div class="w-2 h-6 bg-orange-500 rounded-sm"></div>
-                                   <div class="w-2 h-3 bg-blue-500 rounded-sm"></div>
-                                   <div class="w-2 h-5 bg-purple-500 rounded-sm"></div>
-                               </div>
-                               <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-white tracking-tight">Earnings Table</h1>
+                   <div class="text-center sm:text-left">
+                       <div class="flex items-center justify-center sm:justify-start space-x-3">
+                           <!-- Bar chart icon -->
+                           <div class="flex items-center space-x-1">
+                               <div class="w-2 h-4 bg-green-500 rounded-sm"></div>
+                               <div class="w-2 h-6 bg-orange-500 rounded-sm"></div>
+                               <div class="w-2 h-3 bg-blue-500 rounded-sm"></div>
+                               <div class="w-2 h-5 bg-purple-500 rounded-sm"></div>
                            </div>
-                           <p class="mt-1 sm:mt-2 text-blue-900 dark:text-white text-sm sm:text-base lg:text-lg font-medium">Company earnings and financial data</p>
+                           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-white tracking-tight">Earnings Table</h1>
                        </div>
+                       <p class="mt-1 sm:mt-2 text-blue-900 dark:text-white text-sm sm:text-base lg:text-lg font-medium">Company earnings and financial data</p>
+                   </div>
+                   
+                   <!-- Theme Toggle - moved to separate container on the right -->
+                   <div class="flex justify-center sm:justify-end mt-2 sm:mt-0">
+                       <button id="theme-toggle" class="p-2 sm:p-3 rounded-xl bg-neutral-100 dark:bg-yellow-200 hover:bg-neutral-200 dark:hover:bg-yellow-300 border border-neutral-300 dark:border-transparent smooth-transition shadow-sm touch-manipulation" aria-label="Toggle dark mode" title="Toggle dark mode">
+                           <i data-lucide="moon" class="h-5 w-5 sm:h-5 sm:w-5"></i>
+                       </button>
+                   </div>
                     
-                    <div class="mt-4 sm:mt-0 flex items-center justify-center sm:justify-end space-x-4">
-                        <!-- Theme Toggle -->
-                        <button id="theme-toggle" class="p-2 sm:p-3 rounded-xl bg-neutral-100 dark:bg-yellow-300 hover:bg-neutral-200 dark:hover:bg-yellow-400 border border-neutral-300 dark:border-transparent smooth-transition shadow-sm touch-manipulation" aria-label="Toggle dark mode" title="Toggle dark mode">
-                            <i data-lucide="moon" class="h-5 w-5 sm:h-5 sm:w-5"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
         </header>
@@ -543,13 +593,16 @@
                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                            </svg>
                            <span id="last-updated" class="text-base text-neutral-600 dark:text-white font-sans">Loading...</span>
+                           <span id="refresh-indicator" class="ml-2 text-green-500 opacity-0 transition-opacity duration-300" title="Data updated">
+                               <i data-lucide="check-circle" class="h-4 w-4"></i>
+                           </span>
                        </div>
                    </div>
                </div>
 
                <!-- Table -->
-               <div id="table-container" class="hidden rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent bg-white dark:bg-slate-800">
-                <div class="overflow-x-auto">
+               <div id="table-container" class="table-container hidden rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent bg-white dark:bg-slate-800">
+                <div class="overflow-x-auto no-scrollbar">
                     <table class="w-full table-fixed mobile-table" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
                            <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                                <tr>
@@ -701,13 +754,37 @@
             return `$${num.toFixed(0)}`;
         }
 
+        function determineCompanySize(apiSize, marketCap) {
+            // If API provides a valid size and it's not 'small', use it
+            if (apiSize && apiSize.toLowerCase() !== 'small' && apiSize.toLowerCase() !== 'unknown') {
+                return apiSize;
+            }
+            
+            // Otherwise, determine size based on market cap
+            if (!marketCap || marketCap === 0) {
+                return 'Unknown';
+            }
+            
+            const marketCapNum = Number(marketCap);
+            
+            if (marketCapNum >= 100e9) { // $100B+
+                return 'Mega';
+            } else if (marketCapNum >= 10e9) { // $10B - $99B
+                return 'Large';
+            } else if (marketCapNum >= 2e9) { // $2B - $9.9B
+                return 'Mid';
+            } else { // < $2B
+                return 'Small';
+            }
+        }
+
         function getSizeBadgeColor(size) {
             switch (size?.toLowerCase()) {
-                case 'mega': return 'bg-gradient-to-r from-yellow-200 to-yellow-300 text-black border border-black shadow-lg';
-                case 'large': return 'bg-gradient-to-r from-blue-200 to-blue-300 text-black border border-black shadow-lg';
-                case 'mid': return 'bg-white text-black border border-black shadow-lg';
-                case 'small': return 'bg-white text-black border border-black shadow-lg';
-                default: return 'bg-gradient-to-r from-gray-300 to-gray-400 text-black border border-black shadow-md';
+                case 'mega': return 'bg-gradient-to-r from-yellow-200 to-yellow-300 dark:from-yellow-600 dark:to-yellow-700 text-black dark:text-white border border-black dark:border-yellow-500 shadow-lg';
+                case 'large': return 'bg-gradient-to-r from-blue-200 to-blue-300 dark:from-blue-600 dark:to-blue-700 text-black dark:text-white border border-black dark:border-blue-500 shadow-lg';
+                case 'mid': return 'bg-white dark:bg-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-lg';
+                case 'small': return 'bg-white dark:bg-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-lg';
+                default: return 'bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-md';
             }
         }
 
@@ -878,7 +955,7 @@
                     allData = result.data.map(item => ({
                         symbol: item.symbol,
                         name: item.name || '-',
-                        size: item.size || 'Unknown',
+                        size: determineCompanySize(item.size, item.marketCap),
                         marketCap: item.marketCap ? Number(item.marketCap) : 0,
                         marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
                         price: item.price || 0,
@@ -904,6 +981,18 @@
                     
                     // Update timestamp from cron status
                     await fetchCronStatus();
+                    
+                    // Initialize data hash for change detection
+                    lastDataHash = JSON.stringify(allData.map(item => ({
+                        symbol: item.symbol,
+                        marketCap: item.marketCap,
+                        price: item.price,
+                        change: item.change,
+                        epsActual: item.epsActual,
+                        epsSurp: item.epsSurp,
+                        revActual: item.revActual,
+                        revSurp: item.revSurp
+                    })));
                 } else {
                     throw new Error(result.message || 'Failed to fetch data');
                 }
@@ -1084,78 +1173,75 @@
                 <div class="company-card fade-in" style="animation-delay: ${index * 50}ms;">
                     <!-- Card Header -->
                     <div class="card-header">
-                        <div class="card-company-info">
-                            <!-- Logo -->
-                            <div class="flex-shrink-0">
-                                ${item.logoUrl ? 
-                                    `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="card-logo object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                     <div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm hidden">${item.symbol}</div>` :
-                                    `<div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm">${item.symbol}</div>`
-                                }
-                            </div>
-                            <!-- Company Info -->
-                            <div class="flex-1 min-w-0">
-                                <div class="card-symbol">${item.symbol}</div>
-                                <div class="card-name">${item.name}</div>
-                            </div>
+                        <!-- Logo -->
+                        <div class="card-header-item">
+                            ${item.logoUrl ? 
+                                `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="card-logo object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm hidden">${item.symbol}</div>` :
+                                `<div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm">${item.symbol}</div>`
+                            }
                         </div>
+                        
+                        <!-- Ticker and Company Name (Combined) -->
+                        <div class="card-header-item card-ticker-name-combined">
+                            <span class="card-symbol">${item.symbol}</span>
+                            <span class="card-separator">|</span>
+                            <span class="card-name">${item.name}</span>
+                        </div>
+                        
                         <!-- Size Badge -->
-                        <div class="card-size-badge ${getSizeBadgeColor(item.size)}">
-                            ${item.size?.toUpperCase() || '-'}
+                        <div class="card-header-item">
+                            <div class="card-size-badge ${getSizeBadgeColor(item.size)}">
+                                ${item.size?.toUpperCase() || '-'}
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Card Metrics -->
-                    <div class="card-metrics">
-                        <!-- Market Cap -->
-                        <div class="card-metric">
-                            <div class="card-metric-label">Market Cap</div>
-                            <div class="card-metric-value">${formatMarketCap(item.marketCap)}</div>
-                            <div class="card-metric-change ${getChangeColor(item.marketCapDiff)}">
+                    <!-- Data Section - 4 columns -->
+                    <div class="card-data-grid">
+                        <!-- Column 1: Market Cap -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Market Cap</div>
+                                <div class="card-data-value">${formatMarketCap(item.marketCap)}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.marketCapDiff)}">
                                 ${item.marketCapDiff != null ? `${signPrefix(item.marketCapDiff)}${formatCapDiffUSD(item.marketCapDiff)}` : '-'}
                             </div>
                         </div>
                         
-                        <!-- Price -->
-                        <div class="card-metric">
-                            <div class="card-metric-label">Price</div>
-                            <div class="card-metric-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
-                            <div class="card-metric-change ${getChangeColor(item.change)}">
+                        <!-- Column 2: Price -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Price</div>
+                                <div class="card-data-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.change)}">
                                 ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Earnings Section -->
-                    <div class="card-earnings">
-                        <div class="card-earnings-title">Earnings</div>
-                        <div class="card-earnings-grid">
-                            <!-- EPS -->
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">EPS Act</div>
-                                <div class="card-earnings-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
+                        
+                        <!-- Column 3: EPS -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">EPS</div>
+                                <div class="card-data-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
+                                <div class="card-data-estimate">${item.epsEst ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
                             </div>
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">EPS Est</div>
-                                <div class="card-earnings-value">${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}</div>
+                            <div class="card-data-change ${getChangeColor(item.epsSurp)}">
+                                ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
                             </div>
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">EPS Surp</div>
-                                <div class="card-earnings-value ${getChangeColor(item.epsSurp)}">${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}</div>
+                        </div>
+                        
+                        <!-- Column 4: Revenue -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Revenue</div>
+                                <div class="card-data-value">${formatRevenue(item.revActual)}</div>
+                                <div class="card-data-estimate">${item.revEst ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
                             </div>
-                            
-                            <!-- Revenue -->
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">Rev Act</div>
-                                <div class="card-earnings-value">${formatRevenue(item.revActual)}</div>
-                            </div>
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">Rev Est</div>
-                                <div class="card-earnings-value">${formatRevenue(item.revEst)}</div>
-                            </div>
-                            <div class="card-earnings-item">
-                                <div class="card-earnings-label">Rev Surp</div>
-                                <div class="card-earnings-value ${getChangeColor(item.revSurp)}">${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}</div>
+                            <div class="card-data-change ${getChangeColor(item.revSurp)}">
+                                ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                     </div>
@@ -1173,6 +1259,82 @@
 
         // Auto-refresh mechanism
         let autoRefreshInterval;
+        let lastDataHash = null;
+        
+        // Silent data refresh without UI flicker
+        async function silentDataRefresh() {
+            try {
+                console.log('Silent data refresh...');
+                
+                const response = await fetch('/api/final-report');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Create hash of current data to detect changes
+                    const newData = result.data.map(item => ({
+                        symbol: item.symbol,
+                        name: item.name || '-',
+                        size: determineCompanySize(item.size, item.marketCap),
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
+                        logoUrl: item.logoUrl || null,
+                        logoSource: item.logoSource || null,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
+                    }));
+                    
+                    // Create simple hash to detect changes
+                    const newDataHash = JSON.stringify(newData.map(item => ({
+                        symbol: item.symbol,
+                        marketCap: item.marketCap,
+                        price: item.price,
+                        change: item.change,
+                        epsActual: item.epsActual,
+                        epsSurp: item.epsSurp,
+                        revActual: item.revActual,
+                        revSurp: item.revSurp
+                    })));
+                    
+                    // Only update if data has changed
+                    if (newDataHash !== lastDataHash) {
+                        console.log('Data changed, updating silently...');
+                        lastDataHash = newDataHash;
+                        
+                        // Update data without showing loading
+                        allData = newData;
+                        filteredData = [...allData];
+                        
+                        // Apply current sorting
+                        applySorting();
+                        updateSortIndicators();
+                        
+                        // Render without loading animation
+                        renderTable();
+                        
+                        // Update timestamp
+                        await fetchCronStatus();
+                        
+                        // Show refresh indicator
+                        showRefreshIndicator();
+                    } else {
+                        console.log('No data changes detected');
+                        // Still update timestamp
+                        await fetchCronStatus();
+                    }
+                }
+            } catch (error) {
+                console.error('Silent refresh error:', error);
+            }
+        }
         
         function startAutoRefresh() {
             // Clear existing interval
@@ -1180,24 +1342,27 @@
                 clearInterval(autoRefreshInterval);
             }
             
-            // Check for updates every 30 seconds
+            // Check for updates every 15 seconds (more frequent for better UX)
             autoRefreshInterval = setInterval(async () => {
-                try {
-                    // Fetch cron status to get latest timestamp
-                    await fetchCronStatus();
-                    
-                    // Optionally refresh data if needed
-                    // await fetchData();
-                } catch (error) {
-                    console.error('Auto-refresh error:', error);
-                }
-            }, 30000); // 30 seconds
+                await silentDataRefresh();
+            }, 15000); // 15 seconds
         }
         
         function stopAutoRefresh() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
+            }
+        }
+        
+        // Show refresh indicator briefly
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('refresh-indicator');
+            if (indicator) {
+                indicator.style.opacity = '1';
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                }, 2000); // Show for 2 seconds
             }
         }
 
@@ -1212,6 +1377,38 @@
         window.addEventListener('beforeunload', function() {
             stopAutoRefresh();
         });
+
+        // Fallback prepínanie layoutu, keď media queries neprejdú (alebo je cache/štýly mimo)
+        function applyResponsiveLayout() {
+            const tableEl = document.getElementById('table-container');
+            const cardEl  = document.getElementById('card-container');
+            if (!tableEl || !cardEl) return;
+
+            const isMobile = window.matchMedia('(max-width: 640px)').matches;
+            // Nedôveruj len CSS, prepni aj class "hidden"
+            if (isMobile) {
+                tableEl.classList.add('hidden');
+                cardEl.classList.remove('hidden');
+            } else {
+                tableEl.classList.remove('hidden');
+                cardEl.classList.add('hidden');
+            }
+        }
+
+        // Reaguj na zmeny šírky
+        const mq = window.matchMedia('(max-width: 640px)');
+        if (mq.addEventListener) mq.addEventListener('change', applyResponsiveLayout);
+        else mq.addListener(applyResponsiveLayout); // staršie prehliadače
+
+        window.addEventListener('resize', applyResponsiveLayout);
+        document.addEventListener('DOMContentLoaded', applyResponsiveLayout);
+
+        // Volaj aj po fetchi dát (ak sa layout odhaluje až v showTable)
+        const _showTable = window.showTable;
+        window.showTable = function() {
+            _showTable && _showTable();
+            applyResponsiveLayout();
+        };
     </script>
 </body>
 </html>
