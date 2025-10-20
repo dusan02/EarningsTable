@@ -391,7 +391,7 @@ export async function fetchMarketCapDataForSymbols(symbols: string[]): Promise<P
     marketCapDiff: result.marketCapDiff,
     marketCapBoolean: result.marketCapBoolean,
     price: result.price,
-    previousClose: result.previousClose,
+    previousClose: result.previousCloseAdj || result.previousCloseRaw,
     change: result.change,
     size: result.size,
     name: result.name,

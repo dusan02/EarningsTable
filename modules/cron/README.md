@@ -4,6 +4,35 @@
 
 Refactored cron module with improved architecture, better separation of concerns, and enhanced maintainability.
 
+## How to run
+
+### Local one-shot test (recommended)
+
+Use the root PowerShell helper which calls the same entry as production:
+
+```powershell
+./run-crons.ps1
+```
+
+This triggers the scheduler's one-shot pipeline (Finnhub → Polygon → FinalReport) via `npm run start:once`. Environment variables are loaded by Node (dotenv/PM2), not hard-coded in the script.
+
+### Production (PM2 scheduler)
+
+```bash
+pm2 delete earnings-cron 2>/dev/null || true
+pm2 start ecosystem.config.js --only earnings-cron --env production
+pm2 save && pm2 startup
+
+# immediate run after deploy
+pm2 start ecosystem.config.js --only earnings-cron --env production -- --force --once
+```
+
+The scheduler runs every 5 minutes on Mon–Fri in TZ America/New_York, with optional Redis lock and `--once/--force` immediate run.
+
+### Deprecated
+
+`start-daily-cycle.ps1` is deprecated and exits immediately with a warning. Use PM2 scheduler for production and `run-crons.ps1` for local one-shot testing.
+
 ## 🏗️ Architecture
 
 ### Core Components

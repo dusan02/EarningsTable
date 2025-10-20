@@ -190,7 +190,7 @@ export class DatabaseManager {
                   changeFromPrevClosePct: record.changeFromPrevClosePct ?? null,
                   changeFromOpenPct: record.changeFromOpenPct ?? null,
                   sessionRef: record.sessionRef ?? null,
-                  qualityFlags: record.qualityFlags ?? null,
+                  qualityFlags: record.qualityFlags as any,
                   change: record.change ?? null,
                   size: record.size ?? null,
                   name: record.name ?? null,
@@ -212,7 +212,7 @@ export class DatabaseManager {
                   changeFromPrevClosePct: record.changeFromPrevClosePct ?? null,
                   changeFromOpenPct: record.changeFromOpenPct ?? null,
                   sessionRef: record.sessionRef ?? null,
-                  qualityFlags: record.qualityFlags ?? null,
+                  qualityFlags: record.qualityFlags as any,
                   change: record.change ?? null,
                   size: record.size ?? null,
                   name: record.name ?? null,
@@ -354,6 +354,9 @@ export class DatabaseManager {
       async generateFinalReport(): Promise<void> {
         console.log('🔄 Generating FinalReport from FinhubData and PolygonData...');
         
+        // Clear existing FinalReport to ensure only valid symbols are included
+        await this.clearFinalReport();
+        
         // Get all symbols that exist in both tables
         const finhubSymbols = await prisma.finhubData.findMany({
           select: { symbol: true },
@@ -394,12 +397,14 @@ export class DatabaseManager {
               ? ((finhubData.epsActual / finhubData.epsEstimate) * 100) - 100
               : null;
             
-            const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0)
+            const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0n)
               ? new Decimal(finhubData.revenueActual.toString()).div(finhubData.revenueEstimate.toString()).times(100).minus(100).toNumber()
               : null;
             
             // Round decimal values to max 2 decimal places
-            const roundedPrice = polygonData.price ? Math.round(polygonData.price * 100) / 100 : null;
+            // Use previousClose as fallback for weekends when current price is not available
+            const priceToUse = polygonData.price ?? polygonData.previousCloseRaw;
+            const roundedPrice = priceToUse ? Math.round(priceToUse * 100) / 100 : null;
             const roundedChange = polygonData.change !== null && polygonData.change !== undefined ? Math.round(polygonData.change * 100) / 100 : null;
             const roundedEpsActual = finhubData.epsActual ? Math.round(finhubData.epsActual * 100) / 100 : null;
             const roundedEpsEst = finhubData.epsEstimate ? Math.round(finhubData.epsEstimate * 100) / 100 : null;
@@ -423,10 +428,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
-                // Prefer Polygon logos; fallback to FinhubData
-                logoUrl: polygonData.logoUrl ?? finhubData.logoUrl,
-                logoSource: polygonData.logoSource ?? finhubData.logoSource,
-                logoFetchedAt: polygonData.logoFetchedAt ?? finhubData.logoFetchedAt,
+                // Use FinhubData logos (PolygonData doesn't have logo fields)
+                logoUrl: finhubData.logoUrl,
+                logoSource: finhubData.logoSource,
+                logoFetchedAt: finhubData.logoFetchedAt,
               },
               update: {
                 name: polygonData.name,
@@ -441,10 +446,10 @@ export class DatabaseManager {
                 revActual: finhubData.revenueActual,
                 revEst: finhubData.revenueEstimate,
                 revSurp: roundedRevSurp,
-                // Prefer Polygon logos; fallback to FinhubData
-                logoUrl: polygonData.logoUrl ?? finhubData.logoUrl,
-                logoSource: polygonData.logoSource ?? finhubData.logoSource,
-                logoFetchedAt: polygonData.logoFetchedAt ?? finhubData.logoFetchedAt,
+                // Use FinhubData logos (PolygonData doesn't have logo fields)
+                logoUrl: finhubData.logoUrl,
+                logoSource: finhubData.logoSource,
+                logoFetchedAt: finhubData.logoFetchedAt,
               },
             });
           }

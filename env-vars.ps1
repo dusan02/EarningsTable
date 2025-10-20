@@ -1,7 +1,7 @@
 # 🔑 Environment Variables Setup
 # Nastaví všetky potrebné environment premenné
 
-Write-Host "🔑 Setting up Environment Variables..." -ForegroundColor Green
+Write-Host "Setting up Environment Variables..." -ForegroundColor Green
 
 # Nastaviť environment premenné
 $env:DATABASE_URL = "file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"

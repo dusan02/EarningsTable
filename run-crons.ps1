@@ -1,21 +1,25 @@
-# Run cron jobs from correct directory
-Write-Host "🚀 Starting cron jobs..." -ForegroundColor Green
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-# Set environment variables
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
-$env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
-$env:DATABASE_URL = "file:D:/Projects/EarningsTable/modules/database/prisma/dev.db"
+Write-Host 'Starting one-shot cron run (local test)...' -ForegroundColor Green
 
-# Change to cron directory
-Set-Location "modules/cron"
+try {
+    # Prejdi do priečinka s cron modulom
+    Push-Location "$PSScriptRoot\modules\cron"
 
-Write-Host "📊 Running Finnhub cron job..." -ForegroundColor Yellow
-npm run finnhub_data:once
+    # Over, že npm existuje
+    $npm = (Get-Command npm -ErrorAction Stop).Source
+    Write-Host ("Using npm: " + $npm) -ForegroundColor Cyan
 
-Write-Host "📈 Running Polygon cron job..." -ForegroundColor Yellow
-npm run polygon_data:once
+    # Spusti one-shot režim (Finnhub → Polygon → Final report)
+    & $npm run start:once
 
-Write-Host "✅ Cron jobs completed!" -ForegroundColor Green
-
-# Return to root directory
-Set-Location "../.."
+    Write-Host 'Cron run finished successfully.' -ForegroundColor Green
+}
+catch {
+    Write-Host ("ERROR: " + $_.Exception.Message) -ForegroundColor Red
+    exit 1
+}
+finally {
+    Pop-Location
+}

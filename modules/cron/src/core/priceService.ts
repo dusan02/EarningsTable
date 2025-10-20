@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Decimal from 'decimal.js';
+import { DateTime } from 'luxon';
 import { CONFIG } from '../../../shared/src/config.js';
 
 // Types
@@ -91,7 +92,7 @@ const tickerInfoCache = new Map<string, { v: { marketCap: string | number | null
 const snapCache = new Map<string, { v: Snapshot[]; t: number }>();
 
 const DAY = 24 * 60 * 60 * 1000;
-const SNAP_TTL = 2 * 60 * 1000; // 2 minutes
+const SNAP_TTL = 5 * 60 * 1000; // 5 minutes (increased from 2)
 const NULL_TTL = 15 * 60 * 1000; // 15 minutes for null/partial ticker info
 
 // API helper with retry logic
@@ -136,10 +137,8 @@ async function apiCall<T>(path: string, params: any = {}): Promise<T> {
 // Get NY date for grouped aggs (previous trading day)
 // Get current time in New York timezone
 function getNYTime(): Date {
-  const now = new Date();
-  // Convert to NY timezone
-  const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
-  return nyTime;
+  const nyTime = DateTime.now().setZone('America/New_York');
+  return nyTime.toJSDate();
 }
   
 // Get current trading day in NY timezone
@@ -205,6 +204,11 @@ function getCurrentSession(): 'premarket' | 'regular' | 'afterhours' {
   const hour = nyTime.getHours();
   const minute = nyTime.getMinutes();
   const day = nyTime.getDay();
+  
+  // Debug logging
+  if (process.env.DEBUG_TICKER) {
+    console.log(`→ getCurrentSession: nyTime=${nyTime.toISOString()}, day=${day}, hour=${hour}, minute=${minute}`);
+  }
   
   // Weekend - no trading
   if (day === 0 || day === 6) {
@@ -496,8 +500,26 @@ export async function getMarketCapInfo(ticker: string): Promise<{ marketCap: str
   }
 }
 
-// 3. Individual snapshots with batching and cache (more reliable than bulk)
-export async function getSnapshotsBulk(tickers: string[]): Promise<Snapshot[]> {
+// 3. Optimized snapshots with higher concurrency
+export async function getSnapshotsBulkAPI(tickers: string[]): Promise<Snapshot[]> {
+  const key = tickers.map(t => t.toUpperCase()).sort().join(",");
+  const now = Date.now();
+  
+  // Check cache first
+  const cached = snapCache.get(key);
+  if (cached && now - cached.t < SNAP_TTL) {
+    console.log(`→ Using cached snapshots for ${tickers.length} symbols`);
+    return cached.v;
+  }
+  
+  console.log(`→ Fetching individual snapshots for ${tickers.length} symbols...`);
+  
+  // Use individual snapshots with higher concurrency
+  return getSnapshotsIndividual(tickers);
+}
+
+// 3b. Individual snapshots with batching and cache (fallback method)
+async function getSnapshotsIndividual(tickers: string[]): Promise<Snapshot[]> {
   const key = tickers.map(t => t.toUpperCase()).sort().join(",");
   const now = Date.now();
   
@@ -511,7 +533,7 @@ export async function getSnapshotsBulk(tickers: string[]): Promise<Snapshot[]> {
   console.log(`→ Fetching individual snapshots for ${tickers.length} symbols...`);
   
   const results: Snapshot[] = [];
-  const BATCH_SIZE = 10; // Process in small batches to avoid rate limits
+  const BATCH_SIZE = 20; // Increased batch size for better performance
   
   // Process in batches
   for (let i = 0; i < tickers.length; i += BATCH_SIZE) {
@@ -551,7 +573,7 @@ export async function getSnapshotsBulk(tickers: string[]): Promise<Snapshot[]> {
     
     // Small delay between batches
     if (i + BATCH_SIZE < tickers.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
   
@@ -592,7 +614,7 @@ export function pickPrice(t: any): PriceResult {
   
   // Get current session to determine if we should allow prevDay fallback
   const currentSession = getCurrentSession();
-  const allowPrevDayFallback = currentSession === 'afterhours';
+  const allowPrevDayFallback = currentSession === 'afterhours' || currentSession === 'regular';
   
   const candidates = [
     t?.preMarket?.price != null && { p: +t.preMarket.price, t: normTs(t.preMarket.timestamp), s: 'pre', session: 'premarket' as const },
@@ -635,11 +657,11 @@ export function pickPrice(t: any): PriceResult {
     let isValidTimestamp = c.t != null; // require timestamp for normal candidates
     if (c.t != null) {
       if (c.session === currentSession) {
-        // For current session, allow up to 15 minutes old
-        isValidTimestamp = c.t <= now + 5 * 60_000 && (now - c.t) <= 15 * 60_000;
+        // For current session, allow up to 20 minutes old and up to 30 seconds in future (timezone sync)
+        isValidTimestamp = c.t <= now + 30 * 1000 && (now - c.t) <= 20 * 60_000;
       } else {
         // For other sessions, use stricter validation
-        isValidTimestamp = c.t <= now + 5 * 60_000 && (now - c.t) <= DAY;
+        isValidTimestamp = c.t <= now + 30 * 1000 && (now - c.t) <= DAY;
       }
     } else if (c.s === 'prevDay' && allowPrevDayFallback) {
       // prevDay has no timestamp; allow only as last-resort when explicitly allowed
@@ -694,8 +716,8 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
   // Step 1: Get previous close prices (1 call, cached)
   const prevCloseMap = await getPrevCloseMap();
   
-  // Step 2: Get bulk snapshots (batched, cached)
-  const snapshots = await getSnapshotsBulk(symbols);
+  // Step 2: Get bulk snapshots (optimized with fallback)
+  const snapshots = await getSnapshotsBulkAPI(symbols);
   const snapshotMap = new Map<string, Snapshot>();
   snapshots.forEach(snap => {
     if (snap.ticker) {

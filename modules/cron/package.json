@@ -5,7 +5,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "start": "tsx src/main.ts start",
+        "start": "tsx src/cron-scheduler.ts",
+        "start:once": "tsx src/cron-scheduler.ts --once --force",
         "daily-cycle": "tsx src/main.ts daily-cycle",
         "cron": "tsx src/main.ts",
         "finnhub_data": "tsx src/main.ts start-finnhub",
@@ -28,10 +29,13 @@
         "axios": "^1.7.2",
         "decimal.js": "^10.6.0",
         "dotenv": "^16.4.5",
+        "luxon": "^3.5.0",
         "node-cron": "^3.0.3",
         "p-limit": "^7.1.1",
+        "redis": "^4.6.13",
         "sharp": "^0.34.4",
-        "tslib": "^2.6.2"
+        "tslib": "^2.6.2",
+        "yargs": "^17.7.2"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

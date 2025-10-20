@@ -188,11 +188,12 @@ app.get('/api/cron-status', async (req, res) => {
       orderBy: { lastRunAt: 'desc' },
     });
 
-    // Get the most recent successful run (prefer polygon, then finnhub)
+    // Get the most recent successful run (prefer pipeline, then polygon, then finnhub)
+    const pipelineStatus = cronStatuses.find(s => s.jobType === 'pipeline' && s.status === 'success');
     const polygonStatus = cronStatuses.find(s => s.jobType === 'polygon' && s.status === 'success');
     const finnhubStatus = cronStatuses.find(s => s.jobType === 'finnhub' && s.status === 'success');
     
-    const lastUpdate = polygonStatus?.lastRunAt || finnhubStatus?.lastRunAt;
+    const lastUpdate = pipelineStatus?.lastRunAt || polygonStatus?.lastRunAt || finnhubStatus?.lastRunAt;
 
     res.json({
       success: true,
