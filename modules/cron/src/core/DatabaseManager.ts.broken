@@ -381,7 +381,7 @@ export class DatabaseManager {
 
     console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData with Boolean = true (all conditions met)`);
     const todayNY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    const reportDateISO = new Date(`${todayNY}T00:00:00.000Z`);
+    const reportDateISO = `${todayNY}T00:00:00.000Z`;
     const snapshotDateISO = reportDateISO;
 
     for (const symbol of commonSymbols) {
@@ -411,7 +411,7 @@ export class DatabaseManager {
         const roundedEpsSurp = epsSurp != null ? Math.round(epsSurp * 100) / 100 : null;
         const roundedRevSurp = revSurp != null ? Math.round(revSurp * 100) / 100 : null;
 
-        const createData = normalizeFinalReportDates({
+        const createData = {
           symbol,
           name: polygonData.name,
           size: polygonData.size,
@@ -430,9 +430,9 @@ export class DatabaseManager {
           logoUrl: (polygonData as any).logoUrl,
           logoSource: (polygonData as any).logoSource,
           logoFetchedAt: (polygonData as any).logoFetchedAt,
-        });
+        };
 
-        const updateData = normalizeFinalReportDates({
+        const updateData = {
           name: polygonData.name,
           size: polygonData.size,
           marketCap: polygonData.marketCap,
@@ -450,7 +450,7 @@ export class DatabaseManager {
           logoUrl: (polygonData as any).logoUrl,
           logoSource: (polygonData as any).logoSource,
           logoFetchedAt: (polygonData as any).logoFetchedAt,
-        });
+        };
 
         await prisma.finalReport.upsert({
           where: { symbol },

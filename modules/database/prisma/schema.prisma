@@ -53,7 +53,7 @@ model PolygonData {
   changeFromPrevClosePct Float?
   changeFromOpenPct Float?
   sessionRef String?   // 'premarket' | 'regular' | 'afterhours'
-  qualityFlags String? // JSON array of quality flags
+  qualityFlags Json? // JSON array of quality flags
   change           Float?   // Keep for backward compatibility
   size             String?   // Mega, Large, Mid, Small, null
   name             String?   // Company name from Polygon API
