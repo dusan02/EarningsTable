@@ -1,6 +1,6 @@
 let finalReportBuilt = false;
 
-async function buildFinalReportOnce(db: DatabaseManager) {
+async function buildFinalReportOnce(db: any) {
   if (finalReportBuilt) return;
   finalReportBuilt = true;
   await buildFinalReportOnce(db);

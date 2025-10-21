@@ -2,7 +2,7 @@ import axios from 'axios';
 import { CONFIG } from './config.js';
 import { db } from './core/DatabaseManager.js';
 import { PrismaClient } from "@prisma/client";
-import { toNumber } from '../../../shared/src/utils.js';
+// import { toNumber } from '../../../shared/src/utils.js';
 import { processSymbolsInBatches, MarketCapData } from './core/priceService.js';
 
 const prisma = new PrismaClient();

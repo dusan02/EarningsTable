@@ -427,9 +427,9 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
-          logoUrl: polygonData.logoUrl,
-          logoSource: polygonData.logoSource,
-          logoFetchedAt: polygonData.logoFetchedAt,
+          logoUrl: (polygonData as any).logoUrl,
+          logoSource: (polygonData as any).logoSource,
+          logoFetchedAt: (polygonData as any).logoFetchedAt,
         };
 
         const updateData = {
@@ -447,9 +447,9 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
-          logoUrl: polygonData.logoUrl,
-          logoSource: polygonData.logoSource,
-          logoFetchedAt: polygonData.logoFetchedAt,
+          logoUrl: (polygonData as any).logoUrl,
+          logoSource: (polygonData as any).logoSource,
+          logoFetchedAt: (polygonData as any).logoFetchedAt,
         };
 
         await prisma.finalReport.upsert({
