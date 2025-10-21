@@ -88,3 +88,12 @@ curl http://localhost:5555/api/earnings
 2. **Spustiť crony**: `.\run-crons.ps1`
 3. **Skontrolovať zdravie**: `curl http://localhost:5555/health`
 4. **Pozrieť databázu**: http://localhost:5556/
+
+## 🚀 Produkčná migrácia
+
+Pre produkčnú migráciu pozrite si:
+
+- **[PRODUCTION_MIGRATION_GUIDE.md](../PRODUCTION_MIGRATION_GUIDE.md)** - Kompletný guide
+- **Deployment**: `./deploy-production.sh`
+- **PM2**: `ecosystem.config.js`
+- **Server**: `simple-server.js`

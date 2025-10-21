@@ -197,6 +197,15 @@ $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm run run-all
 ```
 
+## 🚀 Produkčná migrácia
+
+Pre kompletnú produkčnú migráciu pozrite si:
+
+- **[PRODUCTION_MIGRATION_GUIDE.md](PRODUCTION_MIGRATION_GUIDE.md)** - Kompletný guide pre produkčnú migráciu
+- **Deployment script**: `./deploy-production.sh`
+- **PM2 konfigurácia**: `ecosystem.config.js`
+- **Produkčný server**: `simple-server.js`
+
 ## 📊 Štatistiky a monitoring
 
 ### Health check:

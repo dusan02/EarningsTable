@@ -1,6 +1,6 @@
-import { FinnhubCronJob } from './jobs/FinnhubCronJob.js';
-import { PolygonCronJob } from './jobs/PolygonCronJob.js';
-import { db } from './core/DatabaseManager.js';
+import { FinnhubCronJob } from './jobs/FinnhubCronJob';
+import { PolygonCronJob } from './jobs/PolygonCronJob';
+import { db } from './core/DatabaseManager';
 
 interface JobStats {
   name: string;
@@ -153,7 +153,7 @@ class CronRunnerWithStats {
   async runAllJobs(): Promise<void> {
     console.log('🚀 Starting all cron jobs sequentially with statistics...');
     console.log(`📅 Start time: ${this.stats.totalStartTime.toISOString()}`);
-    console.log('=' .repeat(80));
+    console.log('='.repeat(80));
 
     try {
       // Run Finnhub job
@@ -177,9 +177,9 @@ class CronRunnerWithStats {
   }
 
   private printFinalStats(): void {
-    console.log('\n' + '=' .repeat(80));
+    console.log('\n' + '='.repeat(80));
     console.log('📊 FINAL STATISTICS');
-    console.log('=' .repeat(80));
+    console.log('='.repeat(80));
     
     console.log(`🕐 Total execution time: ${this.stats.totalDuration}ms (${(this.stats.totalDuration! / 1000).toFixed(2)}s)`);
     console.log(`📅 Start: ${this.stats.totalStartTime.toISOString()}`);
@@ -202,18 +202,24 @@ class CronRunnerWithStats {
       console.log(`      Duration: ${duration}${records}${error}`);
     });
     
-    console.log('\n' + '=' .repeat(80));
+    console.log('\n' + '='.repeat(80));
     
     // Performance metrics
-    const avgDuration = this.stats.jobs.reduce((sum, job) => sum + (job.duration || 0), 0) / this.stats.jobs.length;
+    const n = this.stats.jobs.length || 1;
+    const avgDuration = this.stats.jobs.reduce((sum, job) => sum + (job.duration || 0), 0) / n;
     console.log(`⚡ Average job duration: ${avgDuration.toFixed(2)}ms`);
     console.log(`📊 Records per second: ${(this.stats.summary.totalRecordsProcessed / (this.stats.totalDuration! / 1000)).toFixed(2)}`);
     
-    console.log('=' .repeat(80));
+    console.log('='.repeat(80));
   }
 }
 
 async function main() {
+  // Guard na kritické environment premenné
+  ['FINNHUB_TOKEN', 'POLYGON_API_KEY', 'DATABASE_URL'].forEach(k => {
+    if (!process.env[k]) throw new Error(`[env] Missing ${k}`);
+  });
+
   const runner = new CronRunnerWithStats();
   await runner.runAllJobs();
 }

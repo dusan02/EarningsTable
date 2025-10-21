@@ -592,7 +592,9 @@
                            <svg class="w-4 h-4 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                            </svg>
+                           <span class="text-sm text-neutral-500 dark:text-neutral-400 font-medium">Last updated:</span>
                            <span id="last-updated" class="text-base text-neutral-600 dark:text-white font-sans">Loading...</span>
+                           <span id="market-session" class="ml-2 text-xs text-neutral-500 dark:text-neutral-400 font-medium"></span>
                            <span id="refresh-indicator" class="ml-2 text-green-500 opacity-0 transition-opacity duration-300" title="Data updated">
                                <i data-lucide="check-circle" class="h-4 w-4"></i>
                            </span>
@@ -899,15 +901,54 @@
 
         function updateLastUpdatedTime() {
             const now = new Date();
-            const timeString = now.toLocaleString('sk-SK', {
+            
+            // Convert to New York time (UTC-5 in winter, UTC-4 in summer)
+            const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+            
+            const timeString = now.toLocaleString('en-US', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit'
-            });
+                second: '2-digit',
+                timeZone: 'America/New_York'
+            }) + ' (NY)';
+            
             document.getElementById('last-updated').textContent = timeString;
+            updateMarketSession(nyTime);
+        }
+
+        function updateMarketSession(nyTime) {
+            const hour = nyTime.getHours();
+            const minute = nyTime.getMinutes();
+            const timeInMinutes = hour * 60 + minute;
+            
+            let session = '';
+            let sessionColor = 'text-neutral-500';
+            
+            // Market hours: 9:30 AM - 4:00 PM ET (570-960 minutes)
+            // Pre-market: 4:00 AM - 9:30 AM ET (240-570 minutes)
+            // After-hours: 4:00 PM - 8:00 PM ET (960-1200 minutes)
+            // Closed: 8:00 PM - 4:00 AM ET (1200-1440 or 0-240 minutes)
+            
+            if (timeInMinutes >= 240 && timeInMinutes < 570) {
+                session = 'Pre-market';
+                sessionColor = 'text-orange-500';
+            } else if (timeInMinutes >= 570 && timeInMinutes < 960) {
+                session = 'Live';
+                sessionColor = 'text-green-500';
+            } else if (timeInMinutes >= 960 && timeInMinutes < 1200) {
+                session = 'After-hours';
+                sessionColor = 'text-blue-500';
+            } else {
+                session = 'Closed';
+                sessionColor = 'text-red-500';
+            }
+            
+            const sessionElement = document.getElementById('market-session');
+            sessionElement.textContent = session;
+            sessionElement.className = `ml-2 text-xs ${sessionColor} dark:${sessionColor} font-medium`;
         }
 
         // Fetch cron status and update timestamp
@@ -918,15 +959,20 @@
                 
                 if (result.success && result.lastUpdate) {
                     const lastUpdate = new Date(result.lastUpdate);
-                    const timeString = lastUpdate.toLocaleString('sk-SK', {
+                    const nyTime = new Date(lastUpdate.toLocaleString("en-US", {timeZone: "America/New_York"}));
+                    
+                    const timeString = lastUpdate.toLocaleString('en-US', {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                         hour: '2-digit',
                         minute: '2-digit',
-                        second: '2-digit'
-                    });
+                        second: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' (NY)';
+                    
                     document.getElementById('last-updated').textContent = timeString;
+                    updateMarketSession(nyTime);
                 }
             } catch (error) {
                 console.error('Error fetching cron status:', error);
@@ -1056,34 +1102,43 @@
             const cardBody = document.getElementById('card-body');
             
             if (filteredData.length === 0) {
-                const emptyState = `
-                    <div class="flex flex-col items-center space-y-3 py-12">
-                                <div class="relative w-32 h-32 flex items-center justify-center">
-                                    <!-- Calendar icon -->
-                                    <div class="absolute w-24 h-24 border-4 border-blue-900 dark:border-white rounded-lg">
-                                        <div class="w-full h-6 border-b-4 border-blue-900 dark:border-white rounded-t-lg bg-blue-50 dark:bg-slate-800"></div>
-                                        <div class="p-2">
-                                            <div class="grid grid-cols-7 gap-1">
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
-                                                <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                // Check if we have data but it's filtered out (search results)
+                if (allData.length > 0) {
+                    // Show empty table with headers for search results
+                    tbody.innerHTML = '';
+                    cardBody.innerHTML = '';
+                    return;
+                } else {
+                    // No data from API - show "No data available" message
+                    const emptyState = `
+                        <div class="flex flex-col items-center space-y-3 py-12">
+                                    <div class="relative w-32 h-32 flex items-center justify-center">
+                                        <!-- Calendar icon -->
+                                        <div class="absolute w-24 h-24 border-4 border-blue-900 dark:border-white rounded-lg">
+                                            <div class="w-full h-6 border-b-4 border-blue-900 dark:border-white rounded-t-lg bg-blue-50 dark:bg-slate-800"></div>
+                                            <div class="p-2">
+                                                <div class="grid grid-cols-7 gap-1">
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                </div>
                                             </div>
                                         </div>
+                                        <!-- Diagonal line (crossed out) -->
+                                        <div class="absolute w-28 h-1 bg-red-500 transform rotate-45"></div>
                                     </div>
-                                    <!-- Diagonal line (crossed out) -->
-                                    <div class="absolute w-28 h-1 bg-red-500 transform rotate-45"></div>
+                                    <div class="text-sm sm:text-base lg:text-lg font-medium text-blue-900 dark:text-white">No data available for today</div>
                                 </div>
-                                <div class="text-sm sm:text-base lg:text-lg font-medium text-blue-900 dark:text-white">No data available for today</div>
-                            </div>
-                `;
-                
-                tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">${emptyState}</td></tr>`;
-                cardBody.innerHTML = emptyState;
-                return;
+                    `;
+                    
+                    tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">${emptyState}</td></tr>`;
+                    cardBody.innerHTML = emptyState;
+                    return;
+                }
             }
             
             tbody.innerHTML = filteredData.map((item, index) => `
@@ -1369,6 +1424,7 @@
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initTheme();
+            updateLastUpdatedTime(); // Initialize timestamp and market session
             fetchData();
             startAutoRefresh();
         });

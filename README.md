@@ -139,6 +139,15 @@ The component is fully customizable through props and CSS classes. You can easil
 - Animation timing
 - Data formatting
 
+## 🚀 Production Deployment
+
+For production deployment, see:
+
+- **[PRODUCTION_MIGRATION_GUIDE.md](PRODUCTION_MIGRATION_GUIDE.md)** - Complete migration guide
+- **[PRODUCTION_QUICK_REFERENCE.md](PRODUCTION_QUICK_REFERENCE.md)** - Quick reference
+- **Deployment script**: `./deploy-production.sh`
+- **PM2 configuration**: `ecosystem.config.js`
+
 ## 📄 License
 
 MIT License - feel free to use in your projects!
