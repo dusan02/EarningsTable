@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../../../node_modules/@prisma/client"
 }
 
 datasource db {
@@ -89,8 +88,6 @@ model FinalReport {
   logoUrl       String?   // e.g. "/logos/AAPL.webp"
   logoSource    String?   // "polygon" | "clearbit" | "yahoo" | "finnhub" | "manual"
   logoFetchedAt DateTime?
-  reportDate    DateTime?
-  snapshotDate  DateTime?
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

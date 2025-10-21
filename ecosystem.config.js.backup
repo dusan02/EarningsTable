@@ -1,0 +1,19 @@
+module.exports = {
+  apps: [
+    {
+      name: "earnings-cron",
+      cwd: "./modules/cron",
+      // Run directly with /usr/bin/tsx (no build step). Alternatively, build to dist and use node.
+      script: "/usr/bin/tsx",
+      args: "src/cron-scheduler.ts",
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: "300M",
+      watch: false,
+      env_production: {
+        NODE_ENV: "production",
+        TZ: "America/New_York",
+      },
+    },
+  ],
+};

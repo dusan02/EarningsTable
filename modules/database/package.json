@@ -13,12 +13,6 @@
         "prisma:seed": "prisma db seed",
         "build": "prisma generate"
     },
-    "dependencies": {
-        "@prisma/client": "^5.20.0"
-    },
-    "devDependencies": {
-        "prisma": "^5.20.0"
-    },
     "keywords": [
         "database",
         "prisma",
@@ -26,5 +20,9 @@
         "earnings"
     ],
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "@prisma/client": "^6.17.1",
+        "prisma": "^6.17.1"
+    }
 }

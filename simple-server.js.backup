@@ -1,6 +1,3 @@
-require("dotenv").config();
-console.log("[BOOT/web] cwd=" + process.cwd());
-console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -104,18 +101,3 @@ process.on("SIGINT", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
-
-// Root endpoint - serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log('🚀 API Server running on port', PORT);
-  console.log('📊 API endpoints:');
-  console.log('   GET  /api/final-report - Get all earnings data');
-  console.log('   GET  /api/health - Health check');
-  console.log('🌐 API URL: http://localhost:' + PORT);
-});
-

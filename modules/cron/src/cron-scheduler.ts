@@ -1,3 +1,13 @@
+let finalReportBuilt = false;
+
+async function buildFinalReportOnce(db: DatabaseManager) {
+  if (finalReportBuilt) return;
+  finalReportBuilt = true;
+  await buildFinalReportOnce(db);
+}
+import 'dotenv/config';
+console.log('[BOOT/cron] cwd=' + process.cwd());
+console.log('[BOOT/cron] DATABASE_URL=' + process.env.DATABASE_URL);
 import 'dotenv/config';
 import cron from 'node-cron';
 import { DateTime } from 'luxon';
@@ -142,7 +152,7 @@ async function runPipelineOnce(label: string): Promise<void> {
 
     const t3 = Date.now();
     console.log('🔄 Generating final report...');
-    await db.generateFinalReport();
+    await buildFinalReportOnce(db);
     console.log(`[timing] finalReport=${Date.now() - t3}ms`);
 
     const t4 = Date.now();
@@ -155,7 +165,7 @@ async function runPipelineOnce(label: string): Promise<void> {
       // Regenerate final report to include logos
       const t5 = Date.now();
       console.log('🔄 Regenerating final report with logos...');
-      await db.generateFinalReport();
+      await buildFinalReportOnce(db);
       console.log(`[timing] finalReportWithLogos=${Date.now() - t5}ms`);
     } else {
       console.log('✅ All logos are up to date');

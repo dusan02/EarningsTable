@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <!-- build: 2025-10-20T19:42Z -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Earnings Table - Real-time Financial Data Dashboard</title>
+    <meta name="title" content="Earnings Table - Real-time Financial Data Dashboard">
+    <meta name="description" content="Comprehensive earnings table with real-time financial data from Polygon. Track company earnings, market cap, EPS, revenue surprises, and stock performance. Independent financial data dashboard.">
+    <meta name="keywords" content="earnings table, financial data, stock earnings, market cap, EPS, revenue, Polygon data, financial dashboard, earnings surprise, stock performance, company earnings">
+    <meta name="author" content="Independent Financial Data Provider">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="1 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://earnings-table.com/">
+    <meta property="og:title" content="Earnings Table - Real-time Financial Data Dashboard">
+    <meta property="og:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance with our comprehensive financial data dashboard powered by Polygon.">
+    <meta property="og:image" content="https://earnings-table.com/og-image.png">
+    <meta property="og:site_name" content="Earnings Table">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://earnings-table.com/">
+    <meta property="twitter:title" content="Earnings Table - Real-time Financial Data Dashboard">
+    <meta property="twitter:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance with our comprehensive financial data dashboard powered by Polygon.">
+    <meta property="twitter:image" content="https://earnings-table.com/twitter-image.png">
+    <meta property="twitter:creator" content="@earnings_table">
+    <meta property="twitter:site" content="@earnings_table">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#1e40af">
+    <meta name="msapplication-TileColor" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Earnings Table">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://earnings-table.com/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Earnings Table",
+        "description": "Real-time financial data dashboard with company earnings, market cap, EPS, and revenue information",
+        "url": "https://earnings-table.com/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "Independent Financial Data Provider"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Earnings Table",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://earnings-table.com/logo.png"
+            }
+        },
+        "datePublished": "2024-01-01",
+        "dateModified": "2024-01-15",
+        "inLanguage": "en-US",
+        "isAccessibleForFree": true,
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "softwareVersion": "1.0.0"
+    }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "system-ui", "sans-serif"],
+                        mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .dark .card-hover:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .smooth-transition {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .loading-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Scrollbar utilities to prevent flash */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .contain-layout { contain: layout; }
+        .anchor-none { overflow-anchor: none; }
+        .gutter-stable { scrollbar-gutter: stable both-edges; }
+
+        /* Default: hide card container, show table */
+        .card-container {
+            display: none;
+        }
+        
+        /* Mobile optimizations - Card Layout */
+        @media (max-width: 640px) {
+            .touch-manipulation {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Prevent zoom on input focus */
+            input[type="text"] {
+                font-size: 16px;
+            }
+            
+            /* Better touch targets */
+            button, th, td {
+                min-height: 44px;
+            }
+            
+            /* Hide table on mobile, show cards */
+            .table-container {
+                display: none !important;
+            }
+            
+            /* Show card container on mobile */
+            .card-container {
+                display: block !important;
+            }
+            
+            /* Mobile search improvements */
+            .mobile-search {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid #e5e7eb;
+                padding: 12px 16px;
+            }
+            
+            .dark .mobile-search {
+                background: rgba(17, 24, 39, 0.95);
+                border-color: #374151;
+            }
+            
+            /* Card styling */
+            .company-card {
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding: 16px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .company-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #22c55e, #f97316, #3b82f6, #a855f7);
+                opacity: 0.7;
+            }
+            
+            .dark .company-card {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border-color: #334155;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+            
+            .company-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            .company-card:hover::before {
+                opacity: 1;
+            }
+            
+            .dark .company-card:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            }
+            
+            /* Card header */
+            .card-header {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .card-company-info {
+                display: flex;
+                align-items: center;
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .card-header-item {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .card-header-item:first-child {
+                justify-content: flex-start;
+            }
+            
+            .card-header-item:last-child {
+                justify-content: flex-end;
+            }
+            
+            .card-ticker-name-combined {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                text-align: center;
+            }
+            
+            .card-separator {
+                color: #9ca3af;
+                font-weight: 300;
+                font-size: 14px;
+            }
+            
+            .dark .card-separator {
+                color: #6b7280;
+            }
+            
+            .card-logo {
+                width: 40px;
+                height: 40px;
+                border-radius: 6px;
+                margin-right: 1px;
+                flex-shrink: 0;
+            }
+            
+            .card-symbol {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 0px;
+            }
+            
+            .dark .card-symbol {
+                color: #f9fafb;
+            }
+            
+            .card-name {
+                font-size: 13px; /* Increased from 11px */
+                color: #1f2937; /* Black for mobile */
+                line-height: 1.1;
+            }
+            
+            .dark .card-name {
+                color: #f9fafb; /* White for dark mode mobile */
+            }
+            
+            .card-size-badge {
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 12px; /* Increased from 10px */
+                font-weight: 700;
+                text-transform: uppercase;
+                border: 1px solid;
+            }
+            
+            /* Card data grid - 4 columns */
+            .card-data-grid {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr 1fr 1fr; /* First column (MARKET CAP) is wider */
+                gap: 0px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px; /* Slightly more rounded */
+                padding: 14px; /* Slightly more padding */
+                position: relative;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            }
+            
+            .dark .card-data-grid {
+                background: transparent;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
+            }
+            
+            .card-data-column {
+                text-align: left; /* Changed from center to left for better readability */
+                padding: 12px 8px;
+                background: transparent;
+                border-radius: 0px;
+                border: none;
+                transition: all 0.2s ease;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                min-height: 80px;
+            }
+            
+            .card-data-column:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 20%;
+                bottom: 20%;
+                width: 1px;
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .dark .card-data-column:not(:last-child)::after {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
+            .dark .card-data-column {
+                background: transparent;
+                border: none;
+            }
+            
+            .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
+                border-radius: 6px;
+                transform: translateY(-1px); /* Subtle lift effect */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            }
+            
+            .dark .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
+            }
+            
+            .card-data-label {
+                font-size: 11px; /* Reduced from 13px to fit MARKET CAP on one line */
+                color: #374151;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-bottom: 6px;
+                letter-spacing: 0.2px; /* Reduced letter spacing */
+            }
+            
+            .dark .card-data-label {
+                color: #e5e7eb;
+            }
+            
+            .card-data-value {
+                font-size: 18px; /* Increased from 15px */
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 4px; /* Increased spacing */
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+            
+            .dark .card-data-value {
+                color: #f9fafb;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+            
+            .card-data-estimate {
+                font-size: 12px; /* Increased from 10px */
+                color: #4b5563; /* Darker for better contrast */
+                font-weight: 500;
+                margin-bottom: 4px; /* Increased spacing */
+                font-style: italic;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+            }
+            
+            .dark .card-data-estimate {
+                color: #d1d5db; /* Lighter for better contrast in dark mode */
+            }
+            
+            .card-data-change {
+                font-size: 13px; /* Increased from 11px */
+                font-weight: 700;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
+            }
+            
+        }
+        
+        /* Tablet optimizations - Hybrid Layout */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .touch-manipulation {
+                touch-action: manipulation;
+            }
+            
+            /* Show table on tablet */
+            .table-container {
+                display: block !important;
+            }
+            
+            /* Hide cards on tablet */
+            .card-container {
+                display: none !important;
+            }
+            
+            /* Show size badges on tablet */
+            .table-size-badge {
+                display: block;
+            }
+            
+            /* Tablet table optimizations */
+            .mobile-table {
+                font-size: 13px;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 8px 4px;
+            }
+            
+            /* Show company name on tablet */
+            .company-name {
+                display: block;
+            }
+        }
+        
+        /* Desktop - show table */
+        @media (min-width: 1025px) {
+            .table-container {
+                display: block;
+            }
+            
+            
+            /* Show size badges on desktop */
+            .table-size-badge {
+                display: block;
+            }
+        }
+    </style>
+</head>
+   <body class="h-full bg-neutral-50 dark:bg-slate-900 transition-colors duration-300">
+       <div id="app" class="min-h-screen bg-neutral-50 dark:bg-slate-900">
+        <!-- Header -->
+        <header class="glass-effect shadow-lg border-b border-neutral-200 dark:border-transparent" role="banner">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                   <div class="text-center sm:text-left">
+                       <div class="flex items-center justify-center sm:justify-start space-x-3">
+                           <!-- Bar chart icon -->
+                           <div class="flex items-center space-x-1">
+                               <div class="w-2 h-4 bg-green-500 rounded-sm"></div>
+                               <div class="w-2 h-6 bg-orange-500 rounded-sm"></div>
+                               <div class="w-2 h-3 bg-blue-500 rounded-sm"></div>
+                               <div class="w-2 h-5 bg-purple-500 rounded-sm"></div>
+                           </div>
+                           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-white tracking-tight">Earnings Table</h1>
+                       </div>
+                       <p class="mt-1 sm:mt-2 text-blue-900 dark:text-white text-sm sm:text-base lg:text-lg font-medium">Company earnings and financial data</p>
+                   </div>
+                   
+                   <!-- Theme Toggle - moved to separate container on the right -->
+                   <div class="flex justify-center sm:justify-end mt-2 sm:mt-0">
+                       <button id="theme-toggle" class="p-2 sm:p-3 rounded-xl bg-neutral-100 dark:bg-yellow-200 hover:bg-neutral-200 dark:hover:bg-yellow-300 border border-neutral-300 dark:border-transparent smooth-transition shadow-sm touch-manipulation" aria-label="Toggle dark mode" title="Toggle dark mode">
+                           <i data-lucide="moon" class="h-5 w-5 sm:h-5 sm:w-5"></i>
+                       </button>
+                   </div>
+                    
+                </div>
+            </div>
+        </header>
+
+           <!-- Main Content -->
+           <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 bg-white dark:bg-slate-900" role="main">
+
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-12 sm:py-16 bg-white dark:bg-slate-800 rounded-xl">
+                <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4 sm:mb-6">
+                    <div class="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-2 border-blue-600 border-t-transparent"></div>
+                </div>
+                <p class="text-neutral-600 dark:text-neutral-400 text-base sm:text-lg font-medium loading-pulse">Loading earnings data...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="hidden text-center py-12 sm:py-16 bg-white dark:bg-slate-800 rounded-xl">
+                <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-50 dark:bg-red-900/20 mb-4 sm:mb-6">
+                    <div class="text-red-500 text-xl sm:text-2xl">⚠️</div>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white mb-3">Error Loading Data</h2>
+                <p id="error-message" class="text-neutral-600 dark:text-neutral-400 mb-4 sm:mb-6 text-base sm:text-lg px-4"></p>
+                <button id="retry-btn" class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 smooth-transition font-medium shadow-sm touch-manipulation">
+                    Retry
+                </button>
+            </div>
+
+               <!-- Status Bar -->
+               <div id="status-bar" class="hidden mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-800 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-neutral-200 dark:border-transparent shadow-sm mobile-search">
+                   <!-- Search Bar -->
+                   <div class="relative w-full sm:w-80">
+                       <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                       </svg>
+                       <input
+                           type="text"
+                           id="search-input"
+                           placeholder="Search companies..."
+                           class="w-full pl-10 sm:pl-12 pr-4 sm:pr-6 py-2 sm:py-3 lg:py-4 border border-neutral-200 dark:border-white rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent smooth-transition text-sm sm:text-base lg:text-lg font-medium shadow-sm touch-manipulation"
+                           oninput="filterData(this.value)"
+                       />
+                   </div>
+                   
+                   <!-- Status Info and Timestamp -->
+                   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                       <!-- Status Info -->
+                       <div class="flex items-center space-x-3">
+                           <div class="flex items-center space-x-2">
+                               <svg class="w-5 h-5 text-blue-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                               </svg>
+                               <span class="text-sm font-medium text-neutral-700 dark:text-white">Auto-refresh</span>
+                           </div>
+                           <div class="flex items-center space-x-2">
+                               <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                               <span class="text-sm text-green-600 dark:text-green-400 font-medium">Live</span>
+                           </div>
+                       </div>
+                       
+                       <!-- Timestamp -->
+                       <div class="flex items-center space-x-2">
+                           <svg class="w-4 h-4 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                           </svg>
+                           <span class="text-sm text-neutral-500 dark:text-neutral-400 font-medium">Last updated:</span>
+                           <span id="last-updated" class="text-base text-neutral-600 dark:text-white font-sans">Loading...</span>
+                           <span id="market-session" class="ml-2 text-xs text-neutral-500 dark:text-neutral-400 font-medium"></span>
+                           <span id="refresh-indicator" class="ml-2 text-green-500 opacity-0 transition-opacity duration-300" title="Data updated">
+                               <i data-lucide="check-circle" class="h-4 w-4"></i>
+                           </span>
+                       </div>
+                   </div>
+               </div>
+
+               <!-- Table -->
+               <div id="table-container" class="table-container hidden rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent bg-white dark:bg-slate-800">
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full table-fixed mobile-table" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
+                           <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
+                               <tr>
+                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 30%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Company</span>
+                                           <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
+                                       </div>
+                                   </th>
+                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
+                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
+                                       </div>
+                                   </th>
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Price</span>
+                                           <span id="sort-change" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                       </div>
+                                   </th>
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 17.5%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">EPS</span>
+                                           <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                       </div>
+                                   </th>
+                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 17.5%;">
+                                       <div class="flex items-center justify-center">
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Revenue</span>
+                                           <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                       </div>
+                                   </th>
+                               </tr>
+                           </thead>
+                        <tbody id="table-body" class="bg-white dark:bg-slate-800">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+               </div>
+
+               <!-- Card Container (Mobile) -->
+               <div id="card-container" class="card-container">
+                   <div id="card-body">
+                       <!-- Cards will be inserted here -->
+                </div>
+               </div>
+
+           </main>
+       </div>
+
+       <!-- Footer -->
+       <footer class="mt-12 sm:mt-16 border-t border-neutral-200 dark:border-transparent bg-neutral-50 dark:bg-slate-900" role="contentinfo">
+           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+               <div class="text-center">
+                   <div class="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3 sm:mb-4">
+                       <i data-lucide="info" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-900 dark:text-white"></i>
+                   </div>
+                   <h3 class="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white mb-2">Disclaimer</h3>
+                   <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-4xl mx-auto leading-relaxed px-2">
+                       This earnings table is provided for informational purposes only. I am independent and am not affiliated with any financial institutions or data providers. 
+                       Financial data is sourced from Polygon and other third-party providers. I do not guarantee the accuracy, completeness, or timeliness of the information presented. 
+                       This data should not be considered as financial advice. Please consult with qualified financial professionals before making any investment decisions. 
+                       I assume no responsibility for any losses or damages arising from the use of this information.
+                   </p>
+               </div>
+           </div>
+       </footer>
+
+       <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Global state
+        let allData = [];
+        let filteredData = [];
+        let currentSort = { field: 'marketCap', direction: 'desc' };
+
+        // Theme management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+            updateThemeIcon(initialTheme);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            document.documentElement.classList.toggle('dark', newTheme === 'dark');
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon) {
+                icon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+                lucide.createIcons();
+            }
+        }
+
+        // Data formatting
+        function formatMarketCap(value) {
+            if (!value) return '-';
+            const num = Number(value);
+            const absNum = Math.abs(num);
+            const sign = num < 0 ? '-' : '';
+            
+            if (absNum >= 1e12) return `${sign}$${(absNum / 1e12).toFixed(2)}T`;
+            if (absNum >= 1e9) return `${sign}$${(absNum / 1e9).toFixed(2)}B`;
+            if (absNum >= 1e6) return `${sign}$${(absNum / 1e6).toFixed(2)}M`;
+            // For values less than 1M, show in M format with 2 decimal places
+            if (absNum >= 1000) return `${sign}$${(absNum / 1e6).toFixed(2)}M`;
+            return `${sign}$${absNum.toFixed(0)}`;
+        }
+
+        // Robust formatter for Market Cap Diff with dynamic units and small-value precision
+        function formatCapDiffUSD(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return '-';
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+            if (abs >= 1e9)  return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+            if (abs >= 5e6)  return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+            if (abs >= 1e6)  return `${sign}$${(abs / 1e6).toFixed(3)}M`; // finer for small diffs
+            if (abs >= 1e3)  return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+            return `${sign}$${abs.toFixed(0)}`;
+        }
+
+        // Sign prefix with epsilon so near-zero doesn't show +/-
+        const EPS_DIFF = 1e-6; // ~$1 at M/B scales
+        function signPrefix(v) {
+            const n = Number(v);
+            if (!Number.isFinite(n) || Math.abs(n) < EPS_DIFF) return '';
+            return n > 0 ? '+' : '';
+        }
+
+        function formatRevenue(value) {
+            if (!value) return '-';
+            const num = Number(value);
+            if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+            if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+            return `$${num.toFixed(0)}`;
+        }
+
+        function determineCompanySize(apiSize, marketCap) {
+            // If API provides a valid size and it's not 'small', use it
+            if (apiSize && apiSize.toLowerCase() !== 'small' && apiSize.toLowerCase() !== 'unknown') {
+                return apiSize;
+            }
+            
+            // Otherwise, determine size based on market cap
+            if (!marketCap || marketCap === 0) {
+                return 'Unknown';
+            }
+            
+            const marketCapNum = Number(marketCap);
+            
+            if (marketCapNum >= 100e9) { // $100B+
+                return 'Mega';
+            } else if (marketCapNum >= 10e9) { // $10B - $99B
+                return 'Large';
+            } else if (marketCapNum >= 2e9) { // $2B - $9.9B
+                return 'Mid';
+            } else { // < $2B
+                return 'Small';
+            }
+        }
+
+        function getSizeBadgeColor(size) {
+            switch (size?.toLowerCase()) {
+                case 'mega': return 'bg-gradient-to-r from-yellow-200 to-yellow-300 dark:from-yellow-600 dark:to-yellow-700 text-black dark:text-white border border-black dark:border-yellow-500 shadow-lg';
+                case 'large': return 'bg-gradient-to-r from-blue-200 to-blue-300 dark:from-blue-600 dark:to-blue-700 text-black dark:text-white border border-black dark:border-blue-500 shadow-lg';
+                case 'mid': return 'bg-white dark:bg-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-lg';
+                case 'small': return 'bg-white dark:bg-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-lg';
+                default: return 'bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 text-black dark:text-white border border-black dark:border-gray-500 shadow-md';
+            }
+        }
+
+        function getChangeColor(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n) || Math.abs(n) < EPS_DIFF) return 'text-gray-600';
+            if (n > 0) return 'text-green-600';
+            if (n < 0) return 'text-red-600';
+            return 'text-gray-600';
+        }
+
+        // Sorting functions
+        function sortTable(field) {
+            // Toggle direction if same field, otherwise start with asc
+            if (currentSort.field === field) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.direction = 'asc';
+            }
+
+            // Update sort indicators
+            updateSortIndicators();
+
+            // Apply sorting
+            applySorting();
+        }
+
+        function applySorting() {
+            if (!currentSort.field) return;
+
+            const field = currentSort.field;
+            
+            // Sort the data
+            filteredData.sort((a, b) => {
+                let aValue = a[field];
+                let bValue = b[field];
+
+                // Handle null/undefined values - put them at the end
+                if (aValue == null && bValue == null) return 0;
+                if (aValue == null) return 1;
+                if (bValue == null) return -1;
+
+                // Special handling for different field types
+                switch (field) {
+                    case 'symbol':
+                        // String comparison for ticker
+                        aValue = aValue.toString().toLowerCase();
+                        bValue = bValue.toString().toLowerCase();
+                        break;
+                    case 'size':
+                        // Size hierarchy: Mega > Large > Mid > Small
+                        const sizeOrder = { 'mega': 4, 'large': 3, 'mid': 2, 'small': 1 };
+                        aValue = sizeOrder[aValue?.toLowerCase()] || 0;
+                        bValue = sizeOrder[bValue?.toLowerCase()] || 0;
+                        break;
+                    case 'marketCap':
+                        // Numeric comparison for market cap
+                        aValue = parseFloat(aValue) || 0;
+                        bValue = parseFloat(bValue) || 0;
+                        break;
+                    case 'change':
+                        // Numeric comparison for price change
+                        aValue = parseFloat(aValue) || 0;
+                        bValue = parseFloat(bValue) || 0;
+                        break;
+                    case 'epsSurp':
+                    case 'revSurp':
+                        // Numeric comparison for surprise values
+                        aValue = parseFloat(aValue) || 0;
+                        bValue = parseFloat(bValue) || 0;
+                        break;
+                }
+
+                // Compare values
+                if (aValue < bValue) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // Re-render the table
+            renderTable();
+        }
+
+           function updateSortIndicators() {
+               // Reset all indicators - hide arrows for inactive columns
+               const indicators = ['symbol', 'size', 'marketCap', 'change', 'epsSurp', 'revSurp'];
+               indicators.forEach(field => {
+                   const indicator = document.getElementById(`sort-${field}`);
+                   if (indicator) {
+                       // Check if column is visible (not hidden on mobile)
+                       const isVisible = !indicator.closest('th').classList.contains('hidden');
+                       if (isVisible) {
+                           indicator.textContent = '↕'; // Show neutral sort icon
+                           indicator.className = 'ml-1 sm:ml-2 text-blue-500 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg'; // Make invisible by default
+                       }
+                   }
+               });
+
+               // Set current sort indicator - show arrow only for active column
+               if (currentSort.field) {
+                   const indicator = document.getElementById(`sort-${currentSort.field}`);
+                   if (indicator) {
+                       const isVisible = !indicator.closest('th').classList.contains('hidden');
+                       if (isVisible) {
+                           indicator.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+                           indicator.className = 'ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg'; // Make visible with accent color
+                       }
+                   }
+               }
+           }
+
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            
+            // Convert to New York time (UTC-5 in winter, UTC-4 in summer)
+            const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+            
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'America/New_York'
+            }) + ' (NY)';
+            
+            document.getElementById('last-updated').textContent = timeString;
+            updateMarketSession(nyTime);
+        }
+
+        function updateMarketSession(nyTime) {
+            const hour = nyTime.getHours();
+            const minute = nyTime.getMinutes();
+            const timeInMinutes = hour * 60 + minute;
+            
+            let session = '';
+            let sessionColor = 'text-neutral-500';
+            
+            // Market hours: 9:30 AM - 4:00 PM ET (570-960 minutes)
+            // Pre-market: 4:00 AM - 9:30 AM ET (240-570 minutes)
+            // After-hours: 4:00 PM - 8:00 PM ET (960-1200 minutes)
+            // Closed: 8:00 PM - 4:00 AM ET (1200-1440 or 0-240 minutes)
+            
+            if (timeInMinutes >= 240 && timeInMinutes < 570) {
+                session = 'Pre-market';
+                sessionColor = 'text-orange-500';
+            } else if (timeInMinutes >= 570 && timeInMinutes < 960) {
+                session = 'Live';
+                sessionColor = 'text-green-500';
+            } else if (timeInMinutes >= 960 && timeInMinutes < 1200) {
+                session = 'After-hours';
+                sessionColor = 'text-blue-500';
+            } else {
+                session = 'Closed';
+                sessionColor = 'text-red-500';
+            }
+            
+            const sessionElement = document.getElementById('market-session');
+            sessionElement.textContent = session;
+            sessionElement.className = `ml-2 text-xs ${sessionColor} dark:${sessionColor} font-medium`;
+        }
+
+        // Fetch cron status and update timestamp
+        async function fetchCronStatus() {
+            try {
+                const response = await fetch('/api/cron-status');
+                const result = await response.json();
+                
+                if (result.success && result.lastUpdate) {
+                    const lastUpdate = new Date(result.lastUpdate);
+                    const nyTime = new Date(lastUpdate.toLocaleString("en-US", {timeZone: "America/New_York"}));
+                    
+                    const timeString = lastUpdate.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' (NY)';
+                    
+                    document.getElementById('last-updated').textContent = timeString;
+                    updateMarketSession(nyTime);
+                }
+            } catch (error) {
+                console.error('Error fetching cron status:', error);
+                // Fallback to current time if API fails
+                updateLastUpdatedTime();
+            }
+        }
+
+        // Data fetching
+        async function fetchData() {
+            try {
+                console.log('Fetching data...');
+                showLoading();
+                
+                const response = await fetch('/api/final-report');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('API result:', result);
+                
+                if (result.success) {
+                    allData = result.data.map(item => ({
+                        symbol: item.symbol,
+                        name: item.name || '-',
+                        size: determineCompanySize(item.size, item.marketCap),
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
+                        logoUrl: item.logoUrl || null,
+                        logoSource: item.logoSource || null,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
+                    }));
+                    
+                    filteredData = [...allData];
+                    
+                    // Apply default sorting (MarketCap DESC)
+                    applySorting();
+                    updateSortIndicators();
+                    
+                    renderTable();
+                    showTable();
+                    
+                    // Update timestamp from cron status
+                    await fetchCronStatus();
+                    
+                    // Initialize data hash for change detection
+                    lastDataHash = JSON.stringify(allData.map(item => ({
+                        symbol: item.symbol,
+                        marketCap: item.marketCap,
+                        price: item.price,
+                        change: item.change,
+                        epsActual: item.epsActual,
+                        epsSurp: item.epsSurp,
+                        revActual: item.revActual,
+                        revSurp: item.revSurp
+                    })));
+                } else {
+                    throw new Error(result.message || 'Failed to fetch data');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showError(error.message);
+            }
+        }
+
+        // UI state management
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('status-bar').classList.add('hidden');
+            document.getElementById('table-container').classList.add('hidden');
+            document.getElementById('card-container').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('status-bar').classList.add('hidden');
+            document.getElementById('table-container').classList.add('hidden');
+            document.getElementById('card-container').classList.add('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function showTable() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('status-bar').classList.remove('hidden');
+            
+            // Let CSS media queries handle which container to show
+            document.getElementById('table-container').classList.remove('hidden');
+            document.getElementById('card-container').classList.remove('hidden');
+        }
+
+        // Filtering
+        function filterData(query) {
+            if (!query.trim()) {
+                filteredData = [...allData];
+            } else {
+                const lowerQuery = query.toLowerCase();
+                filteredData = allData.filter(company =>
+                    company.symbol.toLowerCase().includes(lowerQuery) ||
+                    company.name.toLowerCase().includes(lowerQuery)
+                );
+            }
+            
+            // Re-apply current sort if any
+            if (currentSort.field) {
+                applySorting();
+            } else {
+                renderTable();
+            }
+        }
+
+        // Rendering
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const cardBody = document.getElementById('card-body');
+            
+            if (filteredData.length === 0) {
+                // Check if we have data but it's filtered out (search results)
+                if (allData.length > 0) {
+                    // Show empty table with headers for search results
+                    tbody.innerHTML = '';
+                    cardBody.innerHTML = '';
+                    return;
+                } else {
+                    // No data from API - show "No data available" message
+                    const emptyState = `
+                        <div class="flex flex-col items-center space-y-3 py-12">
+                                    <div class="relative w-32 h-32 flex items-center justify-center">
+                                        <!-- Calendar icon -->
+                                        <div class="absolute w-24 h-24 border-4 border-blue-900 dark:border-white rounded-lg">
+                                            <div class="w-full h-6 border-b-4 border-blue-900 dark:border-white rounded-t-lg bg-blue-50 dark:bg-slate-800"></div>
+                                            <div class="p-2">
+                                                <div class="grid grid-cols-7 gap-1">
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                    <div class="w-2 h-2 bg-blue-900 dark:bg-white rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Diagonal line (crossed out) -->
+                                        <div class="absolute w-28 h-1 bg-red-500 transform rotate-45"></div>
+                                    </div>
+                                    <div class="text-sm sm:text-base lg:text-lg font-medium text-blue-900 dark:text-white">No data available for today</div>
+                                </div>
+                    `;
+                    
+                    tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-neutral-500 dark:text-neutral-400">${emptyState}</td></tr>`;
+                    cardBody.innerHTML = emptyState;
+                    return;
+                }
+            }
+            
+            tbody.innerHTML = filteredData.map((item, index) => `
+                <tr class="border-b border-neutral-200 dark:border-transparent hover:bg-neutral-50 dark:hover:bg-slate-700/50 smooth-transition fade-in ${index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-neutral-100 dark:bg-slate-700'}" style="animation-delay: ${index * 50}ms; height: 60px; min-height: 60px;">
+                    <!-- Company -->
+        <td class="px-2 sm:px-4 lg:px-6 py-0 relative" style="width: 34%;">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Logo -->
+                <div class="flex-shrink-0 relative">
+                    ${item.logoUrl ? 
+                        `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">${item.symbol}</div>` :
+                        `<div class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">${item.symbol}</div>`
+                    }
+                </div>
+                    <!-- Company Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm sm:text-base lg:text-lg font-bold text-neutral-900 dark:text-white">${item.symbol}</div>
+                        <div class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block break-words company-name">${item.name}</div>
+                    </div>
+                        </div>
+                    </td>
+                    
+                    <!-- Market Cap (with Size) -->
+                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap" style="width: 24%;">
+                        <div class="flex items-center justify-between">
+                            <!-- Size badge on the left (hidden on mobile) -->
+                            <div class="flex-shrink-0 table-size-badge">
+                                <span class="inline-flex px-1 sm:px-2 py-0.5 sm:py-1 text-xs font-bold rounded-md border border-neutral-200 dark:border-neutral-600 ${getSizeBadgeColor(item.size)} transform hover:scale-105 transition-all duration-200">
+                                    ${item.size?.toUpperCase() || '-'}
+                                </span>
+                            </div>
+                            <!-- Market Cap on the right -->
+                            <div class="flex-1 text-right ml-2">
+                                <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${formatMarketCap(item.marketCap)}</div>
+                            <div class="text-sm font-medium ${getChangeColor(item.marketCapDiff)}" title="Market cap change vs previous adjusted close">
+                                ${item.marketCapDiff != null ? `${signPrefix(item.marketCapDiff)}${formatCapDiffUSD(item.marketCapDiff)}` : '-'}
+                            </div>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- Price -->
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                        <div>
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            <div class="text-sm font-medium ${getChangeColor(item.change)}">
+                                ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- EPS -->
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
+                            </div>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}
+                            </div>
+                            <div class="text-sm font-semibold ${getChangeColor(item.epsSurp)}">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- Revenue -->
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${formatRevenue(item.revActual)}
+                            </div>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${formatRevenue(item.revEst)}
+                            </div>
+                            <div class="text-sm font-semibold ${getChangeColor(item.revSurp)}">
+                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Render cards for mobile
+            cardBody.innerHTML = filteredData.map((item, index) => `
+                <div class="company-card fade-in" style="animation-delay: ${index * 50}ms;">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <!-- Logo -->
+                        <div class="card-header-item">
+                            ${item.logoUrl ? 
+                                `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="card-logo object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm hidden">${item.symbol}</div>` :
+                                `<div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm">${item.symbol}</div>`
+                            }
+                        </div>
+                        
+                        <!-- Ticker and Company Name (Combined) -->
+                        <div class="card-header-item card-ticker-name-combined">
+                            <span class="card-symbol">${item.symbol}</span>
+                            <span class="card-separator">|</span>
+                            <span class="card-name">${item.name}</span>
+                        </div>
+                        
+                        <!-- Size Badge -->
+                        <div class="card-header-item">
+                            <div class="card-size-badge ${getSizeBadgeColor(item.size)}">
+                                ${item.size?.toUpperCase() || '-'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Section - 4 columns -->
+                    <div class="card-data-grid">
+                        <!-- Column 1: Market Cap -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Market Cap</div>
+                                <div class="card-data-value">${formatMarketCap(item.marketCap)}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.marketCapDiff)}">
+                                ${item.marketCapDiff != null ? `${signPrefix(item.marketCapDiff)}${formatCapDiffUSD(item.marketCapDiff)}` : '-'}
+                            </div>
+                        </div>
+                        
+                        <!-- Column 2: Price -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Price</div>
+                                <div class="card-data-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.change)}">
+                                ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                        
+                        <!-- Column 3: EPS -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">EPS</div>
+                                <div class="card-data-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
+                                <div class="card-data-estimate">${item.epsEst ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.epsSurp)}">
+                                ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                        
+                        <!-- Column 4: Revenue -->
+                        <div class="card-data-column">
+                            <div>
+                                <div class="card-data-label">Revenue</div>
+                                <div class="card-data-value">${formatRevenue(item.revActual)}</div>
+                                <div class="card-data-estimate">${item.revEst ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
+                            </div>
+                            <div class="card-data-change ${getChangeColor(item.revSurp)}">
+                                ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+
+        // Event listeners
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('retry-btn').addEventListener('click', fetchData);
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            filterData(e.target.value);
+        });
+
+        // Auto-refresh mechanism
+        let autoRefreshInterval;
+        let lastDataHash = null;
+        
+        // Silent data refresh without UI flicker
+        async function silentDataRefresh() {
+            try {
+                console.log('Silent data refresh...');
+                
+                const response = await fetch('/api/final-report');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Create hash of current data to detect changes
+                    const newData = result.data.map(item => ({
+                        symbol: item.symbol,
+                        name: item.name || '-',
+                        size: determineCompanySize(item.size, item.marketCap),
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
+                        logoUrl: item.logoUrl || null,
+                        logoSource: item.logoSource || null,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
+                    }));
+                    
+                    // Create simple hash to detect changes
+                    const newDataHash = JSON.stringify(newData.map(item => ({
+                        symbol: item.symbol,
+                        marketCap: item.marketCap,
+                        price: item.price,
+                        change: item.change,
+                        epsActual: item.epsActual,
+                        epsSurp: item.epsSurp,
+                        revActual: item.revActual,
+                        revSurp: item.revSurp
+                    })));
+                    
+                    // Only update if data has changed
+                    if (newDataHash !== lastDataHash) {
+                        console.log('Data changed, updating silently...');
+                        lastDataHash = newDataHash;
+                        
+                        // Update data without showing loading
+                        allData = newData;
+                        filteredData = [...allData];
+                        
+                        // Apply current sorting
+                        applySorting();
+                        updateSortIndicators();
+                        
+                        // Render without loading animation
+                        renderTable();
+                        
+                        // Update timestamp
+                        await fetchCronStatus();
+                        
+                        // Show refresh indicator
+                        showRefreshIndicator();
+                    } else {
+                        console.log('No data changes detected');
+                        // Still update timestamp
+                        await fetchCronStatus();
+                    }
+                }
+            } catch (error) {
+                console.error('Silent refresh error:', error);
+            }
+        }
+        
+        function startAutoRefresh() {
+            // Clear existing interval
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Check for updates every 15 seconds (more frequent for better UX)
+            autoRefreshInterval = setInterval(async () => {
+                await silentDataRefresh();
+            }, 15000); // 15 seconds
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+        
+        // Show refresh indicator briefly
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('refresh-indicator');
+            if (indicator) {
+                indicator.style.opacity = '1';
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                }, 2000); // Show for 2 seconds
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            updateLastUpdatedTime(); // Initialize timestamp and market session
+            fetchData();
+            startAutoRefresh();
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
+        });
+
+        // Fallback prepínanie layoutu, keď media queries neprejdú (alebo je cache/štýly mimo)
+        function applyResponsiveLayout() {
+            const tableEl = document.getElementById('table-container');
+            const cardEl  = document.getElementById('card-container');
+            if (!tableEl || !cardEl) return;
+
+            const isMobile = window.matchMedia('(max-width: 640px)').matches;
+            // Nedôveruj len CSS, prepni aj class "hidden"
+            if (isMobile) {
+                tableEl.classList.add('hidden');
+                cardEl.classList.remove('hidden');
+            } else {
+                tableEl.classList.remove('hidden');
+                cardEl.classList.add('hidden');
+            }
+        }
+
+        // Reaguj na zmeny šírky
+        const mq = window.matchMedia('(max-width: 640px)');
+        if (mq.addEventListener) mq.addEventListener('change', applyResponsiveLayout);
+        else mq.addListener(applyResponsiveLayout); // staršie prehliadače
+
+        window.addEventListener('resize', applyResponsiveLayout);
+        document.addEventListener('DOMContentLoaded', applyResponsiveLayout);
+
+        // Volaj aj po fetchi dát (ak sa layout odhaluje až v showTable)
+        const _showTable = window.showTable;
+        window.showTable = function() {
+            _showTable && _showTable();
+            applyResponsiveLayout();
+        };
+    </script>
+</body>
+</html>
