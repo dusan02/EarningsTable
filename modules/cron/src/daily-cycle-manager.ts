@@ -2,14 +2,14 @@ import cron from 'node-cron';
 import { db } from './core/DatabaseManager.js';
 import { FinnhubCronJob } from './jobs/FinnhubCronJob.js';
 import { PolygonCronJob } from './jobs/PolygonCronJob.js';
-import { ClearDatabaseCronJob } from './clear-db-cron.js';
+// import { ClearDatabaseCronJob } from './clear-db-cron.js';
 
 const TZ = 'America/New_York';
 
 export class DailyCycleManager {
   private finnhubJob: FinnhubCronJob;
   private polygonJob: PolygonCronJob;
-  private clearDbJob: ClearDatabaseCronJob;
+  // private clearDbJob: ClearDatabaseCronJob;
   private isSequenceRunning: boolean = false;
   private isCronsRunning: boolean = false;
   
@@ -39,7 +39,7 @@ export class DailyCycleManager {
     cron.schedule('0 3 * * *', async () => {
       console.log('🧹 [CRON] Database cleanup at 03:00');
       try {
-        await this.clearDbJob.execute();
+        // await this.clearDbJob.execute();
         console.log('✅ [CRON] Database cleanup completed');
       } catch (error) {
         console.error('❌ [CRON] Database cleanup failed:', error);

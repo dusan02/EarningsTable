@@ -533,7 +533,7 @@ async function getSnapshotsIndividual(tickers: string[]): Promise<Snapshot[]> {
   console.log(`→ Fetching individual snapshots for ${tickers.length} symbols...`);
   
   const results: Snapshot[] = [];
-  const BATCH_SIZE = 20; // Increased batch size for better performance
+  const BATCH_SIZE = 50; // OPTIMIZED: Increased batch size for better performance
   
   // Process in batches
   for (let i = 0; i < tickers.length; i += BATCH_SIZE) {
@@ -950,9 +950,9 @@ export async function processSymbolsInBatches(
     const batchResults = await processSymbolsWithPriceService(batch);
     results.push(...batchResults);
     
-    // Small delay between batches to prevent overwhelming the API
+    // OPTIMIZED: Reduced delay between batches (50ms vs 100ms)
     if (i + batchSize < symbols.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
   

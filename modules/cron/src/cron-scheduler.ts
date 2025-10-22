@@ -11,7 +11,7 @@ async function runPipelineOnce(): Promise<void> {
   
   try {
     // Update cron status to running
-    await db.updateCronStatus('running');
+    await db.updateCronStatus('pipeline', 'running');
     
     
     // Get symbols from database (if any exist)
@@ -36,12 +36,12 @@ async function runPipelineOnce(): Promise<void> {
     }
     
     // Update cron status to success
-    await db.updateCronStatus('success', { recordsProcessed: existingSymbols.length });
+    await db.updateCronStatus('pipeline', 'success', existingSymbols.length);
     
     console.log('✅ Pipeline completed');
   } catch (error) {
     // Update cron status to error
-    await db.updateCronStatus('failed', { errorMessage: (error as any)?.message || 'Unknown error' });
+    await db.updateCronStatus('pipeline', 'error', undefined, (error as any)?.message || 'Unknown error');
     throw error;
   }
 }
@@ -63,7 +63,7 @@ async function main() {
         return; // was return; // was process.exit(1)
       }
     } else {
-      console.log('[cron] Failed (immediate):', error);
+      console.log('[cron] Failed (immediate): Force mode required');
       return; // was return; // was process.exit(1)
     }
   } else {

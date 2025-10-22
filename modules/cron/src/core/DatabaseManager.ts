@@ -140,11 +140,11 @@ export class DatabaseManager {
       }
     }
 
-    const batchSize = 100;
+    const batchSize = 200; // OPTIMIZED: Increased batch size
     let totalUpserted = 0;
     for (let i = 0; i < data.length; i += batchSize) {
       const batch = data.slice(i, i + batchSize);
-      console.log(`→ Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(data.length / batchSize)} (${batch.length} records)...`);
+      console.log(`→ OPTIMIZED: Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(data.length / batchSize)} (${batch.length} records)...`);
       await prisma.$transaction(
         batch.map(record =>
           prisma.finhubData.upsert({

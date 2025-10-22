@@ -148,13 +148,15 @@ export async function runPolygonJobFast(symbols?: string[]): Promise<void> {
     }
     console.log(`Found ${symbolsToProcess.length} symbols to process`);
 
-    console.log('Processing symbols with PriceService...');
-    const marketData = await processSymbolsInBatches(symbolsToProcess, 80, 10);
+    console.log('🚀 OPTIMIZED: Processing symbols with PriceService...');
+    // OPTIMIZED: Increased batch size and concurrency (200/25 vs 80/10)
+    const marketData = await processSymbolsInBatches(symbolsToProcess, 200, 25);
 
     console.log(`Processed ${marketData.length} symbols with PriceService`);
 
-    console.log('Saving data to database in batches...');
-    const DB_BATCH_SIZE = 100;
+    console.log('💾 OPTIMIZED: Saving data to database in batches...');
+    // OPTIMIZED: Increased database batch size (200 vs 100)
+    const DB_BATCH_SIZE = 200;
     const dbBatches = chunk(marketData, DB_BATCH_SIZE);
 
     for (let i = 0; i < dbBatches.length; i++) {
@@ -170,7 +172,7 @@ export async function runPolygonJobFast(symbols?: string[]): Promise<void> {
       );
     }
 
-    console.log('Generating final report...');
+    console.log('📊 OPTIMIZED: Generating final report...');
     await db.generateFinalReport();
 
     const duration = Date.now() - startTime;
