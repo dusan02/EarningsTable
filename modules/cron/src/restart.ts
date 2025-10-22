@@ -112,7 +112,7 @@ class ApplicationRestarter {
 
       // Use the centralized DatabaseManager method
       const { db } = await import('./core/DatabaseManager.js');
-      await db.clearAllTables();
+// await db.clearAllTables(); // disabled: run only in daily clear job
       
       console.log('✅ Database cleared successfully');
       

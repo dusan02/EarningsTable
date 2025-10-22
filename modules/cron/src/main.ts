@@ -41,15 +41,15 @@ async function bootstrap() {
 
       case 'status':
         console.log('📊 Cron Jobs Status:');
-        console.log('  ✅ Finnhub Earnings Data (0 7 * * * @ America/New_York)');
-        console.log('  ✅ Polygon Market Cap Data (0 */4 * * * @ America/New_York)');
+        console.log('  ✅ Pipeline: Finnhub → Polygon (*/5 6-20 * * 1-5 @ America/New_York)');
+        console.log('  ✅ Polygon Market Cap Data (*/5 9-17 * * 1-5 @ America/New_York)');
         break;
 
       case 'list':
         console.log('📋 Available Cron Jobs:');
         console.log('  - Daily Cycle Manager (03:00 clear, 03:05 start, every 5min until 02:30)');
-        console.log('  - Finnhub Earnings Data (daily @ 07:00 NY)');
-        console.log('  - Polygon Market Cap Data (every 4 hours)');
+        console.log('  - Pipeline (*/5 6-20): Finnhub → Polygon');
+        console.log('  - Daily clear 03:00 NY (Mon–Fri)');
         break;
 
       case 'help':
@@ -99,17 +99,59 @@ async function startDailyCycle() {
   await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
 }
 
+
+let __pipelineRunning = false;
+async function runPipeline(label = "scheduled") {
+  if (__pipelineRunning) {
+    console.log("⏭️  Pipeline skip (previous run still in progress)");
+    return;
+  }
+  __pipelineRunning = true;
+  const t0 = Date.now();
+  console.log(`🚦 Pipeline start [${label}]`);
+  try {
+    // 1) Finnhub (inkrementálne UPSERT)
+    await runFinnhubJob();
+    // 2) Polygon hneď po Finnhub
+    await runPolygonJob();
+    const ms = Date.now() - t0;
+    console.log(`✅ Pipeline done in ${ms}ms`);
+  } catch (e) {
+    console.error("❌ Pipeline failed:", e);
+  } finally {
+    __pipelineRunning = false;
+  }
+}
+
 async function startAllCronJobs(once: boolean) {
-  console.log('🚀 Starting all cron jobs...');
+  console.log('🚀 Starting one-big-cron pipeline...');
   
   // Start Finnhub cron
-  await startFinnhubCron(once);
-  
-  // Start Polygon cron
-  await startPolygonCron(once);
-  
   if (!once) {
+
+    // === ONE BIG CRON: Finnhub -> Polygon ===
+    const PIPELINE_CRON = "*/5 6-20 * * 1-5"; // každých 5 min, 06:00–20:00 NY, Mon–Fri
+    cron.schedule(PIPELINE_CRON, async () => {
+      await runPipeline("cron");
+    }, { timezone: TZ });
+    console.log(`✅ Pipeline scheduled @ ${PIPELINE_CRON} (NY, Mon–Fri)`);
     console.log('✅ All cron jobs started successfully');
+
+// Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
+cron.schedule('0 3 * * 1-5', async () => {
+  try {
+    console.log('🧹 Daily clear starting @ 03:00 NY');
+    process.env.ALLOW_CLEAR = 'true';
+    await db.clearAllTables();
+    console.log('✅ Daily clear done');
+  } catch (e) {
+    console.error('❌ Daily clear failed', e);
+  } finally {
+    delete process.env.ALLOW_CLEAR;
+  }
+}, { timezone: 'America/New_York' });
+
+console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive (bez hackov so stdin)
     await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
@@ -120,7 +162,7 @@ async function startFinnhubCron(once: boolean, options: { date?: string; force?:
   console.log('🚀 Starting Finnhub cron job...');
   
   // 1) CRON definícia
-  const task = cron.schedule('0 7 * * *', async () => {
+  const task = cron.schedule('0 7 * * 1-5', async () => {
     console.log('🕖 [CRON] Finnhub job start');
     try {
       await runFinnhubJob();
@@ -138,7 +180,7 @@ async function startFinnhubCron(once: boolean, options: { date?: string; force?:
     console.log('✅ Finnhub job completed');
     // pri --once *normálne* ukončíme (graceful)
     await db.disconnect().catch(() => {});
-    process.exit(0);
+    return;
   }
 
   if (process.argv.includes('start-finnhub')) {
@@ -152,7 +194,7 @@ async function startPolygonCron(once: boolean) {
   console.log('🚀 Starting Polygon cron job...');
   
   // 1) CRON definícia
-  const task = cron.schedule('0 */4 * * *', async () => {
+  const task = cron.schedule('*/5 9-17 * * 1-5', async () => {
     console.log('🕖 [CRON] Polygon job start');
     try {
       await runPolygonJob();
@@ -162,7 +204,7 @@ async function startPolygonCron(once: boolean) {
     }
   }, { scheduled: !once, timezone: TZ });
 
-  console.log(`✅ Polygon cron ${once ? '(once)' : '(scheduled every 4 hours)'} started.`);
+  console.log(`✅ Polygon cron ${once ? '(once)' : '(scheduled @ */5 9-17 NY (Mon–Fri))'} started.`);
 
   if (once) {
     console.log('🔄 Running Polygon job once...');
@@ -170,7 +212,7 @@ async function startPolygonCron(once: boolean) {
     console.log('✅ Polygon job completed');
     // pri --once *normálne* ukončíme (graceful)
     await db.disconnect().catch(() => {});
-    process.exit(0);
+    return;
   }
 
   if (process.argv.includes('start-polygon')) {
@@ -186,7 +228,7 @@ process.on('SIGINT', async () => {
   try { 
     await db.disconnect(); 
   } catch {} 
-  process.exit(0);
+  return;
 });
 
 process.on('SIGTERM', async () => {
@@ -194,7 +236,7 @@ process.on('SIGTERM', async () => {
   try { 
     await db.disconnect(); 
   } catch {} 
-  process.exit(0);
+  return;
 });
 
 // Safety for unhandled errors

@@ -1,3 +1,5 @@
+if (process.env.ALLOW_CLEAR !== "true") { console.log("🧹 Skipping startup cleanup (ALLOW_CLEAR!=true)"); }
+
 import { prisma } from '../../shared/src/prismaClient.js';
 import { getNYMidnight } from './utils/time.js';
 

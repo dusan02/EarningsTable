@@ -20,7 +20,7 @@ export class DailyCycleManager {
   constructor() {
     this.finnhubJob = new FinnhubCronJob();
     this.polygonJob = new PolygonCronJob();
-    this.clearDbJob = new ClearDatabaseCronJob();
+// lazy init: created when needed
     
     // Set timezone for consistency
     process.env.TZ = process.env.CRON_TZ || TZ;
@@ -174,7 +174,7 @@ process.on('SIGINT', async () => {
   } catch (error) {
     console.error('❌ Error during shutdown:', error);
   }
-  process.exit(0);
+  return; // was return; // was process.exit(0)
 });
 
 process.on('SIGTERM', async () => {
@@ -185,5 +185,5 @@ process.on('SIGTERM', async () => {
   } catch (error) {
     console.error('❌ Error during shutdown:', error);
   }
-  process.exit(0);
+  return; // was return; // was process.exit(0)
 });

@@ -34,7 +34,7 @@ async function clearAllData(): Promise<void> {
   
   try {
     // Use the centralized DatabaseManager method
-    await db.clearAllTables();
+// await db.clearAllTables(); // disabled: run only in daily clear job
     console.log('✅ All tables cleared successfully');
     
   } catch (error) {

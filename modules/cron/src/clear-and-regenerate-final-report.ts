@@ -3,7 +3,7 @@ import { db } from './core/DatabaseManager.js';
 async function clearAndRegenerate() {
   try {
     console.log('🗑️ Clearing FinalReport table...');
-    await db.clearFinalReport();
+// await db.clearFinalReport(); // disabled: run only in daily clear job
     
     console.log('🔄 Regenerating FinalReport with Boolean = 1 condition...');
     await db.generateFinalReport();

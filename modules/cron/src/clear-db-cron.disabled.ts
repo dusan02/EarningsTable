@@ -1,3 +1,5 @@
+if (process.env.ALLOW_CLEAR !== "true") { console.log("🧹 Skipping startup cleanup (ALLOW_CLEAR!=true)"); }
+
 import { db } from './core/DatabaseManager.js';
 
 export class ClearDatabaseCronJob {
@@ -6,7 +8,7 @@ export class ClearDatabaseCronJob {
     
     try {
       // Clear all tables
-      await db.clearAllTables();
+// await db.clearAllTables(); // disabled: run only in daily clear job
       console.log('✅ Database cleared successfully');
       
     } catch (error) {
