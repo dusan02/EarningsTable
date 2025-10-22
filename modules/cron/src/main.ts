@@ -28,15 +28,15 @@ async function bootstrap() {
         break;
 
       case 'start-finnhub':
-        // Start only Finnhub cron job
-        const finnhubDate = args.find(arg => arg.startsWith('--date='))?.split('=')[1];
-        const finnhubForce = args.includes('--force');
-        await startFinnhubCron(once, { date: finnhubDate, force: finnhubForce });
+        // Legacy: now runs unified pipeline
+        console.log('⚠️ start-finnhub is deprecated, using unified pipeline');
+        await startAllCronJobs(once);
         break;
 
       case 'start-polygon':
-        // Start only Polygon cron job
-        await startPolygonCron(once);
+        // Legacy: now runs unified pipeline  
+        console.log('⚠️ start-polygon is deprecated, using unified pipeline');
+        await startAllCronJobs(once);
         break;
 
       case 'status':
@@ -110,14 +110,16 @@ async function runPipeline(label = "scheduled") {
   const t0 = Date.now();
   console.log(`🚦 Pipeline start [${label}]`);
   try {
-    // 1) Finnhub (inkrementálne UPSERT)
-    await runFinnhubJob();
-    // 2) Polygon hneď po Finnhub
-    await runPolygonJob();
-    const ms = Date.now() - t0;
-    console.log(`✅ Pipeline done in ${ms}ms`);
+    const { symbolsChanged } = await runFinnhubJob();
+    if (!symbolsChanged || symbolsChanged.length === 0) {
+      console.log('🛌 No Finnhub changes → skipping Polygon');
+    } else {
+      console.log(`➡️  Running Polygon for ${symbolsChanged.length} changed symbols`);
+      await runPolygonJob(symbolsChanged);
+    }
+    console.log(`✅ Pipeline done in ${Date.now() - t0}ms`);
   } catch (e) {
-    console.error("❌ Pipeline failed:", e);
+    console.error('❌ Pipeline failed:', e);
   } finally {
     __pipelineRunning = false;
   }
@@ -126,101 +128,59 @@ async function runPipeline(label = "scheduled") {
 async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
-  // Start Finnhub cron
   if (!once) {
+    const PIPELINE_CRON = "*/5 6-20 * * 1-5";
+    const isValid = cron.validate(PIPELINE_CRON);
+    if (!isValid) { console.error(`❌ Invalid cron expression: ${PIPELINE_CRON}`); }
 
-    // === ONE BIG CRON: Finnhub -> Polygon ===
-    const PIPELINE_CRON = "*/5 6-20 * * 1-5"; // každých 5 min, 06:00–20:00 NY, Mon–Fri
     cron.schedule(PIPELINE_CRON, async () => {
-      await runPipeline("cron");
+      const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+      console.log(`⏱️ [CRON] Pipeline tick @ ${nowNY.toISOString()} (${TZ})`);
+      await runPipeline('cron');
     }, { timezone: TZ });
-    console.log(`✅ Pipeline scheduled @ ${PIPELINE_CRON} (NY, Mon–Fri)`);
+    console.log(`✅ Pipeline scheduled @ ${PIPELINE_CRON} (NY, Mon–Fri) valid=${isValid}`);
     console.log('✅ All cron jobs started successfully');
 
-// Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
-cron.schedule('0 3 * * 1-5', async () => {
-  try {
-    console.log('🧹 Daily clear starting @ 03:00 NY');
-    process.env.ALLOW_CLEAR = 'true';
-    await db.clearAllTables();
-    console.log('✅ Daily clear done');
-  } catch (e) {
-    console.error('❌ Daily clear failed', e);
-  } finally {
-    delete process.env.ALLOW_CLEAR;
-  }
-}, { timezone: 'America/New_York' });
+    // Warm-up (iba ak sme v okne)
+    function inWindowNY(h: number, dow: number) { return dow>=1 && dow<=5 && h>=6 && h<=20; }
+    const _nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+    if (inWindowNY(_nowNY.getHours(), _nowNY.getDay())) {
+      console.log('⚡ Warm-up: running pipeline immediately (inside window)');
+      runPipeline('warmup').catch(e => console.error('Warm-up failed:', e));
+    } else {
+      console.log('🕰️ Warm-up skipped (outside window)');
+    }
 
-console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
+    // Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
+    cron.schedule('0 3 * * 1-5', async () => {
+      try {
+        console.log('🧹 Daily clear starting @ 03:00 NY');
+        process.env.ALLOW_CLEAR = 'true';
+        await db.clearAllTables();
+        console.log('✅ Daily clear done');
+      } catch (e) {
+        console.error('❌ Daily clear failed', e);
+      } finally {
+        delete process.env.ALLOW_CLEAR;
+      }
+    }, { timezone: 'America/New_York' });
+    console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
+
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive (bez hackov so stdin)
     await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
   }
-}
-
-async function startFinnhubCron(once: boolean, options: { date?: string; force?: boolean } = {}) {
-  console.log('🚀 Starting Finnhub cron job...');
-  
-  // 1) CRON definícia
-  const task = cron.schedule('0 7 * * 1-5', async () => {
-    console.log('🕖 [CRON] Finnhub job start');
-    try {
-      await runFinnhubJob();
-      console.log('✅ [CRON] Finnhub job finished');
-    } catch (e) {
-      console.error('❌ [CRON] Finnhub job error:', e);
-    }
-  }, { scheduled: !once, timezone: TZ });
-
-  console.log(`✅ Finnhub cron ${once ? '(once)' : '(scheduled @ 07:00 NY)'} started.`);
 
   if (once) {
-    console.log('🔄 Running Finnhub job once...');
-    await runFinnhubJob(options);
-    console.log('✅ Finnhub job completed');
-    // pri --once *normálne* ukončíme (graceful)
+    console.log('🔄 Running all jobs once...');
+    await runPipeline("once");
+    console.log('✅ All jobs completed');
     await db.disconnect().catch(() => {});
     return;
   }
-
-  if (process.argv.includes('start-finnhub')) {
-    console.log('Press Ctrl+C to stop.');
-    // Keep-alive (bez hackov so stdin)
-    await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
-  }
 }
 
-async function startPolygonCron(once: boolean) {
-  console.log('🚀 Starting Polygon cron job...');
-  
-  // 1) CRON definícia
-  const task = cron.schedule('*/5 9-17 * * 1-5', async () => {
-    console.log('🕖 [CRON] Polygon job start');
-    try {
-      await runPolygonJob();
-      console.log('✅ [CRON] Polygon job finished');
-    } catch (e) {
-      console.error('❌ [CRON] Polygon job error:', e);
-    }
-  }, { scheduled: !once, timezone: TZ });
-
-  console.log(`✅ Polygon cron ${once ? '(once)' : '(scheduled @ */5 9-17 NY (Mon–Fri))'} started.`);
-
-  if (once) {
-    console.log('🔄 Running Polygon job once...');
-    await runPolygonJob();
-    console.log('✅ Polygon job completed');
-    // pri --once *normálne* ukončíme (graceful)
-    await db.disconnect().catch(() => {});
-    return;
-  }
-
-  if (process.argv.includes('start-polygon')) {
-    console.log('Press Ctrl+C to stop.');
-    // Keep-alive (bez hackov so stdin)
-    await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
-  }
-}
+// Old separate cron functions removed - now using unified smart pipeline
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

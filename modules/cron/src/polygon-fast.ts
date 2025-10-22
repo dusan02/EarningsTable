@@ -6,6 +6,14 @@ import { PrismaClient } from "@prisma/client";
 import { processSymbolsInBatches, MarketCapData } from './core/priceService.js';
 
 const prisma = new PrismaClient();
+
+// Optional helper to filter list by provided symbols
+function filterSymbols(all: string[], subset?: string[]): string[] {
+  if (!subset || subset.length === 0) return all;
+  const set = new Set(subset.map(s => s.toUpperCase()));
+  return all.filter(s => set.has(s.toUpperCase()));
+}
+
 // Utility functions
 function chunk<T>(array: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -115,25 +123,33 @@ function getCompanySize(marketCap: number | null): string | null {
 }
 
 // Main fast polygon processing function
-export async function runPolygonJobFast(): Promise<void> {
+export async function runPolygonJobFast(symbols?: string[]): Promise<void> {
   const startTime = Date.now();
   console.log('Starting Fast Polygon job execution with PriceService...');
 
   try {
-    const finhubSymbols = await prisma.finhubData.findMany({
-      select: { symbol: true },
-      distinct: ['symbol'],
-    });
-    const symbols = finhubSymbols.map(s => s.symbol);
-    console.log(`Found ${symbols.length} symbols to process`);
-
-    if (symbols.length === 0) {
-      console.log('No symbols found in FinhubData');
+    // decide which symbols to process
+    let symbolsToProcess: string[];
+    if (symbols && symbols.length) {
+      console.log(`→ Fast Polygon (delta): ${symbols.length} symbols provided`);
+      symbolsToProcess = symbols;
+    } else {
+      console.log('→ Fast Polygon (full set)');
+      const finhubSymbols = await prisma.finhubData.findMany({
+        select: { symbol: true },
+        distinct: ['symbol'],
+      });
+      symbolsToProcess = finhubSymbols.map(s => s.symbol);
+    }
+    symbolsToProcess = filterSymbols(symbolsToProcess, symbols);
+    if (!symbolsToProcess.length) {
+      console.log('⚠️ No symbols to process');
       return;
     }
+    console.log(`Found ${symbolsToProcess.length} symbols to process`);
 
     console.log('Processing symbols with PriceService...');
-    const marketData = await processSymbolsInBatches(symbols, 80, 10);
+    const marketData = await processSymbolsInBatches(symbolsToProcess, 80, 10);
 
     console.log(`Processed ${marketData.length} symbols with PriceService`);
 
@@ -159,7 +175,7 @@ export async function runPolygonJobFast(): Promise<void> {
 
     const duration = Date.now() - startTime;
     console.log(`Fast Polygon job completed successfully in ${duration}ms`);
-    console.log(`Summary: ${symbols.length} symbols processed, ${marketData.filter(r => r.Boolean).length} with complete data`);
+    console.log(`Summary: ${symbolsToProcess.length} symbols processed, ${marketData.filter(r => r.Boolean).length} with complete data`);
 
   } catch (error) {
     const duration = Date.now() - startTime;

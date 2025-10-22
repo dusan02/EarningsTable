@@ -3,10 +3,13 @@ import { db } from '../core/DatabaseManager.js';
 import { todayIsoNY, CONFIG } from '../config.js';
 
 interface FinnhubJobOptions {
-
-interface FinnhubJobResult { symbolsChanged: string[]; upserted: number; }
   date?: string;  // YYYY-MM-DD format
   force?: boolean; // Ignore cache/duplicates
+}
+
+interface FinnhubJobResult { 
+  symbolsChanged: string[]; 
+  upserted: number; 
 }
 
 export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<FinnhubJobResult> {
@@ -27,7 +30,7 @@ export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<Fi
 
     if (rows.length === 0) {
       console.log('⚠️ No earnings reports found for the specified date');
-      return;
+      return { symbolsChanged: [], upserted: 0 };
     }
 
     console.log(`💾 Preparing ${rows.length} records for database...`);
@@ -44,22 +47,16 @@ export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<Fi
     }));
 
     console.log('💾 Saving data to FinhubData table...');
-    await db.upsertFinhubData(toSave);
+    const changedSymbols = await db.upsertFinhubData(toSave);
     
     console.log('🔄 Copying symbols to PolygonData table...');
     await db.copySymbolsToPolygonData();
     
     const duration = Date.now() - startTime;
-    const changed = await db.upsertFinhubData(toSave);
-
-    console.log("🔄 Copying symbols to PolygonData table...");
-    await db.copySymbolsToPolygonData();
-
-    const duration = Date.now() - startTime;
     console.log(`✅ Finnhub job completed successfully in ${duration}ms`);
-    console.log(`📈 Summary: ${rows.length} records processed, ${toSave.length} prepared, ${changed.length} changed`);
-    return { symbolsChanged: changed, upserted: changed.length };
-    console.log(`📈 Summary: ${rows.length} records processed, ${toSave.length} saved to database`);
+    console.log(`📈 Summary: ${rows.length} records processed, ${changedSymbols.length} changed`);
+    
+    return { symbolsChanged: changedSymbols, upserted: changedSymbols.length };
     
   } catch (error) {
     const duration = Date.now() - startTime;
