@@ -3,11 +3,13 @@ import { db } from '../core/DatabaseManager.js';
 import { todayIsoNY, CONFIG } from '../config.js';
 
 interface FinnhubJobOptions {
+
+interface FinnhubJobResult { symbolsChanged: string[]; upserted: number; }
   date?: string;  // YYYY-MM-DD format
   force?: boolean; // Ignore cache/duplicates
 }
 
-export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<void> {
+export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<FinnhubJobResult> {
   const startTime = Date.now();
   console.log('🚀 Starting Finnhub job execution...');
   
@@ -48,7 +50,15 @@ export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<vo
     await db.copySymbolsToPolygonData();
     
     const duration = Date.now() - startTime;
+    const changed = await db.upsertFinhubData(toSave);
+
+    console.log("🔄 Copying symbols to PolygonData table...");
+    await db.copySymbolsToPolygonData();
+
+    const duration = Date.now() - startTime;
     console.log(`✅ Finnhub job completed successfully in ${duration}ms`);
+    console.log(`📈 Summary: ${rows.length} records processed, ${toSave.length} prepared, ${changed.length} changed`);
+    return { symbolsChanged: changed, upserted: changed.length };
     console.log(`📈 Summary: ${rows.length} records processed, ${toSave.length} saved to database`);
     
   } catch (error) {

@@ -39,6 +39,7 @@ export class DatabaseManager {
       marketCapDiff = BigInt(diffDec.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
       currentMarketCap = BigInt(currDec.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
     }
+    }
 
     // Get NY midnight date
     const reportDate = getNYMidnight();
@@ -47,6 +48,7 @@ export class DatabaseManager {
     // Validate dates are not in future
     if (!validateNotFuture(reportDate)) {
       throw new Error(`Safety: reportDate in future (NY). Got: ${reportDate.toISOString()}`);
+    }
     }
 
     const createData = normalizeFinalReportDates({
@@ -90,6 +92,7 @@ export class DatabaseManager {
       update: updateData,
     });
   }
+  }
 
   // FinhubData operations
   async upsertFinhubData(data: CreateFinhubData[]): Promise<void> {
@@ -98,6 +101,7 @@ export class DatabaseManager {
     if (data.length === 0) {
       console.log('✓ No data to upsert');
       return;
+    }
     }
 
     const batchSize = 100;
@@ -139,8 +143,10 @@ export class DatabaseManager {
       );
       totalUpserted += batch.length;
     }
+    }
 
     console.log(`✓ Successfully upserted ${totalUpserted} finhub reports in ${Math.ceil(data.length / batchSize)} batches`);
+  }
   }
 
   async getFinhubDataByDate(date: Date) {
@@ -156,18 +162,23 @@ export class DatabaseManager {
           gte: start,
           lt: end,
         }
+        }
       },
       orderBy: {
         symbol: 'asc'
       }
+      }
     });
+  }
   }
 
   async clearFinhubData(): Promise<void> {
   if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearFinhubData (ALLOW_CLEAR!=true)' ); return; }
+  if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearFinhubData (ALLOW_CLEAR!=true)' ); return; }
     console.log('🗑️ Clearing FinhubData...');
     const result = await prisma.finhubData.deleteMany();
     console.log(`✅ Cleared ${result.count} FinhubData records`);
+  }
   }
 
   // PolygonData operations
@@ -231,7 +242,9 @@ export class DatabaseManager {
       );
       total += batch.length;
     }
+    }
     console.log(`✓ Successfully upserted ${total} polygon symbols`);        
+  }
   }
 
   async copySymbolsToPolygonData(): Promise<void> {
@@ -240,6 +253,7 @@ export class DatabaseManager {
     const symbols = await prisma.finhubData.findMany({
       select: { symbol: true },
       distinct: ['symbol'],
+      where: { symbol: { not: '' } }
       where: { symbol: { not: '' } }
     });
 
@@ -253,10 +267,13 @@ export class DatabaseManager {
         update: {
           symbolBoolean: true
         }
+        }
       });
+    }
     }
 
     console.log(`✓ PolygonData: inserted ${symbols.length} (deduped) symbols`);
+  }
   }
 
   async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
@@ -266,9 +283,11 @@ export class DatabaseManager {
     });
     return symbols.map(s => s.symbol);
   }
+  }
 
   async getPolygonSymbols(onlyReady = false): Promise<string[]> {
     return this.getUniqueSymbolsFromPolygonData(onlyReady);
+  }
   }
 
   async updatePolygonMarketCapData(marketData: any[]): Promise<void> {      
@@ -342,15 +361,19 @@ export class DatabaseManager {
 
       totalUpserted += batch.length;
     }
+    }
 
     console.log(`✓ Successfully upserted market cap data for ${totalUpserted} symbols in ${Math.ceil(marketData.length / batchSize)} batches`);
+  }
   }
 
   async clearPolygonData(): Promise<void> {
   if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearPolygonData (ALLOW_CLEAR!=true)' ); return; }
+  if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearPolygonData (ALLOW_CLEAR!=true)' ); return; }
     console.log('🗑️ Clearing PolygonData...');
     const result = await prisma.polygonData.deleteMany();
     console.log(`✅ Cleared ${result.count} PolygonData records`);
+  }
   }
 
   // FinalReport operations
@@ -453,9 +476,12 @@ export class DatabaseManager {
           update: updateData,
         });
       }
+      }
+    }
     }
 
     console.log(`✅ FinalReport snapshot stored: ${commonSymbols.length} symbols`);
+  }
   }
 
   async getFinalReport(): Promise<any[]> {
@@ -463,12 +489,15 @@ export class DatabaseManager {
       orderBy: { symbol: 'asc' },
     });
   }
+  }
 
   async clearFinalReport(): Promise<void> {
+  if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearFinalReport (ALLOW_CLEAR!=true)' ); return; }
   if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearFinalReport (ALLOW_CLEAR!=true)' ); return; }
     console.log('🗑️ Clearing FinalReport...');
     const result = await prisma.finalReport.deleteMany();
     console.log(`✅ Cleared ${result.count} FinalReport records`);
+  }
   }
 
   async updateLogoInfo(symbol: string, logoUrl: string | null, logoSource: string | null): Promise<void> {
@@ -481,6 +510,7 @@ export class DatabaseManager {
       },
     });
     console.log(`   → Updated logo info for ${symbol}: ${logoUrl} (${logoSource})`);
+  }
   }
 
   async getSymbolsNeedingLogoRefresh(): Promise<string[]> {
@@ -502,9 +532,11 @@ export class DatabaseManager {
 
     return symbols.map(s => s.symbol);
   }
+  }
 
   async updateCronStatus(
     status: 'running' | 'success' | 'failed',
+    opts?: { recordsProcessed?: number; errorMessage?: string }
     opts?: { recordsProcessed?: number; errorMessage?: string }
   ): Promise<void> {
     const now = new Date();
@@ -523,12 +555,15 @@ export class DatabaseManager {
         lastRunAt: now,
         ...(opts?.recordsProcessed != null
           ? { recordsProcessed: opts.recordsProcessed }
+          ? { recordsProcessed: opts.recordsProcessed }
           : {}),
         ...(opts?.errorMessage !== undefined
+          ? { errorMessage: opts.errorMessage }
           ? { errorMessage: opts.errorMessage }
           : {}),
       },
     });
+  }
   }
 
   async getLastCronRun(jobType: string): Promise<Date | null> {
@@ -538,14 +573,17 @@ export class DatabaseManager {
     });
     return status?.lastRunAt || null;
   }
+  }
 
   async getAllCronStatuses(): Promise<any[]> {
     return await prisma.cronStatus.findMany({
       orderBy: { lastRunAt: 'desc' },
     });
   }
+  }
 
   async clearAllTables(): Promise<void> {
+  if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearAllTables (ALLOW_CLEAR!=true)' ); return; }
   if (process.env.ALLOW_CLEAR !== 'true') { console.log('🧹 Skipping clearAllTables (ALLOW_CLEAR!=true)' ); return; }
     console.log('🛑 Clearing all database tables...');
 
@@ -556,10 +594,13 @@ export class DatabaseManager {
 
     console.log('✅ All tables cleared successfully');
   }
+  }
 
   async disconnect(): Promise<void> {
     await prisma.$disconnect();
   }
+  }
+}
 }
 
 // Singleton instance
