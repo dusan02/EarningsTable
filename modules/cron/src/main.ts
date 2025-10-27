@@ -7,6 +7,21 @@ import { prisma } from '../../shared/src/prismaClient.js';
 
 const TZ = 'America/New_York'; // správne pre 7:00 NY (zohľadní DST)
 
+function nowNY() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+}
+
+function isoNY(d = nowNY()) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = d.getUTCFullYear();
+  const m = pad(d.getUTCMonth() + 1);
+  const dd = pad(d.getUTCDate());
+  const hh = pad(d.getUTCHours());
+  const mm = pad(d.getUTCMinutes());
+  const ss = pad(d.getUTCSeconds());
+  return `${y}-${m}-${dd}T${hh}:${mm}:${ss}.000Z`;
+}
+
 function truthyEnv(name: string): boolean {
   const v = (process.env[name] || '').toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
@@ -148,19 +163,24 @@ async function runPipeline(label = "scheduled") {
         console.log(`➡️  Running Polygon in FULL mode (${RUN_FULL ? 'env RUN_FULL_POLYGON' : 'small-delta heuristic'}) — today=${todaySymbolsCount}, delta=${symbolsChanged?.length || 0}`);
         await runPolygonJob(todaySymbols);
         console.log('✅ FULL Polygon refresh done');
+        await db.updateCronStatus('pipeline', 'success', todaySymbolsCount, `full:${symbolsChanged?.length || 0}`);
       } else if (symbolsChanged && symbolsChanged.length > 0) {
         console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
         await runPolygonJob(symbolsChanged);
+        await db.updateCronStatus('pipeline', 'success', symbolsChanged.length, 'delta');
       } else {
         console.log('🛌 No Finnhub changes → skipping Polygon');
+        await db.updateCronStatus('pipeline', 'success', 0, 'delta:0');
       }
     } else {
       console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
       await runPolygonJob(symbolsChanged);
+      await db.updateCronStatus('pipeline', 'success', symbolsChanged.length, 'delta');
     }
     console.log(`✅ Pipeline done in ${Date.now() - t0}ms`);
   } catch (e) {
     console.error('❌ Pipeline failed:', e);
+    try { await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e)); } catch {}
   } finally {
     __pipelineRunning = false;
   }
@@ -175,8 +195,8 @@ async function startAllCronJobs(once: boolean) {
     if (!isValid) { console.error(`❌ Invalid cron expression: ${PIPELINE_CRON}`); }
 
     cron.schedule(PIPELINE_CRON, async () => {
-      const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
-      console.log(`⏱️ [CRON] Pipeline tick @ ${nowNY.toISOString()} (${TZ})`);
+      const tickAt = isoNY();
+      console.log(`⏱️ [CRON] tick @ ${tickAt} (NY)`);
       await runPipeline('cron');
     }, { timezone: TZ });
     console.log(`✅ Pipeline scheduled @ ${PIPELINE_CRON} (NY, Mon–Fri) valid=${isValid}`);

@@ -14,6 +14,31 @@ app.use("/api", (_req, res, next) => {
   res.setHeader("Expires", "0");
   next();
 });
+// CRON status endpoint (basic)
+app.get('/api/cron/status', async (_req, res) => {
+  try {
+    const { prisma } = require('./modules/shared/src/prismaClient.js');
+    const status = await prisma.cronStatus.findUnique({
+      where: { jobType: 'pipeline' },
+      select: { lastRunAt: true, status: true, recordsProcessed: true, errorMessage: true },
+    });
+    const nyNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const last = status && status.lastRunAt ? new Date(status.lastRunAt) : null;
+    const diffMin = last ? Math.round((nyNow.getTime() - last.getTime()) / 60000) : null;
+    res.json({
+      success: true,
+      nyNowISO: nyNow.toISOString(),
+      lastRunAt: last ? last.toISOString() : null,
+      diffMin,
+      isFresh: diffMin != null && diffMin <= 6,
+      status: status ? status.status : null,
+      recordsProcessed: status ? status.recordsProcessed : null,
+      error: status ? status.errorMessage : null,
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e && e.message ? e.message : String(e) });
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 
