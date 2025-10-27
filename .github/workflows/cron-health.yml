@@ -1,0 +1,67 @@
+name: Cron Health Check
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: cron-health
+  cancel-in-progress: true
+
+jobs:
+  check-cron-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      STATUS_URL: https://www.earningstable.com/api/cron/status
+    steps:
+      - name: Show runner info
+        run: |
+          echo "Runner: $(uname -a)"
+          echo "Node: $(node -v || true)"
+
+      - name: Install jq
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Fetch cron status
+        id: fetch
+        run: |
+          set -euo pipefail
+          echo "GET $STATUS_URL"
+          body=$(curl -fsS "$STATUS_URL")
+          echo "$body" | jq .
+          success=$(echo "$body" | jq -r '.success')
+          isFresh=$(echo "$body" | jq -r '.isFresh')
+          diffMin=$(echo "$body" | jq -r '.diffMin')
+          lastRunAt=$(echo "$body" | jq -r '.lastRunAt')
+          echo "success=$success" >> $GITHUB_OUTPUT
+          echo "isFresh=$isFresh" >> $GITHUB_OUTPUT
+          echo "diffMin=$diffMin" >> $GITHUB_OUTPUT
+          echo "lastRunAt=$lastRunAt" >> $GITHUB_OUTPUT
+
+      - name: Assert fresh (<= 6 min)
+        run: |
+          set -euo pipefail
+          echo "Cron status: success=${{ steps.fetch.outputs.success }}, isFresh=${{ steps.fetch.outputs.isFresh }}, diffMin=${{ steps.fetch.outputs.diffMin }}, lastRunAt=${{ steps.fetch.outputs.lastRunAt }}"
+          if [ "${{ steps.fetch.outputs.success }}" != "true" ]; then
+            echo "❌ success=false" >&2
+            exit 1
+          fi
+          if [ "${{ steps.fetch.outputs.isFresh }}" != "true" ]; then
+            echo "❌ not fresh: diffMin=${{ steps.fetch.outputs.diffMin }} lastRunAt=${{ steps.fetch.outputs.lastRunAt }}" >&2
+            exit 1
+          fi
+          echo "✅ CRON fresh"
+
+      - name: Optional Slack alert on failure
+        if: ${{ failure() && env.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload=$(jq -n --arg text "Cron health FAILED for $STATUS_URL (diffMin=${{ steps.fetch.outputs.diffMin }}, lastRunAt=${{ steps.fetch.outputs.lastRunAt }})" '{text: $text}')
+          curl -fsS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || true
+
+
