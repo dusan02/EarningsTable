@@ -68,6 +68,9 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
     }
   };
 
+  // Active header highlight
+  const activeHeaderBg = 'bg-blue-100 dark:bg-blue-800/50';
+
   const formatMarketCap = (value: number) => {
     if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
     if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
@@ -100,9 +103,9 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
 
   const SortIcon: React.FC<{ field: keyof FinalReportData }> = ({ field }) => {
     if (sortField !== field) {
-      return <span className="text-gray-400">↕</span>;
+      return <span className="text-gray-400">△</span>; // neutral triangle
     }
-    return <span className="text-blue-600">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+    return <span className="text-blue-600">{sortDirection === 'asc' ? '▲' : '▼'}</span>;
   };
 
   // Company logo component with fallback
@@ -203,7 +206,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
               <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                 <tr>
                   <th 
-                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[200px] min-w-[200px]"
+                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[200px] min-w-[200px] ${sortField === 'symbol' ? activeHeaderBg : ''}`}
                     onClick={() => handleSort('symbol')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -213,7 +216,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans bg-blue-100 dark:bg-blue-800/50 w-[150px] min-w-[150px]"
+                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[150px] min-w-[150px] ${sortField === 'marketCap' ? activeHeaderBg : ''}`}
                     onClick={() => handleSort('marketCap')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -223,7 +226,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[120px] min-w-[120px]"
+                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[120px] min-w-[120px] ${sortField === 'price' ? activeHeaderBg : ''}`}
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -233,7 +236,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px]"
+                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px] ${sortField === 'epsSurp' ? activeHeaderBg : ''}`}
                     onClick={() => handleSort('epsSurp')}
                   >
                     <div className="flex items-center justify-center space-x-1">
@@ -243,7 +246,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                   </th>
                   
                   <th 
-                    className="px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px]"
+                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px] ${sortField === 'revSurp' ? activeHeaderBg : ''}`}
                     onClick={() => handleSort('revSurp')}
                   >
                     <div className="flex items-center justify-center space-x-1">

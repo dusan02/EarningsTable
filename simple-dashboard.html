@@ -608,34 +608,34 @@
                     <table class="w-full table-fixed mobile-table" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
                            <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                                <tr>
-                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 30%;">
+                                   <th id="th-symbol" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 30%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Company</span>
-                                           <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
+                                           <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">△</span>
                                        </div>
                                    </th>
-                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
+                                   <th id="th-marketCap" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
-                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
+                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">▼</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
+                                   <th id="th-change" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Price</span>
-                                           <span id="sort-change" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span id="sort-change" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">△</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 17.5%;">
+                                   <th id="th-epsSurp" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 17.5%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">EPS</span>
-                                           <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">△</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 17.5%;">
+                                   <th id="th-revSurp" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 17.5%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Revenue</span>
-                                           <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
+                                           <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">△</span>
                                        </div>
                                    </th>
                                </tr>
@@ -872,7 +872,7 @@
         }
 
            function updateSortIndicators() {
-               // Reset all indicators - hide arrows for inactive columns
+               // Reset all indicators - hide icons for inactive columns
                const indicators = ['symbol', 'size', 'marketCap', 'change', 'epsSurp', 'revSurp'];
                indicators.forEach(field => {
                    const indicator = document.getElementById(`sort-${field}`);
@@ -880,10 +880,23 @@
                        // Check if column is visible (not hidden on mobile)
                        const isVisible = !indicator.closest('th').classList.contains('hidden');
                        if (isVisible) {
-                           indicator.textContent = '↕'; // Show neutral sort icon
+                           indicator.textContent = '△'; // Neutral triangle
                            indicator.className = 'ml-1 sm:ml-2 text-blue-500 dark:text-blue-400 opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg'; // Make invisible by default
                        }
                    }
+               });
+
+               // Toggle header highlight background
+               const headerIds = {
+                   symbol: 'th-symbol',
+                   marketCap: 'th-marketCap',
+                   change: 'th-change',
+                   epsSurp: 'th-epsSurp',
+                   revSurp: 'th-revSurp'
+               };
+               Object.values(headerIds).forEach(id => {
+                   const th = document.getElementById(id);
+                   if (th) th.classList.remove('bg-blue-100','dark:bg-blue-800/50');
                });
 
                // Set current sort indicator - show arrow only for active column
@@ -892,10 +905,15 @@
                    if (indicator) {
                        const isVisible = !indicator.closest('th').classList.contains('hidden');
                        if (isVisible) {
-                           indicator.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+                           indicator.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
                            indicator.className = 'ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg'; // Make visible with accent color
                        }
                    }
+
+                   // Highlight active header
+                   const activeThId = headerIds[currentSort.field];
+                   const activeTh = document.getElementById(activeThId);
+                   if (activeTh) activeTh.classList.add('bg-blue-100','dark:bg-blue-800/50');
                }
            }
 
