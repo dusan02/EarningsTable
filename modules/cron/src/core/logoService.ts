@@ -22,6 +22,7 @@ import fs from "fs/promises";
 import path from "path";
 import { CONFIG } from '../../../shared/src/config.js';
 import { db } from './DatabaseManager.ts';
+import { prisma } from '../../../shared/src/prismaClient.js';
 import pLimit from 'p-limit';
 
 // Absolute path to logo directory - always points to modules/web/public/logos in the repo root
@@ -267,9 +268,27 @@ export async function processLogosInBatches(
     }
   }
 
-  // Batch update database for better performance
+  // Batch update database for better performance (with safe fallback)
   if (logoUpdates.length > 0) {
-    await db.batchUpdateLogoInfo(logoUpdates);
+    const maybe = (db as unknown as { batchUpdateLogoInfo?: Function }).batchUpdateLogoInfo;
+    if (typeof maybe === 'function') {
+      await maybe.call(db, logoUpdates);
+    } else {
+      const batchSize = 50;
+      for (let i = 0; i < logoUpdates.length; i += batchSize) {
+        const batch = logoUpdates.slice(i, i + batchSize);
+        await prisma.$transaction(
+          batch.map(update => prisma.finhubData.updateMany({
+            where: { symbol: update.symbol },
+            data: {
+              logoUrl: update.logoUrl,
+              logoSource: update.logoSource,
+              logoFetchedAt: new Date(),
+            },
+          }))
+        );
+      }
+    }
   }
 
   return { success: successCount, failed: failedCount };
