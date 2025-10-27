@@ -7,6 +7,14 @@ const path = require("path");
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
+// Disable caching for all API responses to avoid stale data in browsers/CDNs
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
+
 const PORT = process.env.PORT || 3001;
 
 // Middleware
