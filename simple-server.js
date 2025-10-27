@@ -15,16 +15,25 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 // CRON status endpoint (basic)
-app.get('/api/cron/status', async (_req, res) => {
+app.get("/api/cron/status", async (_req, res) => {
   try {
-    const { prisma } = require('./modules/shared/src/prismaClient.js');
+    const { prisma } = await import("./modules/shared/src/prismaClient.js");
     const status = await prisma.cronStatus.findUnique({
-      where: { jobType: 'pipeline' },
-      select: { lastRunAt: true, status: true, recordsProcessed: true, errorMessage: true },
+      where: { jobType: "pipeline" },
+      select: {
+        lastRunAt: true,
+        status: true,
+        recordsProcessed: true,
+        errorMessage: true,
+      },
     });
-    const nyNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const nyNow = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+    );
     const last = status && status.lastRunAt ? new Date(status.lastRunAt) : null;
-    const diffMin = last ? Math.round((nyNow.getTime() - last.getTime()) / 60000) : null;
+    const diffMin = last
+      ? Math.round((nyNow.getTime() - last.getTime()) / 60000)
+      : null;
     res.json({
       success: true,
       nyNowISO: nyNow.toISOString(),
@@ -36,7 +45,9 @@ app.get('/api/cron/status', async (_req, res) => {
       error: status ? status.errorMessage : null,
     });
   } catch (e) {
-    res.status(500).json({ success: false, error: e && e.message ? e.message : String(e) });
+    res
+      .status(500)
+      .json({ success: false, error: e && e.message ? e.message : String(e) });
   }
 });
 
