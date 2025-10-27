@@ -29,16 +29,17 @@ app.get("/api/cron/status", async (_req, res) => {
         errorMessage: true,
       },
     });
-    const nyNow = new Date(
+    const nowUtc = new Date();
+    const nyNowISO = new Date(
       new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-    );
+    ).toISOString();
     const last = status && status.lastRunAt ? new Date(status.lastRunAt) : null;
     const diffMin = last
-      ? Math.round((nyNow.getTime() - last.getTime()) / 60000)
+      ? Math.round((nowUtc.getTime() - last.getTime()) / 60000)
       : null;
     res.json({
       success: true,
-      nyNowISO: nyNow.toISOString(),
+      nyNowISO,
       lastRunAt: last ? last.toISOString() : null,
       diffMin,
       isFresh: diffMin != null && diffMin <= 6,
@@ -51,7 +52,9 @@ app.get("/api/cron/status", async (_req, res) => {
       .status(500)
       .json({ success: false, error: e && e.message ? e.message : String(e) });
   } finally {
-    try { if (prisma) await prisma.$disconnect(); } catch {}
+    try {
+      if (prisma) await prisma.$disconnect();
+    } catch {}
   }
 });
 
