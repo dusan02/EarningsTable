@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { CONFIG } from './config.js';
 import { db } from './core/DatabaseManager.js';
-import { PrismaClient } from "@prisma/client";
+import { prisma } from '../../shared/src/prismaClient.js';
+import { CONFIG } from './config.js';
 // import { toNumber } from '../../../shared/src/utils.js';
 import { processSymbolsInBatches, MarketCapData } from './core/priceService.js';
 
-const prisma = new PrismaClient();
+// Use shared Prisma client to ensure generated client is present
 
 // Optional helper to filter list by provided symbols
 function filterSymbols(all: string[], subset?: string[]): string[] {
@@ -170,6 +171,18 @@ export async function runPolygonJobFast(symbols?: string[]): Promise<void> {
           update: row,
         }))
       );
+    }
+
+    // Fetch logos for processed symbols before generating final report
+    try {
+      const { processLogosInBatches } = await import('./core/logoService.js');
+      console.log('🖼️ Processing logos before FinalReport...');
+      const batch = (CONFIG as any)?.LOGO_BATCH_SIZE ?? process.env.LOGO_BATCH_SIZE ?? 16;
+      const conc  = (CONFIG as any)?.LOGO_CONCURRENCY ?? process.env.LOGO_CONCURRENCY ?? 6;
+      await processLogosInBatches(symbolsToProcess, Number(batch), Number(conc));
+      console.log('🖼️ Logos processed');
+    } catch (e) {
+      console.warn('⚠️ Logo processing skipped/failed:', (e as any)?.message || e);
     }
 
     console.log('📊 OPTIMIZED: Generating final report...');
