@@ -1,4 +1,4 @@
-require("dotenv").config();
+try { require("dotenv").config(); } catch (_) { /* optional in production */ }
 console.log("[BOOT/web] cwd=" + process.cwd());
 console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
@@ -199,34 +199,12 @@ app.get("/api/final-report/:symbol", async (req, res) => {
   }
 });
 
-// Refresh FinalReport snapshot on-demand
-app.post("/api/final-report/refresh", async (req, res) => {
-  try {
-    const modPath = path.join(
-      __dirname,
-      "modules",
-      "cron",
-      "src",
-      "core",
-      "DatabaseManager.js"
-    );
-    const { db } = await import(modPath);
-    await db.generateFinalReport();
-    const count = await prisma.finalReport.count();
-    res.json({
-      success: true,
-      message: "FinalReport refreshed",
-      count,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error("❌ Error refreshing FinalReport:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to refresh FinalReport",
-      message: error.message,
-    });
-  }
+// Refresh FinalReport snapshot on-demand (disabled in production to avoid ESM import issues)
+app.post("/api/final-report/refresh", async (_req, res) => {
+  res.status(501).json({
+    success: false,
+    error: "Refresh endpoint is disabled in production. Use cron one-shot instead.",
+  });
 });
 
 // Health check endpoint
