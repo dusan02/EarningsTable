@@ -145,6 +145,8 @@ For production deployment, see:
 
 - **[PRODUCTION_MIGRATION_GUIDE.md](PRODUCTION_MIGRATION_GUIDE.md)** - Complete migration guide
 - **[PRODUCTION_QUICK_REFERENCE.md](PRODUCTION_QUICK_REFERENCE.md)** - Quick reference
+- **[modules/docs/logo-troubleshooting.md](modules/docs/logo-troubleshooting.md)** - Logos troubleshooting runbook (production)
+- **[modules/docs/diagnostics-cron-db-api-fe.md](modules/docs/diagnostics-cron-db-api-fe.md)** - End-to-end diagnostics (CRON → DB → API → FE)
 - **Deployment script**: `./deploy-production.sh`
 - **PM2 configuration**: `ecosystem.config.js`
 
