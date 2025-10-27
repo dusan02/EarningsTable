@@ -21,7 +21,7 @@ import sharp from "sharp";
 import fs from "fs/promises";
 import path from "path";
 import { CONFIG } from '../../../shared/src/config.js';
-import { db } from './DatabaseManager.js';
+import { db } from './DatabaseManager.ts';
 import pLimit from 'p-limit';
 
 // Absolute path to logo directory - always points to modules/web/public/logos in the repo root
