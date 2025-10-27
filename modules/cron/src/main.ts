@@ -3,8 +3,32 @@ import { db } from './core/DatabaseManager.js';
 import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
 import { DailyCycleManager } from './daily-cycle-manager.js';
+import { prisma } from '../../shared/src/prismaClient.js';
 
 const TZ = 'America/New_York'; // správne pre 7:00 NY (zohľadní DST)
+
+function truthyEnv(name: string): boolean {
+  const v = (process.env[name] || '').toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
+function getNYMidnight(): Date {
+  const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+  const yyyy = nowNY.getFullYear();
+  const mm = String(nowNY.getMonth() + 1).padStart(2, '0');
+  const dd = String(nowNY.getDate()).padStart(2, '0');
+  return new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`);
+}
+
+async function getTodaySymbolsFromFinnhub(): Promise<string[]> {
+  const reportDate = getNYMidnight();
+  const rows = await prisma.finhubData.findMany({
+    where: { reportDate },
+    select: { symbol: true },
+    distinct: ['symbol'],
+  });
+  return rows.map(r => r.symbol);
+}
 
 async function bootstrap() {
   const args = process.argv.slice(2);
@@ -111,10 +135,27 @@ async function runPipeline(label = "scheduled") {
   console.log(`🚦 Pipeline start [${label}]`);
   try {
     const { symbolsChanged } = await runFinnhubJob();
-    if (!symbolsChanged || symbolsChanged.length === 0) {
-      console.log('🛌 No Finnhub changes → skipping Polygon');
+
+    const RUN_FULL = truthyEnv('RUN_FULL_POLYGON');
+    let todaySymbolsCount = 0;
+    if (RUN_FULL || !symbolsChanged || symbolsChanged.length < 10) {
+      // Lazy-evaluate only when needed
+      const todaySymbols = await getTodaySymbolsFromFinnhub().catch(() => []);
+      todaySymbolsCount = todaySymbols.length;
+      const SMALL_DELTA = (symbolsChanged?.length || 0) < 10 && todaySymbolsCount >= 50;
+
+      if (RUN_FULL || SMALL_DELTA) {
+        console.log(`➡️  Running Polygon in FULL mode (${RUN_FULL ? 'env RUN_FULL_POLYGON' : 'small-delta heuristic'}) — today=${todaySymbolsCount}, delta=${symbolsChanged?.length || 0}`);
+        await runPolygonJob(todaySymbols);
+        console.log('✅ FULL Polygon refresh done');
+      } else if (symbolsChanged && symbolsChanged.length > 0) {
+        console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
+        await runPolygonJob(symbolsChanged);
+      } else {
+        console.log('🛌 No Finnhub changes → skipping Polygon');
+      }
     } else {
-      console.log(`➡️  Running Polygon for ${symbolsChanged.length} changed symbols`);
+      console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
       await runPolygonJob(symbolsChanged);
     }
     console.log(`✅ Pipeline done in ${Date.now() - t0}ms`);
