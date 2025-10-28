@@ -3,6 +3,7 @@
 Short, corrected answers with inline code citations to your source files.
 
 Related guides:
+
 - See `modules/docs/logo-troubleshooting.md` for the production logos incident runbook.
 - See `modules/docs/diagnostics-cron-db-api-fe.md` for an end-to-end diagnostics checklist.
 

@@ -1,7 +1,10 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import Decimal from 'decimal.js';
 import { DateTime } from 'luxon';
 import { CONFIG } from '../../../shared/src/config.js';
+import pLimit from 'p-limit';
 
 // Types
 export interface Snapshot {
@@ -96,6 +99,9 @@ const SNAP_TTL = 5 * 60 * 1000; // 5 minutes (increased from 2)
 const NULL_TTL = 15 * 60 * 1000; // 15 minutes for null/partial ticker info
 
 // API helper with retry logic
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 50 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 50 });
+
 async function apiCall<T>(path: string, params: any = {}): Promise<T> {
   const maxRetries = 2;
   let lastError: any;
@@ -106,6 +112,8 @@ async function apiCall<T>(path: string, params: any = {}): Promise<T> {
         params: { apikey: CONFIG.POLYGON_API_KEY, ...params },
         timeout: 10000,
         headers: { 'User-Agent': 'EarningsTable/1.0 (+price-service)' },
+        httpAgent,
+        httpsAgent,
       });
       return response.data;
     } catch (error: any) {
@@ -533,13 +541,14 @@ async function getSnapshotsIndividual(tickers: string[]): Promise<Snapshot[]> {
   console.log(`→ Fetching individual snapshots for ${tickers.length} symbols...`);
   
   const results: Snapshot[] = [];
-  const BATCH_SIZE = 50; // OPTIMIZED: Increased batch size for better performance
+  const BATCH_SIZE = CONFIG.SNAPSHOT_BATCH_SIZE || 50; // tunable
+  const limit = pLimit(CONFIG.SNAPSHOT_TICKER_CONCURRENCY || 12);
   
   // Process in batches
   for (let i = 0; i < tickers.length; i += BATCH_SIZE) {
     const batch = tickers.slice(i, i + BATCH_SIZE);
     
-    const batchPromises = batch.map(async (ticker) => {
+    const batchPromises = batch.map((ticker) => limit(async () => {
       try {
         // Normalize ticker for Polygon API
         const normalizedTicker = normalizeToPolygonTicker(ticker);
@@ -566,14 +575,15 @@ async function getSnapshotsIndividual(tickers: string[]): Promise<Snapshot[]> {
         console.log(`→ Failed to get snapshot for ${ticker}: ${(error as any).response?.status || (error as any).message}`);
         return null;
       }
-    });
+    }));
     
     const batchResults = await Promise.all(batchPromises);
     results.push(...batchResults.filter(Boolean) as Snapshot[]);
     
-    // Small delay between batches
+    // Small delay between batches (tunable)
     if (i + BATCH_SIZE < tickers.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      const delay = (CONFIG.SNAPSHOT_BATCH_DELAY_MS ?? 50) + Math.floor(Math.random() * 50);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
   
@@ -614,8 +624,8 @@ export function pickPrice(t: any): PriceResult {
   
   // Get current session to determine if we should allow prevDay fallback
   const currentSession = getCurrentSession();
-  // Only allow prevDay fallback during after-hours, not during regular trading hours
-  const allowPrevDayFallback = currentSession === 'afterhours';
+  // Allow prevDay fallback if explicitly enabled via env flag, otherwise only during after-hours
+  const allowPrevDayFallback = (process.env.ALLOW_PREV_CLOSE_FALLBACK === 'true') || (currentSession === 'afterhours');
   
   const candidates = [
     t?.preMarket?.price != null && { p: +t.preMarket.price, t: normTs(t.preMarket.timestamp), s: 'pre', session: 'premarket' as const },
@@ -935,8 +945,8 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
 // 9. Batch processing for large symbol lists
 export async function processSymbolsInBatches(
   symbols: string[], 
-  batchSize: number = 80, 
-  concurrency: number = 10
+  batchSize: number = 100, 
+  concurrency: number = 12
 ): Promise<MarketCapData[]> {
   console.log(`→ Processing ${symbols.length} symbols in batches of ${batchSize} with concurrency ${concurrency}...`);
   
@@ -950,9 +960,9 @@ export async function processSymbolsInBatches(
     const batchResults = await processSymbolsWithPriceService(batch);
     results.push(...batchResults);
     
-    // OPTIMIZED: Reduced delay between batches (50ms vs 100ms)
+    // OPTIMIZED: Further reduced delay between batches (25ms vs 50ms)
     if (i + batchSize < symbols.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 25));
     }
   }
   

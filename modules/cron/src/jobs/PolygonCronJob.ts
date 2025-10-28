@@ -1,6 +1,7 @@
 import { BaseCronJob } from '../core/BaseCronJob.js';
 import { db } from '../core/DatabaseManager.js';
 import { processSymbolsInBatches } from '../core/priceService.js';
+import { CONFIG } from '../../../shared/src/config.js';
 
 export class PolygonCronJob extends BaseCronJob {
   constructor() {
@@ -13,13 +14,13 @@ export class PolygonCronJob extends BaseCronJob {
   }
 
   async execute(): Promise<void> {
-    console.log('🚀 Starting PolygonCronJob execution with PriceService...');
+    console.log('🚀 Starting PolygonCronJob execution with batch processing...');
     
     // Mark job as running
     await db.updateCronStatus('polygon', 'running');
     
     try {
-      // Get all symbols from PolygonData table
+      // Get symbols from PolygonData table (these were copied from Finnhub)
       console.log('📊 Getting symbols from PolygonData table...');
       const symbols = await db.getUniqueSymbolsFromPolygonData();
       
@@ -31,16 +32,30 @@ export class PolygonCronJob extends BaseCronJob {
 
       console.log(`📈 Found ${symbols.length} symbols to process`);
 
-      // Use PriceService for optimized market cap data fetching
-      console.log('🌐 Fetching market cap data using PriceService...');
-      const marketData = await processSymbolsInBatches(symbols, 80, 10);
+      // STEP 1: Fetch market cap, price, company names in batches
+      console.log('🌐 STEP 1: Fetching market cap data using batch processing...');
+      const marketData = await processSymbolsInBatches(
+        symbols,
+        CONFIG.SNAPSHOT_BATCH_SIZE || 100,
+        12
+      );
 
-      // Update PolygonData table with market cap data
-      console.log('💾 Updating PolygonData with market cap information...');
+      // STEP 2: Update PolygonData table with market cap data
+      console.log('💾 STEP 2: Updating PolygonData with market cap information...');
       await db.updatePolygonMarketCapData(marketData);
 
-      // Generate final report after updating market cap data
-      console.log('🔄 Generating final report...');
+      // STEP 3: Process missing logos (only for symbols that don't have logos yet)
+      console.log('🖼️ STEP 3: Processing missing logos...');
+      const { processLogosInBatches } = await import('../core/logoService.js');
+      const logoResult = await processLogosInBatches(
+        symbols,
+        CONFIG.LOGO_BATCH_SIZE || 12,
+        CONFIG.LOGO_CONCURRENCY || 6
+      );
+      console.log(`✅ Logo processing completed: ${logoResult.success} success, ${logoResult.failed} failed`);
+
+      // STEP 4: Generate final report after updating all data
+      console.log('🔄 STEP 4: Generating final report...');
       await db.generateFinalReport();
 
       // Mark job as successful

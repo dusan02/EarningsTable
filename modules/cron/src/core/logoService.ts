@@ -26,7 +26,7 @@ import { prisma } from '../../../shared/src/prismaClient.js';
 import pLimit from 'p-limit';
 
 // Absolute path to logo directory - always points to modules/web/public/logos in the repo root
-const OUT_DIR = path.resolve(process.cwd(), "modules", "web", "public", "logos");
+const OUT_DIR = path.resolve(process.cwd(), "..", "web", "public", "logos");
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 20 });
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 20 });
 const LOGO_TTL_DAYS = 30;

@@ -5,15 +5,23 @@
     "private": true,
     "type": "module",
     "main": "src/index.js",
+    "prisma": {
+        "schema": "../database/prisma/schema.prisma"
+    },
     "scripts": {
         "build": "tsc",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "postinstall": "prisma generate"
     },
     "dependencies": {
-        "dotenv": "^16.4.5"
+        "@prisma/client": "^6.18.0",
+        "axios": "^1.7.2",
+        "dotenv": "^16.4.5",
+        "luxon": "^3.5.0"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
+        "prisma": "^6.18.0",
         "typescript": "^5.6.3"
     },
     "keywords": [

@@ -4,22 +4,21 @@ import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
 import { DailyCycleManager } from './daily-cycle-manager.js';
 import { prisma } from '../../shared/src/prismaClient.js';
+import { validateConfig } from '../../shared/src/config.js';
+import { TimezoneManager } from '../../shared/src/timezone.js';
+import { IdempotencyManager } from '../../shared/src/idempotency.js';
+import { optimizedPipeline } from './optimized-pipeline.js';
+import { performanceMonitor } from './performance-monitor.js';
+import { syntheticTestsJob } from './jobs/synthetic-tests.js';
 
 const TZ = process.env.CRON_TZ || 'America/New_York'; // NY timezone je povinná pre konzistentné tick-y
 
 function nowNY() {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+  return TimezoneManager.nowNY();
 }
 
 function isoNY(d = nowNY()) {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = d.getUTCFullYear();
-  const m = pad(d.getUTCMonth() + 1);
-  const dd = pad(d.getUTCDate());
-  const hh = pad(d.getUTCHours());
-  const mm = pad(d.getUTCMinutes());
-  const ss = pad(d.getUTCSeconds());
-  return `${y}-${m}-${dd}T${hh}:${mm}:${ss}.000Z`;
+  return TimezoneManager.getNYDateString(d);
 }
 
 function truthyEnv(name: string): boolean {
@@ -54,6 +53,15 @@ async function bootstrap() {
   console.log(`📅 Timezone: ${TZ}`);
   console.log(`🔄 Mode: ${once ? 'once' : 'scheduled'}`);
 
+  // Validate environment variables
+  try {
+    validateConfig();
+    console.log('✅ Environment variables validated');
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    return;
+  }
+
   try {
     switch (command) {
       case 'start':
@@ -80,19 +88,28 @@ async function bootstrap() {
 
       case 'status':
         console.log('📊 Cron Jobs Status:');
-        console.log('  ✅ Pipeline: Finnhub → Polygon (*/5 6-20 * * 1-5 @ America/New_York)');
-        console.log('  ✅ Polygon Market Cap Data (*/5 9-17 * * 1-5 @ America/New_York)');
+        console.log('  ✅ Pipeline: Finnhub → Polygon (03:05-03:55, 04:00-20:00 every 5min @ America/New_York)');
+        console.log('  ✅ Daily Clear: 03:00 NY (Mon-Fri)');
+        console.log('  ✅ Boot Guard: Automatic recovery after restart');
+        console.log('  ✅ Environment: Validated');
         break;
 
       case 'list':
         console.log('📋 Available Cron Jobs:');
         console.log('  - Daily Cycle Manager (03:00 clear, 03:05 start, every 5min until 02:30)');
-        console.log('  - Pipeline (*/5 6-20): Finnhub → Polygon');
+        console.log('  - Pipeline (03:05-03:55, 04:00-20:00): Finnhub → Polygon');
         console.log('  - Daily clear 03:00 NY (Mon–Fri)');
+        console.log('  - Boot guard recovery system');
         break;
 
-      case 'help':
-      default:
+             case 'performance-report':
+               console.log(performanceMonitor.generateReport());
+               break;
+             case 'synthetic-tests':
+               await syntheticTestsJob.runOnce();
+               break;
+             case 'help':
+             default:
         console.log(`
 🕐 Cron Manager
 
@@ -111,6 +128,12 @@ Options:
   --once             Run once and exit (for testing/debugging)
   --date=YYYY-MM-DD  Fetch data for specific date (Finnhub only)
   --force            Force overwrite existing data (Finnhub only)
+
+Schedule:
+  🧹 03:00 NY - Daily clear (Mon-Fri)
+  📊 03:05-03:55 NY - Early slot every 5min (Mon-Fri)
+  📊 04:00-20:00 NY - Day slot every 5min (Mon-Fri)
+  🛡️ Boot guard - Automatic recovery after restart
 
 Examples:
   npm run cron daily-cycle                        # Start daily cycle manager
@@ -140,48 +163,36 @@ async function startDailyCycle() {
 
 
 let __pipelineRunning = false;
+const PIPELINE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+
 async function runPipeline(label = "scheduled") {
   if (__pipelineRunning) {
     console.log("⏭️  Pipeline skip (previous run still in progress)");
     return;
   }
   __pipelineRunning = true;
-  const t0 = Date.now();
-  console.log(`🚦 Pipeline start [${label}]`);
+  
+  // Timeout guard to prevent stuck pipeline
+  const timeoutId = setTimeout(() => {
+    console.log("⚠️ Pipeline timeout — resetting flag");
+    __pipelineRunning = false;
+  }, PIPELINE_TIMEOUT_MS);
+  
   try {
-    const { symbolsChanged } = await runFinnhubJob();
-
-    const RUN_FULL = truthyEnv('RUN_FULL_POLYGON');
-    let todaySymbolsCount = 0;
-    if (RUN_FULL || !symbolsChanged || symbolsChanged.length < 10) {
-      // Lazy-evaluate only when needed
-      const todaySymbols = await getTodaySymbolsFromFinnhub().catch(() => []);
-      todaySymbolsCount = todaySymbols.length;
-      const SMALL_DELTA = (symbolsChanged?.length || 0) < 10 && todaySymbolsCount >= 50;
-
-      if (RUN_FULL || SMALL_DELTA) {
-        console.log(`➡️  Running Polygon in FULL mode (${RUN_FULL ? 'env RUN_FULL_POLYGON' : 'small-delta heuristic'}) — today=${todaySymbolsCount}, delta=${symbolsChanged?.length || 0}`);
-        await runPolygonJob(todaySymbols);
-        console.log('✅ FULL Polygon refresh done');
-        await db.updateCronStatus('pipeline', 'success', todaySymbolsCount, `full:${symbolsChanged?.length || 0}`);
-      } else if (symbolsChanged && symbolsChanged.length > 0) {
-        console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
-        await runPolygonJob(symbolsChanged);
-        await db.updateCronStatus('pipeline', 'success', symbolsChanged.length, 'delta');
-      } else {
-        console.log('🛌 No Finnhub changes → skipping Polygon');
-        await db.updateCronStatus('pipeline', 'success', 0, 'delta:0');
-      }
-    } else {
-      console.log(`➡️  Running Polygon (delta) for ${symbolsChanged.length} symbols`);
-      await runPolygonJob(symbolsChanged);
-      await db.updateCronStatus('pipeline', 'success', symbolsChanged.length, 'delta');
-    }
-    console.log(`✅ Pipeline done in ${Date.now() - t0}ms`);
+    // Use optimized pipeline for better performance
+    const metrics = await optimizedPipeline.runPipeline(label);
+    
+    // Record performance metrics
+    performanceMonitor.recordSnapshot(metrics);
+    
+    // Save performance data to database
+    await performanceMonitor.saveToDatabase();
+    
   } catch (e) {
     console.error('❌ Pipeline failed:', e);
     try { await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e)); } catch {}
   } finally {
+    clearTimeout(timeoutId);
     __pipelineRunning = false;
   }
 }
@@ -204,22 +215,22 @@ function scheduleBootGuardAfterClear() {
     const nyMinute = nowNY.getMinutes();
     const nySecond = nowNY.getSeconds();
 
-    const inWindow_03_00_to_03_30 = (nyHour === 3 && (nyMinute < 30 || (nyMinute === 30 && nySecond === 0)));
-    const inWindow_03_30_to_03_35 = (nyHour === 3 && nyMinute >= 30 && nyMinute < 35);
+    const inWindow_03_00_to_03_05 = (nyHour === 3 && (nyMinute < 5 || (nyMinute === 5 && nySecond === 0)));
+    const inWindow_03_05_to_03_10 = (nyHour === 3 && nyMinute >= 5 && nyMinute < 10);
 
-    if (inWindow_03_00_to_03_30) {
-      // Cieľ: dnes 03:30:00 NY
+    if (inWindow_03_00_to_03_05) {
+      // Cieľ: dnes 03:05:00 NY
       const targetNY = new Date(nowNY);
-      targetNY.setHours(3, 30, 0, 0);
+      targetNY.setHours(3, 5, 0, 0);
 
       // Vypočítaj delay v ms v NY čase
       const delayMs = targetNY.getTime() - nowNY.getTime();
       if (delayMs > 0) {
-        console.log(`🛡️  Boot guard: scheduled one-shot run @ 03:30 NY in ~${Math.round(delayMs/1000)}s`);
+        console.log(`🛡️  Boot guard: scheduled one-shot run @ 03:05 NY in ~${Math.round(delayMs/1000)}s`);
         setTimeout(async () => {
           try {
-            console.log('🛡️  Boot guard firing @ 03:30 NY → runPipeline("boot-guard-03:30")');
-            await runPipeline('boot-guard-03:30');
+            console.log('🛡️  Boot guard firing @ 03:05 NY → runPipeline("boot-guard-03:05")');
+            await runPipeline('boot-guard-03:05');
           } catch (e) {
             console.error('❌ Boot guard run failed:', e);
           }
@@ -228,17 +239,17 @@ function scheduleBootGuardAfterClear() {
       return;
     }
 
-    if (inWindow_03_30_to_03_35) {
-      // Reštart tesne po 03:30 – spusti hneď
-      console.log('🛡️  Boot guard: within 03:30–03:35 NY → running immediately');
-      runPipeline('boot-guard-03:30-late').catch(err =>
+    if (inWindow_03_05_to_03_10) {
+      // Reštart tesne po 03:05 – spusti hneď
+      console.log('🛡️  Boot guard: within 03:05–03:10 NY → running immediately');
+      runPipeline('boot-guard-03:05-late').catch(err =>
         console.error('❌ Boot guard late run failed:', err)
       );
       return;
     }
 
     // Mimo okna – nič nerob, crony sa postarajú
-    console.log('🛡️  Boot guard: outside 03:00–03:35 NY window → no-op');
+    console.log('🛡️  Boot guard: outside 03:00–03:10 NY window → no-op');
   } catch (e) {
     console.error('❌ scheduleBootGuardAfterClear error:', e);
   }
@@ -248,9 +259,9 @@ async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
   if (!once) {
-    // ✅ 30-min „prázdne“ okno po cleare (03:00–03:30 NY)
-    // 1) Early slot: 03:30–03:55 každých 5 min
-    const EARLY_CRON = '30,35,40,45,50,55 3 * * 1-5';
+    // ✅ 5-min „prázdne“ okno po cleare (03:00–03:05 NY)
+    // 1) Early slot: 03:05–03:55 každých 5 min
+    const EARLY_CRON = '5,10,15,20,25,30,35,40,45,50,55 3 * * 1-5';
     const EARLY_VALID = cron.validate(EARLY_CRON);
     if (!EARLY_VALID) console.error(`❌ Invalid cron expression: ${EARLY_CRON}`);
     cron.schedule(EARLY_CRON, async () => {
@@ -287,6 +298,9 @@ async function startAllCronJobs(once: boolean) {
     console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
 
     console.log('✅ All cron jobs started successfully');
+
+    // Start synthetic tests job
+    await syntheticTestsJob.start();
 
     // 🛡️  Jednorazový guard – ak by early slot nebehol (reštart okolo 03:30 a pod.)
     // plánuje / spustí runPipeline v okne po daily cleare

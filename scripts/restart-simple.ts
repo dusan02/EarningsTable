@@ -16,9 +16,9 @@ async function main() {
   await run("pm2", ["stop", "earnings-web"]);
   await run("pm2", ["stop", "earnings-cron"]);
   
-  // 2) Soft clear dát
+  // 2) Soft clear dát (centralizovaný skript v root)
   console.log("🗑️ Clearing database...");
-  await run("npx", ["tsx", "modules/cron/src/clear-db-cron.ts"]);
+  await run("node", ["clear-all-data.js"]);
   
   // 3) Štart
   console.log("🚀 Starting services...");

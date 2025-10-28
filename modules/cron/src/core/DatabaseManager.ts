@@ -43,7 +43,7 @@ export class DatabaseManager {
     revActual?: number | null;
     revEst?: number | null;
     revSurp?: number | null;
-  }): Promise<void> {
+  }, ctx?: { reportDate?: Date; snapshotDate?: Date }): Promise<void> {
     const prevMC = incoming.previousMarketCap ?? null;
     const changePct = incoming.change ?? null;
 
@@ -70,8 +70,8 @@ export class DatabaseManager {
       revActual: incoming.revActual,
       revEst: incoming.revEst,
       revSurp: incoming.revSurp,
-      reportDate: new Date(),
-      snapshotDate: new Date(),
+      reportDate: ctx?.reportDate ?? new Date(),
+      snapshotDate: ctx?.snapshotDate ?? new Date(),
     });
 
     const updateData = normalizeFinalReportDates({
@@ -87,8 +87,8 @@ export class DatabaseManager {
       revActual: incoming.revActual,
       revEst: incoming.revEst,
       revSurp: incoming.revSurp,
-      reportDate: new Date(),
-      snapshotDate: new Date(),
+      reportDate: ctx?.reportDate ?? new Date(),
+      snapshotDate: ctx?.snapshotDate ?? new Date(),
     });
 
     await prisma.finalReport.upsert({
@@ -404,7 +404,8 @@ export class DatabaseManager {
     const polygonSymbols = await prisma.polygonData.findMany({
       select: { symbol: true },
       where: {
-        Boolean: true
+        // Relaxed condition: accept records with marketCap present even if live price is missing
+        marketCap: { not: null }
       },
     });
 
@@ -413,20 +414,27 @@ export class DatabaseManager {
 
     const commonSymbols = Array.from(finhubSymbolSet).filter(symbol => polygonSymbolSet.has(symbol));
 
-    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData with Boolean = true (all conditions met)`);
-    const todayNY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    const reportDateISO = new Date(`${todayNY}T00:00:00.000Z`);
-    const snapshotDateISO = reportDateISO;
+    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData (marketCap present)`);
+    // Use deterministic timestamps for this run (NY midnight)
+    const { getRunTimestamps } = await import('../utils/time.js');
+    const { reportDate: reportDateISO, snapshotDate: snapshotDateISO } = getRunTimestamps();
 
+    // Fetch all required rows in bulk to reduce round-trips
+    const finRows = await prisma.finhubData.findMany({
+      where: { symbol: { in: commonSymbols } },
+      orderBy: [{ symbol: 'asc' }, { reportDate: 'desc' }],
+    });
+    const finMap = new Map<string, typeof finRows[number]>();
+    for (const row of finRows) {
+      if (!finMap.has(row.symbol)) finMap.set(row.symbol, row);
+    }
+    const polRows = await prisma.polygonData.findMany({ where: { symbol: { in: commonSymbols } } });
+    const polMap = new Map(polRows.map(r => [r.symbol, r] as const));
+
+    const upserts: Parameters<typeof prisma.finalReport.upsert>[0][] = [];
     for (const symbol of commonSymbols) {
-      const finhubData = await prisma.finhubData.findFirst({
-        where: { symbol },
-        orderBy: { reportDate: 'desc' },
-      });
-
-      const polygonData = await prisma.polygonData.findUnique({
-        where: { symbol },
-      });
+      const finhubData = finMap.get(symbol);
+      const polygonData = polMap.get(symbol);
 
       if (finhubData && polygonData) {
         const epsSurp = (finhubData.epsActual != null && finhubData.epsEstimate != null && finhubData.epsEstimate !== 0)
@@ -461,9 +469,9 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
-          logoUrl: (polygonData as any).logoUrl,
-          logoSource: (polygonData as any).logoSource,
-          logoFetchedAt: (polygonData as any).logoFetchedAt,
+          logoUrl: finhubData.logoUrl,
+          logoSource: finhubData.logoSource,
+          logoFetchedAt: finhubData.logoFetchedAt,
         });
 
         const updateData = normalizeFinalReportDates({
@@ -481,20 +489,22 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
-          logoUrl: (polygonData as any).logoUrl,
-          logoSource: (polygonData as any).logoSource,
-          logoFetchedAt: (polygonData as any).logoFetchedAt,
+          logoUrl: finhubData.logoUrl,
+          logoSource: finhubData.logoSource,
+          logoFetchedAt: finhubData.logoFetchedAt,
         });
 
-        await prisma.finalReport.upsert({
+        upserts.push({
           where: { symbol },
           create: createData,
           update: updateData,
         });
       }
     }
-
-    console.log(`✅ FinalReport snapshot stored: ${commonSymbols.length} symbols`);
+    if (upserts.length > 0) {
+      await prisma.$transaction(upserts.map(d => prisma.finalReport.upsert(d)));
+    }
+    console.log(`✅ FinalReport snapshot stored: ${upserts.length} symbols`);
   }
 
   async getFinalReport(): Promise<any[]> {
@@ -510,15 +520,60 @@ export class DatabaseManager {
   }
 
   async updateLogoInfo(symbol: string, logoUrl: string | null, logoSource: string | null): Promise<void> {
-    await prisma.finhubData.updateMany({
-      where: { symbol },
-      data: {
-        logoUrl,
-        logoSource,
-        logoFetchedAt: new Date(),
-      },
-    });
-    console.log(`   → Updated logo info for ${symbol}: ${logoUrl} (${logoSource})`);
+    // Update both FinhubData and FinalReport to maintain consistency
+    await Promise.all([
+      // Update FinhubData (for backward compatibility)
+      prisma.finhubData.updateMany({
+        where: { symbol },
+        data: {
+          logoUrl,
+          logoSource,
+          logoFetchedAt: new Date(),
+        },
+      }),
+      // Update FinalReport (primary source for frontend)
+      prisma.finalReport.updateMany({
+        where: { symbol },
+        data: {
+          logoUrl,
+          logoSource,
+          logoFetchedAt: new Date(),
+        },
+      })
+    ]);
+    
+    // Reduced logging for better performance
+    if (logoUrl) {
+      console.log(`   → Updated logo info for ${symbol}: ${logoUrl} (${logoSource})`);
+    }
+  }
+
+  // Batch update logo info for better performance
+  async batchUpdateLogoInfo(updates: Array<{ symbol: string; logoUrl: string | null; logoSource: string | null }>): Promise<void> {
+    if (updates.length === 0) return;
+    
+    console.log(`   → Batch updating logo info for ${updates.length} symbols...`);
+    
+    const batchSize = 50;
+    for (let i = 0; i < updates.length; i += batchSize) {
+      const batch = updates.slice(i, i + batchSize);
+      
+      await prisma.$transaction(
+        batch.map(update =>
+          prisma.finhubData.updateMany({
+            where: { symbol: update.symbol },
+            data: {
+              logoUrl: update.logoUrl,
+              logoSource: update.logoSource,
+              logoFetchedAt: new Date(),
+            },
+          })
+        )
+      );
+    }
+    
+    const successCount = updates.filter(u => u.logoUrl).length;
+    console.log(`   → Batch updated ${successCount}/${updates.length} logos successfully`);
   }
 
   async getSymbolsNeedingLogoRefresh(): Promise<string[]> {
@@ -526,6 +581,7 @@ export class DatabaseManager {
       where: {
         OR: [
           { logoUrl: null },
+          { logoSource: null },
           { logoFetchedAt: null },
           {
             logoFetchedAt: {

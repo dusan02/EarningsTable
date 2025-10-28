@@ -3,17 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@prisma/client": "^6.17.1",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "prisma": "^6.17.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@prisma/client": "6.17.1",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "cors": "2.8.5",
+    "express": "5.1.0",
+    "prisma": "6.17.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-scripts": "5.0.1",
-    "sqlite3": "^5.1.7",
-    "typescript": "^4.9.5"
+    "sqlite3": "5.1.7",
+    "typescript": "4.9.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

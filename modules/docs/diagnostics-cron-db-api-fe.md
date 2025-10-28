@@ -119,7 +119,7 @@ SELECT COUNT(*) FROM FinalReport WHERE reportDate = <DNES> AND (logoUrl IS NULL 
    - `GET /api/final-report`
    - `GET /api/final-report/stats`
    - `POST /api/final-report/refresh`
-   Sú stabilné, s cashovaním/bez? Nepoužíva sa niekde zastaraný súbor?
+     Sú stabilné, s cashovaním/bez? Nepoužíva sa niekde zastaraný súbor?
 2. Je tam žiadne `process.exit()` ani „hard kill“ v runtime?
 3. Sú odpovede označené anti-cache hlavičkami, ak chceme vždy čerstvé dáta?
 
@@ -198,35 +198,44 @@ curl -sS https://www.earningstable.com/api/final-report/stats
 
 ```ts
 // scripts/smoke-cron.ts
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
+import "dotenv/config";
+import { PrismaClient } from "@prisma/client";
 
 async function main() {
-  console.log('CRON_TZ=', process.env.CRON_TZ);
-  console.log('Now UTC:', new Date().toISOString());
-  const nowNY = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
-  console.log('Now NY :', nowNY);
+  console.log("CRON_TZ=", process.env.CRON_TZ);
+  console.log("Now UTC:", new Date().toISOString());
+  const nowNY = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+  });
+  console.log("Now NY :", nowNY);
 
   const prisma = new PrismaClient();
-  const todayNY = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const todayNY = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
   const yyyy = todayNY.getFullYear();
-  const mm = String(todayNY.getMonth() + 1).padStart(2, '0');
-  const dd = String(todayNY.getDate()).padStart(2, '0');
+  const mm = String(todayNY.getMonth() + 1).padStart(2, "0");
+  const dd = String(todayNY.getDate()).padStart(2, "0");
   const reportDate = new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`);
 
-  const count = await prisma.finalReport.count({ where: { reportDate }});
-  console.log('FinalReport today rows:', count);
+  const count = await prisma.finalReport.count({ where: { reportDate } });
+  console.log("FinalReport today rows:", count);
 
   try {
-    const status = await prisma.cronStatus.findFirst({ orderBy: { updatedAt: 'desc' }});
-    console.log('Last cron status:', status);
+    const status = await prisma.cronStatus.findFirst({
+      orderBy: { updatedAt: "desc" },
+    });
+    console.log("Last cron status:", status);
   } catch (e) {
-    console.log('No cron_status table or error:', (e as Error).message);
+    console.log("No cron_status table or error:", (e as Error).message);
   }
   await prisma.$disconnect();
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
 ```
 
 - Pridaj npm script: `"smoke:cron": "tsx scripts/smoke-cron.ts"` a ukáž výstup z produkcie:
@@ -262,5 +271,3 @@ npm run smoke:cron
 7. Nginx: vypni/probierni proxy cache pre `/api/` a po deploy urob purge.
 8. Backfill `logoUrl` z `/logos/*.webp|svg` (ak nie je v DB).
 9. Healthcheck + UptimeRobot na `/api/health` + alarm pri 0 riadkoch pre dnešný deň.
-
-

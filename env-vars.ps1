@@ -5,10 +5,11 @@ Write-Host "Setting up Environment Variables..." -ForegroundColor Green
 
 # Nastaviť environment premenné
 $env:DATABASE_URL = "file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
-$env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
+$env:FINNHUB_TOKEN = "YOUR_FINNHUB_TOKEN_HERE"
+$env:POLYGON_API_KEY = "YOUR_POLYGON_API_KEY_HERE"
+$env:ALLOW_PREV_CLOSE_FALLBACK = "true"
 $env:CRON_TZ = "America/New_York"
-$env:PORT = "5555"
+$env:PORT = "3001"
 $env:NODE_ENV = "development"
 
 Write-Host "✅ Environment variables set:" -ForegroundColor Green

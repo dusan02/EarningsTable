@@ -52,17 +52,8 @@ export class FinnhubCronJob extends BaseCronJob {
       console.log('🔄 Copying symbols to PolygonData table...');
       await db.copySymbolsToPolygonData();
       
-      // Process logos for new symbols
-      console.log('🖼️ Checking for symbols that need logo updates...');
-      const symbolsNeedingLogos = await db.getSymbolsNeedingLogoRefresh();
-      
-      if (symbolsNeedingLogos.length > 0) {
-        console.log(`🖼️ Found ${symbolsNeedingLogos.length} symbols needing logo updates`);
-        const logoResult = await processLogosInBatches(symbolsNeedingLogos, 5, 3);
-        console.log(`🖼️ Logo processing completed: ${logoResult.success} success, ${logoResult.failed} failed`);
-      } else {
-        console.log('🖼️ All symbols already have up-to-date logos');
-      }
+      // Skip logo processing here - will be done in main pipeline to avoid duplicates
+      console.log('🖼️ Logo processing will be handled by main pipeline to avoid duplicates');
       
       // Mark job as successful
       await db.updateCronStatus('finnhub', 'success', rows.length);

@@ -1,4 +1,8 @@
-try { require("dotenv").config(); } catch (_) { /* optional in production */ }
+try {
+  require("dotenv").config();
+} catch (_) {
+  /* optional in production */
+}
 console.log("[BOOT/web] cwd=" + process.cwd());
 console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
@@ -188,7 +192,18 @@ app.get("/api/final-report/:symbol", async (req, res) => {
       return res
         .status(404)
         .json({ success: false, error: "Company not found" });
-    res.json({ success: true, data, timestamp: new Date().toISOString() });
+    const serialized = {
+      ...data,
+      marketCap: data.marketCap ? data.marketCap.toString() : null,
+      marketCapDiff: data.marketCapDiff ? data.marketCapDiff.toString() : null,
+      revActual: data.revActual ? data.revActual.toString() : null,
+      revEst: data.revEst ? data.revEst.toString() : null,
+    };
+    res.json({
+      success: true,
+      data: serialized,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("❌ Error fetching company:", error);
     res.status(500).json({
@@ -203,8 +218,94 @@ app.get("/api/final-report/:symbol", async (req, res) => {
 app.post("/api/final-report/refresh", async (_req, res) => {
   res.status(501).json({
     success: false,
-    error: "Refresh endpoint is disabled in production. Use cron one-shot instead.",
+    error:
+      "Refresh endpoint is disabled in production. Use cron one-shot instead.",
   });
+});
+
+// Last good data endpoint (24h cache)
+let lastGoodData = null;
+let lastGoodDataTimestamp = null;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+app.get("/api/final-report/last-good", async (req, res) => {
+  try {
+    const now = Date.now();
+
+    // Check if we have cached data and it's still fresh
+    if (
+      lastGoodData &&
+      lastGoodDataTimestamp &&
+      now - lastGoodDataTimestamp < CACHE_DURATION
+    ) {
+      res.json({
+        success: true,
+        data: lastGoodData,
+        cached: true,
+        cachedAt: new Date(lastGoodDataTimestamp).toISOString(),
+        age: Math.round((now - lastGoodDataTimestamp) / 60000), // minutes
+      });
+      return;
+    }
+
+    // Try to get fresh data
+    const freshData = await prisma.finalReport.findMany({
+      orderBy: { updatedAt: "desc" },
+      take: 1000,
+    });
+
+    if (freshData && freshData.length > 0) {
+      // Update cache
+      lastGoodData = freshData;
+      lastGoodDataTimestamp = now;
+
+      res.json({
+        success: true,
+        data: freshData,
+        cached: false,
+        cachedAt: new Date(now).toISOString(),
+        age: 0,
+      });
+    } else {
+      // No fresh data, return cached if available
+      if (lastGoodData) {
+        res.json({
+          success: true,
+          data: lastGoodData,
+          cached: true,
+          cachedAt: new Date(lastGoodDataTimestamp).toISOString(),
+          age: Math.round((now - lastGoodDataTimestamp) / 60000),
+          warning: "Using cached data - no fresh data available",
+        });
+      } else {
+        res.status(503).json({
+          success: false,
+          error: "No data available",
+          message: "No earnings data available",
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Last good data endpoint error:", error);
+
+    // Return cached data if available
+    if (lastGoodData) {
+      res.json({
+        success: true,
+        data: lastGoodData,
+        cached: true,
+        cachedAt: new Date(lastGoodDataTimestamp).toISOString(),
+        age: Math.round((Date.now() - lastGoodDataTimestamp) / 60000),
+        warning: "Using cached data due to error",
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: "Database error",
+        message: "Unable to fetch earnings data",
+      });
+    }
+  }
 });
 
 // Health check endpoint

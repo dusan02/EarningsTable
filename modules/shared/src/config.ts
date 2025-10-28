@@ -5,6 +5,7 @@ export const CONFIG = {
   // API konfigurácia
   FINNHUB_TOKEN: process.env.FINNHUB_TOKEN!,
   POLYGON_API_KEY: process.env.POLYGON_API_KEY!,
+  IEX_TOKEN: process.env.IEX_TOKEN!,
   
   // Databáza
   DATABASE_URL: process.env.DATABASE_URL!,
@@ -19,6 +20,14 @@ export const CONFIG = {
   
   // Environment
   NODE_ENV: process.env.NODE_ENV || 'development',
+
+  // Concurrency and batching (tunable via env)
+  SNAPSHOT_BATCH_SIZE: parseInt(process.env.SNAPSHOT_BATCH_SIZE || '75'),
+  SNAPSHOT_BATCH_DELAY_MS: parseInt(process.env.SNAPSHOT_BATCH_DELAY_MS || '50'),
+  LOGO_BATCH_SIZE: parseInt(process.env.LOGO_BATCH_SIZE || '12'),
+  LOGO_CONCURRENCY: parseInt(process.env.LOGO_CONCURRENCY || '6'),
+  LOGO_BATCH_DELAY_MS: parseInt(process.env.LOGO_BATCH_DELAY_MS || '150'),
+  SNAPSHOT_TICKER_CONCURRENCY: parseInt(process.env.SNAPSHOT_TICKER_CONCURRENCY || '12'),
 };
 
 // Validácia povinných environment premenných

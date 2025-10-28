@@ -25,8 +25,8 @@ EarningsTable/
 
 ```env
 DATABASE_URL="file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"
-FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
-POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
+FINNHUB_TOKEN="YOUR_FINNHUB_TOKEN_HERE"
+POLYGON_API_KEY="YOUR_POLYGON_API_KEY_HERE"
 CRON_TZ="America/New_York"
 PORT=5555
 NODE_ENV="development"
@@ -34,8 +34,8 @@ NODE_ENV="development"
 
 ### API kľúče:
 
-- **Finnhub**: `d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0`
-- **Polygon**: `Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX`
+- **Finnhub**: `YOUR_FINNHUB_TOKEN_HERE`
+- **Polygon**: `YOUR_POLYGON_API_KEY_HERE`
 
 ## 🗄️ Databáza (Prisma + SQLite)
 
