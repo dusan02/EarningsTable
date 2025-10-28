@@ -5,7 +5,7 @@ import { runPolygonJob } from './jobs/polygon.js';
 import { DailyCycleManager } from './daily-cycle-manager.js';
 import { prisma } from '../../shared/src/prismaClient.js';
 
-const TZ = 'America/New_York'; // správne pre 7:00 NY (zohľadní DST)
+const TZ = process.env.CRON_TZ || 'America/New_York'; // NY timezone je povinná pre konzistentné tick-y
 
 function nowNY() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
@@ -186,31 +186,90 @@ async function runPipeline(label = "scheduled") {
   }
 }
 
+/**
+ * Jednorazový „boot guard“ po daily cleare:
+ * - Ak je aktuálny NY čas medzi 03:00–03:29:59, naplánuje runPipeline presne na 03:30 NY (setTimeout).
+ * - Ak je medzi 03:30–03:35, spustí pipeline ihneď (záchytný scenár po reštarte).
+ * - Inak nerobí nič – spoľahneme sa na pravidelné crony.
+ */
+function scheduleBootGuardAfterClear() {
+  try {
+    const now = new Date();
+    // Získaj "teraz" v NY
+    const nowNY = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const nyYear = nowNY.getFullYear();
+    const nyMonth = nowNY.getMonth();
+    const nyDate = nowNY.getDate();
+    const nyHour = nowNY.getHours();
+    const nyMinute = nowNY.getMinutes();
+    const nySecond = nowNY.getSeconds();
+
+    const inWindow_03_00_to_03_30 = (nyHour === 3 && (nyMinute < 30 || (nyMinute === 30 && nySecond === 0)));
+    const inWindow_03_30_to_03_35 = (nyHour === 3 && nyMinute >= 30 && nyMinute < 35);
+
+    if (inWindow_03_00_to_03_30) {
+      // Cieľ: dnes 03:30:00 NY
+      const targetNY = new Date(nowNY);
+      targetNY.setHours(3, 30, 0, 0);
+
+      // Vypočítaj delay v ms v NY čase
+      const delayMs = targetNY.getTime() - nowNY.getTime();
+      if (delayMs > 0) {
+        console.log(`🛡️  Boot guard: scheduled one-shot run @ 03:30 NY in ~${Math.round(delayMs/1000)}s`);
+        setTimeout(async () => {
+          try {
+            console.log('🛡️  Boot guard firing @ 03:30 NY → runPipeline("boot-guard-03:30")');
+            await runPipeline('boot-guard-03:30');
+          } catch (e) {
+            console.error('❌ Boot guard run failed:', e);
+          }
+        }, delayMs);
+      }
+      return;
+    }
+
+    if (inWindow_03_30_to_03_35) {
+      // Reštart tesne po 03:30 – spusti hneď
+      console.log('🛡️  Boot guard: within 03:30–03:35 NY → running immediately');
+      runPipeline('boot-guard-03:30-late').catch(err =>
+        console.error('❌ Boot guard late run failed:', err)
+      );
+      return;
+    }
+
+    // Mimo okna – nič nerob, crony sa postarajú
+    console.log('🛡️  Boot guard: outside 03:00–03:35 NY window → no-op');
+  } catch (e) {
+    console.error('❌ scheduleBootGuardAfterClear error:', e);
+  }
+}
+
 async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
   if (!once) {
-    const PIPELINE_CRON = "*/5 6-20 * * 1-5";
-    const isValid = cron.validate(PIPELINE_CRON);
-    if (!isValid) { console.error(`❌ Invalid cron expression: ${PIPELINE_CRON}`); }
-
-    cron.schedule(PIPELINE_CRON, async () => {
+    // ✅ 30-min „prázdne“ okno po cleare (03:00–03:30 NY)
+    // 1) Early slot: 03:30–03:55 každých 5 min
+    const EARLY_CRON = '30,35,40,45,50,55 3 * * 1-5';
+    const EARLY_VALID = cron.validate(EARLY_CRON);
+    if (!EARLY_VALID) console.error(`❌ Invalid cron expression: ${EARLY_CRON}`);
+    cron.schedule(EARLY_CRON, async () => {
       const tickAt = isoNY();
-      console.log(`⏱️ [CRON] tick @ ${tickAt} (NY)`);
-      await runPipeline('cron');
+      console.log(`⏱️ [CRON] early tick @ ${tickAt} (NY)`);
+      await runPipeline('early-slot');
     }, { timezone: TZ });
-    console.log(`✅ Pipeline scheduled @ ${PIPELINE_CRON} (NY, Mon–Fri) valid=${isValid}`);
-    console.log('✅ All cron jobs started successfully');
+    console.log(`✅ Early pipeline scheduled @ ${EARLY_CRON} (NY, Mon–Fri) valid=${EARLY_VALID}`);
 
-    // Warm-up (iba ak sme v okne)
-    function inWindowNY(h: number, dow: number) { return dow>=1 && dow<=5 && h>=6 && h<=20; }
-    const _nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
-    if (inWindowNY(_nowNY.getHours(), _nowNY.getDay())) {
-      console.log('⚡ Warm-up: running pipeline immediately (inside window)');
-      runPipeline('warmup').catch(e => console.error('Warm-up failed:', e));
-    } else {
-      console.log('🕰️ Warm-up skipped (outside window)');
-    }
+    // 2) Deň: 04:00–20:00 každých 5 min
+    const DAY_CRON = '*/5 4-20 * * 1-5';
+    const DAY_VALID = cron.validate(DAY_CRON);
+    if (!DAY_VALID) console.error(`❌ Invalid cron expression: ${DAY_CRON}`);
+    cron.schedule(DAY_CRON, async () => {
+      const tickAt = isoNY();
+      console.log(`⏱️ [CRON] day tick @ ${tickAt} (NY)`);
+      await runPipeline('day-slot');
+    }, { timezone: TZ });
+    console.log(`✅ Day pipeline scheduled @ ${DAY_CRON} (NY, Mon–Fri) valid=${DAY_VALID}`);
 
     // Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
     cron.schedule('0 3 * * 1-5', async () => {
@@ -224,8 +283,14 @@ async function startAllCronJobs(once: boolean) {
       } finally {
         delete process.env.ALLOW_CLEAR;
       }
-    }, { timezone: 'America/New_York' });
+    }, { timezone: TZ });
     console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
+
+    console.log('✅ All cron jobs started successfully');
+
+    // 🛡️  Jednorazový guard – ak by early slot nebehol (reštart okolo 03:30 a pod.)
+    // plánuje / spustí runPipeline v okne po daily cleare
+    scheduleBootGuardAfterClear();
 
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive (bez hackov so stdin)
