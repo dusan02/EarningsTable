@@ -10,9 +10,10 @@ const cors = require("cors");
 const path = require("path");
 
 // Try to use Prisma client from modules/shared first (where it's generated)
-// Fallback to root node_modules if not found
+// This is the ONLY source we use - no fallback to root
 let PrismaClient;
 try {
+  // Try to load from the generated location
   const sharedPrismaPath = path.resolve(
     __dirname,
     "modules",
@@ -21,13 +22,21 @@ try {
     "@prisma",
     "client"
   );
+  
+  // Check if file exists first
+  const fs = require("fs");
+  if (!fs.existsSync(sharedPrismaPath)) {
+    throw new Error(`Prisma client not found at: ${sharedPrismaPath}`);
+  }
+  
   PrismaClient = require(sharedPrismaPath).PrismaClient;
-  console.log("[Prisma] Using client from modules/shared");
+  console.log("[Prisma] ✅ Using client from modules/shared");
+  console.log("[Prisma] Path:", sharedPrismaPath);
 } catch (e) {
-  console.error("[Prisma] Failed to load from modules/shared:", e.message);
-  // Don't fallback to root - force using shared client
+  console.error("[Prisma] ❌ Failed to load from modules/shared:", e.message);
+  console.error("[Prisma] Error:", e);
   throw new Error(
-    "Prisma client not found in modules/shared. Run: cd modules/database && npx prisma generate --schema=prisma/schema.prisma"
+    `Prisma client not found in modules/shared. Run: cd modules/shared && npm install @prisma/client && cd ../database && npx prisma generate --schema=prisma/schema.prisma`
   );
 }
 
