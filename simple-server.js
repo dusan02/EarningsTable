@@ -8,7 +8,22 @@ console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { PrismaClient } = require("@prisma/client");
+
+// Try to use Prisma client from modules/shared first (where it's generated)
+// Fallback to root node_modules if not found
+let PrismaClient;
+try {
+  PrismaClient = require("../modules/shared/node_modules/@prisma/client").PrismaClient;
+  console.log("[Prisma] Using client from modules/shared");
+} catch (e) {
+  try {
+    PrismaClient = require("@prisma/client").PrismaClient;
+    console.log("[Prisma] Using client from root node_modules");
+  } catch (e2) {
+    console.error("[Prisma] Failed to load Prisma client:", e2);
+    throw new Error("Prisma client not found. Run: cd modules/database && npx prisma generate");
+  }
+}
 
 const app = express();
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
@@ -88,16 +103,16 @@ app.get("/favicon.ico", (req, res) => {
 app.get("/site.webmanifest", (req, res) => {
   const manifestPath = path.resolve(__dirname, "site.webmanifest");
   const fs = require("fs");
-  
+
   console.log("[manifest] Requested, checking path:", manifestPath);
   console.log("[manifest] __dirname:", __dirname);
   console.log("[manifest] File exists:", fs.existsSync(manifestPath));
-  
+
   if (!fs.existsSync(manifestPath)) {
     console.error("[manifest] File not found at:", manifestPath);
     return res.status(404).json({ error: "Manifest not found" });
   }
-  
+
   res.setHeader("Content-Type", "application/manifest+json");
   res.sendFile(manifestPath, (err) => {
     if (err) {
@@ -137,7 +152,7 @@ app.get("/api/final-report", async (req, res) => {
   try {
     console.log("📊 Fetching FinalReport data...");
     console.log("[DB] DATABASE_URL:", process.env.DATABASE_URL);
-    
+
     // Test database connection first
     await prisma.$connect();
     console.log("[DB] Connection successful");
@@ -163,12 +178,13 @@ app.get("/api/final-report", async (req, res) => {
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
     console.error("[DB] DATABASE_URL:", process.env.DATABASE_URL);
-    
+
     // In production, still log full error but return generic message
-    const errorMessage = process.env.NODE_ENV === "production"
-      ? "Internal server error"
-      : `${error.name}: ${error.message}`;
-    
+    const errorMessage =
+      process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : `${error.name}: ${error.message}`;
+
     res.status(500).json({
       success: false,
       error: "Failed to fetch FinalReport data",
