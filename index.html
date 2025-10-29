@@ -614,10 +614,10 @@
                                            <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
+                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
-                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
+                                           <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
                                    <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
@@ -897,6 +897,29 @@
                        }
                    }
                }
+               
+               // Update header highlights - only highlight active column
+               updateHeaderHighlight();
+           }
+           
+           function updateHeaderHighlight() {
+               // Reset all header backgrounds
+               const headers = ['symbol', 'marketCap', 'change', 'epsSurp', 'revSurp'];
+               headers.forEach(field => {
+                   const header = document.querySelector(`th[onclick="sortTable('${field}')"]`);
+                   if (header) {
+                       // Remove active highlight classes
+                       header.classList.remove('bg-blue-100', 'dark:bg-blue-800/50');
+                   }
+               });
+               
+               // Add highlight only to active column
+               if (currentSort.field) {
+                   const activeHeader = document.querySelector(`th[onclick="sortTable('${currentSort.field}')"]`);
+                   if (activeHeader) {
+                       activeHeader.classList.add('bg-blue-100', 'dark:bg-blue-800/50');
+                   }
+               }
            }
 
         function updateLastUpdatedTime() {
@@ -1024,6 +1047,9 @@
                     
                     renderTable();
                     showTable();
+                    
+                    // Ensure header highlight is set after rendering
+                    updateHeaderHighlight();
                     
                     // Update timestamp from cron status
                     await fetchCronStatus();
@@ -1425,6 +1451,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             initTheme();
             updateLastUpdatedTime(); // Initialize timestamp and market session
+            
+            // Set initial header highlight after DOM is ready
+            setTimeout(() => {
+                updateHeaderHighlight();
+            }, 100);
+            
             fetchData();
             startAutoRefresh();
         });
