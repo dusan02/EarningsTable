@@ -808,6 +808,9 @@
                 currentSort.direction = 'asc';
             }
 
+            // Update header highlight FIRST (before indicators)
+            updateHeaderHighlight();
+            
             // Update sort indicators
             updateSortIndicators();
 
@@ -903,7 +906,7 @@
            }
            
            function updateHeaderHighlight() {
-               // Reset all header backgrounds
+               // Reset all header backgrounds - remove highlight from ALL columns
                const headers = ['symbol', 'marketCap', 'change', 'epsSurp', 'revSurp'];
                headers.forEach(field => {
                    const header = document.querySelector(`th[onclick="sortTable('${field}')"]`);
@@ -1397,6 +1400,7 @@
                         // Apply current sorting
                         applySorting();
                         updateSortIndicators();
+                        updateHeaderHighlight(); // Update header highlight after sorting
                         
                         // Render without loading animation
                         renderTable();
