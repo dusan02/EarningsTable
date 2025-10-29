@@ -2,6 +2,7 @@ import axios from 'axios';
 import { CONFIG } from '../../shared/src/config.js';
 import pLimit from 'p-limit';
 import { processSymbolsInBatches, MarketCapData } from './core/priceService.js';
+import Decimal from 'decimal.js';
 
 // Optimized retry utility - only retry on 5xx/429, max 1 retry, shorter jitter
 const shouldRetry = (e: any) => {
@@ -313,23 +314,32 @@ export async function fetchMarketCapData(symbol: string, bulkSnapshotData?: any,
   
   // Step 5: Calculate previous market cap based on previous close price
   // If shares outstanding haven't changed, market cap scales proportionally with price
+  // Use Decimal for precision when dealing with large BigInt values
   let previousMarketCap = null;
-  if (previousClose && marketCap && price != null && price > 0) {
-    // Calculate previous market cap: currentMarketCap * (previousClose / currentPrice)
-    // This assumes shares outstanding haven't changed
-    previousMarketCap = BigInt(Math.round(Number(marketCap) * (previousClose / price)));
-  }
-
-  // Step 6: Calculate marketCapDiff as the difference between current and previous market cap
   let marketCapDiff = null;
-  if (marketCap && previousMarketCap) {
-    // Direct calculation: current market cap - previous market cap
-    marketCapDiff = marketCap - previousMarketCap;
-  } else if (marketCap && change !== null && price != null && price > 0) {
+  
+  if (previousClose && marketCap && price != null && price > 0) {
+    // Use Decimal for precise calculation: currentMarketCap * (previousClose / currentPrice)
+    // This assumes shares outstanding haven't changed
+    const d = (x: number | bigint | string) => new Decimal(String(x));
+    const marketCapDecimal = d(marketCap);
+    const ratio = d(previousClose).div(d(price));
+    const previousMarketCapDecimal = marketCapDecimal.mul(ratio);
+    previousMarketCap = BigInt(previousMarketCapDecimal.toFixed(0));
+
+    // Step 6: Calculate marketCapDiff as the difference between current and previous market cap
+    if (marketCap && previousMarketCap) {
+      // Direct calculation: current market cap - previous market cap
+      marketCapDiff = marketCap - previousMarketCap;
+    }
+  } else if (marketCap && change !== null) {
     // Fallback: if we don't have previousMarketCap but have change percentage,
-    // calculate diff directly from current marketCap and change
-    // marketCapDiff = marketCap * (change / 100)
-    marketCapDiff = BigInt(Math.round(Number(marketCap) * (change / 100)));
+    // calculate diff directly from current marketCap and change using Decimal for precision
+    const d = (x: number | bigint | string) => new Decimal(String(x));
+    const marketCapDecimal = d(marketCap);
+    const changeDecimal = d(change).div(100);
+    const diffDecimal = marketCapDecimal.mul(changeDecimal);
+    marketCapDiff = BigInt(diffDecimal.toFixed(0));
   }
 
   // Step 7: Calculate Size based on market cap
