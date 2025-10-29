@@ -142,20 +142,31 @@ app.get("/site.webmanifest", (req, res) => {
 const sharedPrismaRuntimePath = path.resolve(__dirname, "modules", "shared", "node_modules", ".prisma", "client");
 const fs = require("fs");
 
+console.log("[Prisma] Checking runtime path:", sharedPrismaRuntimePath);
+console.log("[Prisma] Runtime path exists:", fs.existsSync(sharedPrismaRuntimePath));
+
 // Try to find and set Prisma runtime paths dynamically
 if (fs.existsSync(sharedPrismaRuntimePath)) {
   const files = fs.readdirSync(sharedPrismaRuntimePath);
+  console.log("[Prisma] Runtime files:", files);
+  
   const queryEngine = files.find(f => f.includes("query_engine") && f.endsWith(".so.node"));
   const schemaEngine = files.find(f => f.includes("schema-engine") && !f.includes(".so.node"));
   
   if (queryEngine) {
     process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(sharedPrismaRuntimePath, queryEngine);
-    console.log("[Prisma] Runtime library:", process.env.PRISMA_QUERY_ENGINE_LIBRARY);
+    console.log("[Prisma] ✅ Runtime library set:", process.env.PRISMA_QUERY_ENGINE_LIBRARY);
+  } else {
+    console.log("[Prisma] ⚠️ Query engine not found in runtime files");
   }
   if (schemaEngine) {
     process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(sharedPrismaRuntimePath, schemaEngine);
-    console.log("[Prisma] Schema engine:", process.env.PRISMA_SCHEMA_ENGINE_BINARY);
+    console.log("[Prisma] ✅ Schema engine set:", process.env.PRISMA_SCHEMA_ENGINE_BINARY);
+  } else {
+    console.log("[Prisma] ⚠️ Schema engine not found in runtime files");
   }
+} else {
+  console.error("[Prisma] ❌ Runtime path does not exist:", sharedPrismaRuntimePath);
 }
 
 const prisma = new PrismaClient({
