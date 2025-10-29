@@ -24,15 +24,11 @@ try {
   PrismaClient = require(sharedPrismaPath).PrismaClient;
   console.log("[Prisma] Using client from modules/shared");
 } catch (e) {
-  try {
-    PrismaClient = require("@prisma/client").PrismaClient;
-    console.log("[Prisma] Using client from root node_modules");
-  } catch (e2) {
-    console.error("[Prisma] Failed to load Prisma client:", e2);
-    throw new Error(
-      "Prisma client not found. Run: cd modules/database && npx prisma generate"
-    );
-  }
+  console.error("[Prisma] Failed to load from modules/shared:", e.message);
+  // Don't fallback to root - force using shared client
+  throw new Error(
+    "Prisma client not found in modules/shared. Run: cd modules/database && npx prisma generate --schema=prisma/schema.prisma"
+  );
 }
 
 const app = express();
