@@ -86,7 +86,25 @@ app.get("/favicon.ico", (req, res) => {
 
 // Serve site.webmanifest
 app.get("/site.webmanifest", (req, res) => {
-  res.sendFile(path.join(__dirname, "site.webmanifest"));
+  const manifestPath = path.resolve(__dirname, "site.webmanifest");
+  const fs = require("fs");
+  
+  console.log("[manifest] Requested, checking path:", manifestPath);
+  console.log("[manifest] __dirname:", __dirname);
+  console.log("[manifest] File exists:", fs.existsSync(manifestPath));
+  
+  if (!fs.existsSync(manifestPath)) {
+    console.error("[manifest] File not found at:", manifestPath);
+    return res.status(404).json({ error: "Manifest not found" });
+  }
+  
+  res.setHeader("Content-Type", "application/manifest+json");
+  res.sendFile(manifestPath, (err) => {
+    if (err) {
+      console.error("[manifest] Error serving manifest:", err);
+      res.status(500).json({ error: "Error serving manifest" });
+    }
+  });
 });
 
 // Prisma client
@@ -118,6 +136,11 @@ function serializeFinalReport(item) {
 app.get("/api/final-report", async (req, res) => {
   try {
     console.log("📊 Fetching FinalReport data...");
+    console.log("[DB] DATABASE_URL:", process.env.DATABASE_URL);
+    
+    // Test database connection first
+    await prisma.$connect();
+    console.log("[DB] Connection successful");
 
     const data = await prisma.finalReport.findMany({
       orderBy: { symbol: "asc" },
@@ -136,14 +159,20 @@ app.get("/api/final-report", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error fetching FinalReport:", error);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
+    console.error("[DB] DATABASE_URL:", process.env.DATABASE_URL);
+    
+    // In production, still log full error but return generic message
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : `${error.name}: ${error.message}`;
+    
     res.status(500).json({
       success: false,
       error: "Failed to fetch FinalReport data",
-      message:
-        process.env.NODE_ENV === "production"
-          ? "Internal server error"
-          : error.message || String(error),
+      message: errorMessage,
     });
   }
 });
