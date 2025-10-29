@@ -9,6 +9,20 @@ const prisma = new PrismaClient({
   }
 });
 
+// Helper function to serialize FinalReport data for JSON
+function serializeFinalReport(item: any) {
+  return {
+    ...item,
+    marketCap: item.marketCap ? item.marketCap.toString() : null,
+    marketCapDiff: item.marketCapDiff ? item.marketCapDiff.toString() : null,
+    revActual: item.revActual ? item.revActual.toString() : null,
+    revEst: item.revEst ? item.revEst.toString() : null,
+    createdAt: item.createdAt ? item.createdAt.toISOString() : null,
+    updatedAt: item.updatedAt ? item.updatedAt.toISOString() : null,
+    logoFetchedAt: item.logoFetchedAt ? item.logoFetchedAt.toISOString() : null,
+  };
+}
+
 // GET /api/final-report - Fetch all FinalReport data
 export const getFinalReport = async (req: Request, res: Response) => {
   try {
@@ -20,19 +34,25 @@ export const getFinalReport = async (req: Request, res: Response) => {
 
     console.log(`✅ Found ${data.length} records in FinalReport`);
     
+    // Serialize BigInt and Date values for JSON
+    const serializedData = data.map(serializeFinalReport);
+    
     res.json({
       success: true,
-      data: data,
+      data: serializedData,
       count: data.length,
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
     console.error('❌ Error fetching FinalReport:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
       error: 'Failed to fetch FinalReport data',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: process.env.NODE_ENV === 'production' 
+        ? 'Internal server error' 
+        : (error instanceof Error ? error.message : 'Unknown error')
     });
   }
 };
@@ -99,10 +119,13 @@ export const getFinalReportStats = async (req: Request, res: Response) => {
     
   } catch (error) {
     console.error('❌ Error fetching statistics:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
       error: 'Failed to fetch statistics',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: process.env.NODE_ENV === 'production' 
+        ? 'Internal server error' 
+        : (error instanceof Error ? error.message : 'Unknown error')
     });
   }
 };
@@ -128,18 +151,24 @@ export const getCompanyData = async (req: Request, res: Response) => {
 
     console.log(`✅ Found data for ${symbol}`);
     
+    // Serialize BigInt and Date values for JSON
+    const serializedData = serializeFinalReport(data);
+    
     res.json({
       success: true,
-      data: data,
+      data: serializedData,
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
     console.error(`❌ Error fetching data for ${req.params.symbol}:`, error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
       error: 'Failed to fetch company data',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: process.env.NODE_ENV === 'production' 
+        ? 'Internal server error' 
+        : (error instanceof Error ? error.message : 'Unknown error')
     });
   }
 };

@@ -84,6 +84,11 @@ app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "favicon.svg"));
 });
 
+// Serve site.webmanifest
+app.get("/site.webmanifest", (req, res) => {
+  res.sendFile(path.join(__dirname, "site.webmanifest"));
+});
+
 // Prisma client
 const prisma = new PrismaClient({
   datasources: {
@@ -94,6 +99,20 @@ const prisma = new PrismaClient({
     },
   },
 });
+
+// Helper function to serialize FinalReport data for JSON
+function serializeFinalReport(item) {
+  return {
+    ...item,
+    marketCap: item.marketCap ? item.marketCap.toString() : null,
+    marketCapDiff: item.marketCapDiff ? item.marketCapDiff.toString() : null,
+    revActual: item.revActual ? item.revActual.toString() : null,
+    revEst: item.revEst ? item.revEst.toString() : null,
+    createdAt: item.createdAt ? item.createdAt.toISOString() : null,
+    updatedAt: item.updatedAt ? item.updatedAt.toISOString() : null,
+    logoFetchedAt: item.logoFetchedAt ? item.logoFetchedAt.toISOString() : null,
+  };
+}
 
 // API Routes
 app.get("/api/final-report", async (req, res) => {
@@ -106,14 +125,8 @@ app.get("/api/final-report", async (req, res) => {
 
     console.log(`✅ Found ${data.length} records in FinalReport`);
 
-    // Convert BigInt values to strings for JSON serialization
-    const serializedData = data.map((item) => ({
-      ...item,
-      marketCap: item.marketCap ? item.marketCap.toString() : null,
-      marketCapDiff: item.marketCapDiff ? item.marketCapDiff.toString() : null,
-      revActual: item.revActual ? item.revActual.toString() : null,
-      revEst: item.revEst ? item.revEst.toString() : null,
-    }));
+    // Convert BigInt and Date values to strings for JSON serialization
+    const serializedData = data.map(serializeFinalReport);
 
     res.json({
       success: true,
@@ -123,10 +136,14 @@ app.get("/api/final-report", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error fetching FinalReport:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       error: "Failed to fetch FinalReport data",
-      message: error.message,
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Internal server error"
+          : error.message || String(error),
     });
   }
 });
@@ -175,10 +192,14 @@ app.get("/api/final-report/stats", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error fetching statistics:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       error: "Failed to fetch statistics",
-      message: error.message,
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Internal server error"
+          : error.message || String(error),
     });
   }
 });
@@ -192,13 +213,7 @@ app.get("/api/final-report/:symbol", async (req, res) => {
       return res
         .status(404)
         .json({ success: false, error: "Company not found" });
-    const serialized = {
-      ...data,
-      marketCap: data.marketCap ? data.marketCap.toString() : null,
-      marketCapDiff: data.marketCapDiff ? data.marketCapDiff.toString() : null,
-      revActual: data.revActual ? data.revActual.toString() : null,
-      revEst: data.revEst ? data.revEst.toString() : null,
-    };
+    const serialized = serializeFinalReport(data);
     res.json({
       success: true,
       data: serialized,
@@ -206,10 +221,14 @@ app.get("/api/final-report/:symbol", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error fetching company:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       error: "Failed to fetch company",
-      message: error.message,
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Internal server error"
+          : error.message || String(error),
     });
   }
 });
@@ -255,13 +274,15 @@ app.get("/api/final-report/last-good", async (req, res) => {
     });
 
     if (freshData && freshData.length > 0) {
+      // Serialize data before caching
+      const serializedFreshData = freshData.map(serializeFinalReport);
       // Update cache
-      lastGoodData = freshData;
+      lastGoodData = serializedFreshData;
       lastGoodDataTimestamp = now;
 
       res.json({
         success: true,
-        data: freshData,
+        data: serializedFreshData,
         cached: false,
         cachedAt: new Date(now).toISOString(),
         age: 0,
@@ -287,6 +308,7 @@ app.get("/api/final-report/last-good", async (req, res) => {
     }
   } catch (error) {
     console.error("Last good data endpoint error:", error);
+    console.error("Error stack:", error.stack);
 
     // Return cached data if available
     if (lastGoodData) {
@@ -302,7 +324,10 @@ app.get("/api/final-report/last-good", async (req, res) => {
       res.status(500).json({
         success: false,
         error: "Database error",
-        message: "Unable to fetch earnings data",
+        message:
+          process.env.NODE_ENV === "production"
+            ? "Unable to fetch earnings data"
+            : error.message || String(error),
       });
     }
   }
