@@ -311,18 +311,25 @@ export async function fetchMarketCapData(symbol: string, bulkSnapshotData?: any,
     console.log(`→ No current price found for ${symbol}, will use previousClose as fallback`);
   }
   
-  // Step 5: Calculate previous market cap if we have shares outstanding
+  // Step 5: Calculate previous market cap based on previous close price
+  // If shares outstanding haven't changed, market cap scales proportionally with price
   let previousMarketCap = null;
-  if (previousClose && marketCap) {
-    // This is a simplified calculation - in reality we'd need shares outstanding
-    // For now, we'll use the current market cap as approximation
-    previousMarketCap = marketCap;
+  if (previousClose && marketCap && price != null && price > 0) {
+    // Calculate previous market cap: currentMarketCap * (previousClose / currentPrice)
+    // This assumes shares outstanding haven't changed
+    previousMarketCap = BigInt(Math.round(Number(marketCap) * (previousClose / price)));
   }
-  
-  // Step 6: Calculate marketCapDiff only if we have both previousMarketCap and change
+
+  // Step 6: Calculate marketCapDiff as the difference between current and previous market cap
   let marketCapDiff = null;
-  if (previousMarketCap && change !== null) {
-    marketCapDiff = BigInt(Math.round(Number(previousMarketCap) * (change / 100)));
+  if (marketCap && previousMarketCap) {
+    // Direct calculation: current market cap - previous market cap
+    marketCapDiff = marketCap - previousMarketCap;
+  } else if (marketCap && change !== null && price != null && price > 0) {
+    // Fallback: if we don't have previousMarketCap but have change percentage,
+    // calculate diff directly from current marketCap and change
+    // marketCapDiff = marketCap * (change / 100)
+    marketCapDiff = BigInt(Math.round(Number(marketCap) * (change / 100)));
   }
 
   // Step 7: Calculate Size based on market cap
