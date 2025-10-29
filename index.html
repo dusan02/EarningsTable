@@ -608,31 +608,31 @@
                     <table class="w-full table-fixed mobile-table" role="table" aria-label="Company earnings and financial data table" style="min-width: 100%;">
                            <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
                                <tr>
-                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 30%;">
+                                   <th id="header-symbol" data-sort-field="symbol" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('symbol')" role="columnheader" aria-sort="none" tabindex="0" aria-label="Sort by company ticker symbol" style="width: 30%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Company</span>
                                            <span id="sort-symbol" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg" aria-hidden="true">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
+                                   <th id="header-marketCap" data-sort-field="marketCap" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
                                            <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
+                                   <th id="header-change" data-sort-field="change" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('change')" style="width: 15%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Price</span>
                                            <span id="sort-change" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 17.5%;">
+                                   <th id="header-epsSurp" data-sort-field="epsSurp" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('epsSurp')" style="width: 17.5%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">EPS</span>
                                            <span id="sort-epsSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
                                        </div>
                                    </th>
-                                   <th class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 17.5%;">
+                                   <th id="header-revSurp" data-sort-field="revSurp" class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative touch-manipulation" onclick="sortTable('revSurp')" style="width: 17.5%;">
                                        <div class="flex items-center justify-center">
                                            <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Revenue</span>
                                            <span id="sort-revSurp" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-0 group-hover:opacity-60 smooth-transition text-sm sm:text-lg">↕</span>
@@ -907,9 +907,9 @@
            
            function updateHeaderHighlight() {
                // Reset all header backgrounds - remove highlight from ALL columns
-               const headers = ['symbol', 'marketCap', 'change', 'epsSurp', 'revSurp'];
-               headers.forEach(field => {
-                   const header = document.querySelector(`th[onclick="sortTable('${field}')"]`);
+               const headerIds = ['header-symbol', 'header-marketCap', 'header-change', 'header-epsSurp', 'header-revSurp'];
+               headerIds.forEach(headerId => {
+                   const header = document.getElementById(headerId);
                    if (header) {
                        // Remove active highlight classes
                        header.classList.remove('bg-blue-100', 'dark:bg-blue-800/50');
@@ -918,7 +918,8 @@
                
                // Add highlight only to active column
                if (currentSort.field) {
-                   const activeHeader = document.querySelector(`th[onclick="sortTable('${currentSort.field}')"]`);
+                   const activeHeaderId = `header-${currentSort.field}`;
+                   const activeHeader = document.getElementById(activeHeaderId);
                    if (activeHeader) {
                        activeHeader.classList.add('bg-blue-100', 'dark:bg-blue-800/50');
                    }
