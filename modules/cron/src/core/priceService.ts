@@ -795,24 +795,31 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         marketCapValueDecimal = d(selectedPrice).mul(d(shares));
       }
 
-      // 2) Previous MC: prefer prevClose * shares
-      if (previousCloseForSymbol != null && shares != null) {
-        previousMarketCapDecimal = d(previousCloseForSymbol).mul(d(shares));
-      }
-
-      // 3) If still missing previous MC but we know current MC and change% → previous = current/(1+chg)
-      if (!previousMarketCapDecimal && marketCapValueDecimal && changePctForDb != null) {
+      // 2) Previous MC: prefer calculation from change% (most accurate if change% is available)
+      // If we have current MC and change%, calculate previous = current/(1+chg)
+      // This is more accurate than using previousClose which might be incorrect
+      if (!previousMarketCapDecimal && marketCapValueDecimal && changePctForDb != null && Math.abs(changePctForDb) < 5000) {
         const denom = d(1).plus(d(changePctForDb).div(100));
         if (!denom.isZero()) {
           previousMarketCapDecimal = marketCapValueDecimal.div(denom);
         }
       }
 
+      // 3) Previous MC: prefer prevClose * shares (if shares available and change% not available)
+      if (!previousMarketCapDecimal && previousCloseForSymbol != null && shares != null) {
+        previousMarketCapDecimal = d(previousCloseForSymbol).mul(d(shares));
+      }
+
       // 4) If no shares but have current MC and both prices (curr and prev) → estimate shares
+      // Only use this if change% is not available (as fallback)
       if (!previousMarketCapDecimal && marketCapValueDecimal && selectedPrice != null && selectedPrice > 0 && previousCloseForSymbol != null) {
-        const estShares = marketCapValueDecimal.div(d(selectedPrice));
-        if (estShares.isFinite() && estShares.greaterThan(0)) {
-          previousMarketCapDecimal = d(previousCloseForSymbol).mul(estShares);
+        // Validate that previousClose is reasonable (within 50% of current price)
+        const priceRatio = d(previousCloseForSymbol).div(d(selectedPrice));
+        if (priceRatio.greaterThan(0.5) && priceRatio.lessThan(2.0)) {
+          const estShares = marketCapValueDecimal.div(d(selectedPrice));
+          if (estShares.isFinite() && estShares.greaterThan(0)) {
+            previousMarketCapDecimal = d(previousCloseForSymbol).mul(estShares);
+          }
         }
       }
 
