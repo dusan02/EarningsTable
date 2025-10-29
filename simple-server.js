@@ -138,6 +138,26 @@ app.get("/site.webmanifest", (req, res) => {
 });
 
 // Prisma client
+// Set environment variables to force using Prisma runtime from modules/shared
+const sharedPrismaRuntimePath = path.resolve(__dirname, "modules", "shared", "node_modules", ".prisma", "client");
+const fs = require("fs");
+
+// Try to find and set Prisma runtime paths dynamically
+if (fs.existsSync(sharedPrismaRuntimePath)) {
+  const files = fs.readdirSync(sharedPrismaRuntimePath);
+  const queryEngine = files.find(f => f.includes("query_engine") && f.endsWith(".so.node"));
+  const schemaEngine = files.find(f => f.includes("schema-engine") && !f.includes(".so.node"));
+  
+  if (queryEngine) {
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(sharedPrismaRuntimePath, queryEngine);
+    console.log("[Prisma] Runtime library:", process.env.PRISMA_QUERY_ENGINE_LIBRARY);
+  }
+  if (schemaEngine) {
+    process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(sharedPrismaRuntimePath, schemaEngine);
+    console.log("[Prisma] Schema engine:", process.env.PRISMA_SCHEMA_ENGINE_BINARY);
+  }
+}
+
 const prisma = new PrismaClient({
   datasources: {
     db: {
