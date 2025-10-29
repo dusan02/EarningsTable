@@ -13,7 +13,8 @@ const path = require("path");
 // Fallback to root node_modules if not found
 let PrismaClient;
 try {
-  PrismaClient = require("../modules/shared/node_modules/@prisma/client").PrismaClient;
+  const sharedPrismaPath = path.resolve(__dirname, "modules", "shared", "node_modules", "@prisma", "client");
+  PrismaClient = require(sharedPrismaPath).PrismaClient;
   console.log("[Prisma] Using client from modules/shared");
 } catch (e) {
   try {
