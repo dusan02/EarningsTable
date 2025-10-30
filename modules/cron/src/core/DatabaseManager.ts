@@ -438,8 +438,16 @@ export class DatabaseManager {
           ? ((finhubData.epsActual - finhubData.epsEstimate) / Math.abs(finhubData.epsEstimate)) * 100
           : null;
 
-        const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0n)
-          ? new Decimal(finhubData.revenueActual.toString()).minus(finhubData.revenueEstimate.toString()).div(new Decimal(finhubData.revenueEstimate.toString()).abs()).times(100).toNumber()
+        // Revenue guards: treat non-positive or missing values as unavailable
+        const hasValidRevActual = finhubData.revenueActual != null && finhubData.revenueActual > 0n;
+        const hasValidRevEst = finhubData.revenueEstimate != null && finhubData.revenueEstimate > 0n;
+
+        const revSurp = (hasValidRevActual && hasValidRevEst)
+          ? new Decimal(finhubData.revenueActual!.toString())
+              .minus(finhubData.revenueEstimate!.toString())
+              .div(new Decimal(finhubData.revenueEstimate!.toString()).abs())
+              .times(100)
+              .toNumber()
           : null;
 
         const priceToUse = polygonData.price ?? polygonData.previousCloseRaw;
@@ -449,6 +457,11 @@ export class DatabaseManager {
         const roundedEpsEst = finhubData.epsEstimate != null ? Math.round(finhubData.epsEstimate * 100) / 100 : null;
         const roundedEpsSurp = epsSurp != null ? Math.round(epsSurp * 100) / 100 : null;
         const roundedRevSurp = revSurp != null ? Math.round(revSurp * 100) / 100 : null;
+
+        // Sanitize revenue fields written to FinalReport
+        const safeRevActual = hasValidRevActual ? finhubData.revenueActual : null;
+        // Keep estimate as-is (can be null); only surprise depends on validity above
+        const safeRevEst = finhubData.revenueEstimate;
 
         const createData = normalizeFinalReportDates({
           symbol,
@@ -461,8 +474,8 @@ export class DatabaseManager {
           epsActual: roundedEpsActual,
           epsEst: roundedEpsEst,
           epsSurp: roundedEpsSurp,
-          revActual: finhubData.revenueActual,
-          revEst: finhubData.revenueEstimate,
+          revActual: safeRevActual,
+          revEst: safeRevEst,
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
@@ -481,8 +494,8 @@ export class DatabaseManager {
           epsActual: roundedEpsActual,
           epsEst: roundedEpsEst,
           epsSurp: roundedEpsSurp,
-          revActual: finhubData.revenueActual,
-          revEst: finhubData.revenueEstimate,
+          revActual: safeRevActual,
+          revEst: safeRevEst,
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
