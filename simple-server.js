@@ -43,6 +43,8 @@ try {
 }
 
 const app = express();
+// Disable Express default ETag generation; we'll set a stable custom ETag
+app.set('etag', false);
 // Enable gzip/br compression
 app.use(compression());
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
