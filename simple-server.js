@@ -22,13 +22,13 @@ try {
     "@prisma",
     "client"
   );
-  
+
   // Check if file exists first
   const fs = require("fs");
   if (!fs.existsSync(sharedPrismaPath)) {
     throw new Error(`Prisma client not found at: ${sharedPrismaPath}`);
   }
-  
+
   PrismaClient = require(sharedPrismaPath).PrismaClient;
   console.log("[Prisma] ✅ Using client from modules/shared");
   console.log("[Prisma] Path:", sharedPrismaPath);
@@ -50,38 +50,23 @@ app.use("/api", (_req, res, next) => {
 });
 // CRON status endpoint (basic)
 async function handleCronStatus(_req, res) {
+  // Minimal, DB-free status to avoid runtime dependency issues
   try {
-    const status = await prisma.cronStatus.findUnique({
-      where: { jobType: "pipeline" },
-      select: {
-        lastRunAt: true,
-        status: true,
-        recordsProcessed: true,
-        errorMessage: true,
-      },
-    });
-    const nowUtc = new Date();
     const nyNowISO = new Date(
       new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
     ).toISOString();
-    const last = status && status.lastRunAt ? new Date(status.lastRunAt) : null;
-    const diffMin = last
-      ? Math.round((nowUtc.getTime() - last.getTime()) / 60000)
-      : null;
-    res.json({
+    return res.json({
       success: true,
       nyNowISO,
-      lastRunAt: last ? last.toISOString() : null,
-      diffMin,
-      isFresh: diffMin != null && diffMin <= 6,
-      status: status ? status.status : null,
-      recordsProcessed: status ? status.recordsProcessed : null,
-      error: status ? status.errorMessage : null,
+      lastRunAt: null,
+      diffMin: null,
+      isFresh: false,
+      status: "unavailable",
+      recordsProcessed: null,
+      error: null,
     });
   } catch (e) {
-    res
-      .status(500)
-      .json({ success: false, error: e && e.message ? e.message : String(e) });
+    return res.json({ success: true, status: "unavailable" });
   }
 }
 app.get("/api/cron/status", handleCronStatus);
@@ -109,9 +94,18 @@ app.use("/logos", express.static(LOGO_DIR));
 app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
   const fs = require("fs");
   const svgInRepo = path.join(__dirname, "favicon.svg");
-  const svgInWeb = path.resolve(process.cwd(), "modules", "web", "public", "logos", "favicon.svg");
+  const svgInWeb = path.resolve(
+    process.cwd(),
+    "modules",
+    "web",
+    "public",
+    "logos",
+    "favicon.svg"
+  );
   const icoInRepo = path.join(__dirname, "favicon.ico");
-  const candidate = [svgInRepo, svgInWeb, icoInRepo].find((p) => fs.existsSync(p));
+  const candidate = [svgInRepo, svgInWeb, icoInRepo].find((p) =>
+    fs.existsSync(p)
+  );
   if (!candidate) return res.status(404).end();
   res.sendFile(candidate);
 });
@@ -141,34 +135,63 @@ app.get("/site.webmanifest", (req, res) => {
 
 // Prisma client
 // Set environment variables to force using Prisma runtime from modules/shared
-const sharedPrismaRuntimePath = path.resolve(__dirname, "modules", "shared", "node_modules", ".prisma", "client");
+const sharedPrismaRuntimePath = path.resolve(
+  __dirname,
+  "modules",
+  "shared",
+  "node_modules",
+  ".prisma",
+  "client"
+);
 const fs = require("fs");
 
 console.log("[Prisma] Checking runtime path:", sharedPrismaRuntimePath);
-console.log("[Prisma] Runtime path exists:", fs.existsSync(sharedPrismaRuntimePath));
+console.log(
+  "[Prisma] Runtime path exists:",
+  fs.existsSync(sharedPrismaRuntimePath)
+);
 
 // Try to find and set Prisma runtime paths dynamically
 if (fs.existsSync(sharedPrismaRuntimePath)) {
   const files = fs.readdirSync(sharedPrismaRuntimePath);
   console.log("[Prisma] Runtime files:", files);
-  
-  const queryEngine = files.find(f => f.includes("query_engine") && f.endsWith(".so.node"));
-  const schemaEngine = files.find(f => f.includes("schema-engine") && !f.includes(".so.node"));
-  
+
+  const queryEngine = files.find(
+    (f) => f.includes("query_engine") && f.endsWith(".so.node")
+  );
+  const schemaEngine = files.find(
+    (f) => f.includes("schema-engine") && !f.includes(".so.node")
+  );
+
   if (queryEngine) {
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(sharedPrismaRuntimePath, queryEngine);
-    console.log("[Prisma] ✅ Runtime library set:", process.env.PRISMA_QUERY_ENGINE_LIBRARY);
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(
+      sharedPrismaRuntimePath,
+      queryEngine
+    );
+    console.log(
+      "[Prisma] ✅ Runtime library set:",
+      process.env.PRISMA_QUERY_ENGINE_LIBRARY
+    );
   } else {
     console.log("[Prisma] ⚠️ Query engine not found in runtime files");
   }
   if (schemaEngine) {
-    process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(sharedPrismaRuntimePath, schemaEngine);
-    console.log("[Prisma] ✅ Schema engine set:", process.env.PRISMA_SCHEMA_ENGINE_BINARY);
+    process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(
+      sharedPrismaRuntimePath,
+      schemaEngine
+    );
+    console.log(
+      "[Prisma] ✅ Schema engine set:",
+      process.env.PRISMA_SCHEMA_ENGINE_BINARY
+    );
   } else {
     console.log("[Prisma] ⚠️ Schema engine not found in runtime files");
   }
 } else {
-  console.error("[Prisma] ❌ Runtime path does not exist:", sharedPrismaRuntimePath);
+  console.error(
+    "[Prisma] ❌ Runtime path does not exist:",
+    sharedPrismaRuntimePath
+  );
 }
 
 const prisma = new PrismaClient({
