@@ -49,7 +49,7 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 // CRON status endpoint (basic)
-app.get("/api/cron/status", async (_req, res) => {
+async function handleCronStatus(_req, res) {
   let prisma;
   try {
     const { PrismaClient } = await import("@prisma/client");
@@ -90,7 +90,10 @@ app.get("/api/cron/status", async (_req, res) => {
       if (prisma) await prisma.$disconnect();
     } catch {}
   }
-});
+}
+app.get("/api/cron/status", handleCronStatus);
+// Backward compatible alias for frontend calling /api/cron-status
+app.get("/api/cron-status", handleCronStatus);
 
 const PORT = process.env.PORT || 3001;
 
@@ -109,9 +112,15 @@ const LOGO_DIR = path.resolve(
 console.log("[logos] serving from:", LOGO_DIR);
 app.use("/logos", express.static(LOGO_DIR));
 
-// Serve favicon
-app.get("/favicon.ico", (req, res) => {
-  res.sendFile(path.join(__dirname, "favicon.svg"));
+// Serve favicon (.ico and .svg) with fallbacks
+app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
+  const fs = require("fs");
+  const svgInRepo = path.join(__dirname, "favicon.svg");
+  const svgInWeb = path.resolve(process.cwd(), "modules", "web", "public", "logos", "favicon.svg");
+  const icoInRepo = path.join(__dirname, "favicon.ico");
+  const candidate = [svgInRepo, svgInWeb, icoInRepo].find((p) => fs.existsSync(p));
+  if (!candidate) return res.status(404).end();
+  res.sendFile(candidate);
 });
 
 // Serve site.webmanifest
@@ -451,6 +460,7 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/final-report/stats`);
   console.log(`   GET  /api/final-report/:symbol`);
   console.log(`   POST /api/final-report/refresh`);
+  console.log(`   GET  /api/cron-status (alias: /api/cron/status)`);
   console.log(`   GET  /api/health`);
   console.log(`🌐 API URL: http://localhost:${PORT}`);
 });
