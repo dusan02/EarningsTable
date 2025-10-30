@@ -403,10 +403,7 @@ export class DatabaseManager {
 
     const polygonSymbols = await prisma.polygonData.findMany({
       select: { symbol: true },
-      where: {
-        // Relaxed condition: accept records with marketCap present even if live price is missing
-        marketCap: { not: null }
-      },
+      // Relax filter: do not require marketCap; presence in PolygonData is enough
     });
 
     const finhubSymbolSet = new Set(finhubSymbols.map(s => s.symbol));      
@@ -414,7 +411,7 @@ export class DatabaseManager {
 
     const commonSymbols = Array.from(finhubSymbolSet).filter(symbol => polygonSymbolSet.has(symbol));
 
-    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData (marketCap present)`);
+    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData`);
     // Use deterministic timestamps for this run (NY midnight)
     const { getRunTimestamps } = await import('../utils/time.js');
     const { reportDate: reportDateISO, snapshotDate: snapshotDateISO } = getRunTimestamps();
