@@ -50,10 +50,7 @@ app.use("/api", (_req, res, next) => {
 });
 // CRON status endpoint (basic)
 async function handleCronStatus(_req, res) {
-  let prisma;
   try {
-    const { PrismaClient } = await import("@prisma/client");
-    prisma = new PrismaClient();
     const status = await prisma.cronStatus.findUnique({
       where: { jobType: "pipeline" },
       select: {
@@ -85,10 +82,6 @@ async function handleCronStatus(_req, res) {
     res
       .status(500)
       .json({ success: false, error: e && e.message ? e.message : String(e) });
-  } finally {
-    try {
-      if (prisma) await prisma.$disconnect();
-    } catch {}
   }
 }
 app.get("/api/cron/status", handleCronStatus);
