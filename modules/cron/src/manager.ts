@@ -44,15 +44,14 @@ async function clearAllData(): Promise<void> {
 }
 
 // --- 1) Denný reset dát o 07:00 NY ---
-cron.schedule("0 7 * * *", () =>
-  withLock("DailyReset(07:00 NY)", async () => {
-    // stop eventuálne predošlé behy prirodzene vďaka mutexu
-    await clearAllData();
-    // (voliteľné) warm-up: krátka pauza
-    await sleep(500);
-  }),
-  { scheduled: true, timezone: TZ }
-);
+// Disabled: 03:00 NY clear in main scheduler is the single source of truth
+// cron.schedule("0 7 * * *", () =>
+//   withLock("DailyReset(07:00 NY)", async () => {
+//     await clearAllData();
+//     await sleep(500);
+//   }),
+//   { scheduled: true, timezone: TZ }
+// );
 
 // --- 2) Periodické spúšťanie úloh každé 4 minúty (striedavo) ---
 // minúty: 0,4,8,12,… → striedanie: párne = Finnhub, nepárne = Polygon
@@ -89,7 +88,7 @@ cron.schedule("*/4 * * * *", () =>
     await withLock("ManualPolygon", async () => runPolygonJob());
   }
 
-  console.log("🕒 Schedules active: Daily 07:00 reset + */4min alternating jobs. Press Ctrl+C to stop.");
+  console.log("🕒 Schedules active: */4min alternating jobs. Daily clear is managed at 03:00 NY in main scheduler.");
   // keep-alive
   await new Promise<void>(() => {});
 })().catch((e) => {

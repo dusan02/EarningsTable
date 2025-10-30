@@ -631,12 +631,18 @@ export class DatabaseManager {
   }
 
   async clearAllTables(): Promise<void> {
-    console.log('🛑 Clearing all database tables...');
+    if (process.env.ALLOW_CLEAR !== 'true') {
+      console.log('🧹 Skipping clearAllTables (ALLOW_CLEAR!=true)');
+      return;
+    }
+    console.log('🛑 Clearing all database tables (transaction)...');
 
-    await prisma.finalReport.deleteMany();
-    await prisma.polygonData.deleteMany();
-    await prisma.finhubData.deleteMany();
-    await prisma.cronStatus.deleteMany();
+    await prisma.$transaction([
+      prisma.finalReport.deleteMany(),
+      prisma.polygonData.deleteMany(),
+      prisma.finhubData.deleteMany(),
+      prisma.cronStatus.deleteMany(),
+    ]);
 
     console.log('✅ All tables cleared successfully');
   }

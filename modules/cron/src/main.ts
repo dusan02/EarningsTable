@@ -164,6 +164,22 @@ async function startDailyCycle() {
 
 let __pipelineRunning = false;
 const PIPELINE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+const QUIET_WINDOW_MS = 5 * 60 * 1000; // 5 minutes after daily clear
+let __quietWindowUntil = 0;
+
+function enterQuietWindow() {
+  __quietWindowUntil = Date.now() + QUIET_WINDOW_MS;
+  console.log(`🕊️  Entering quiet window for ${Math.round(QUIET_WINDOW_MS/1000)}s`);
+}
+
+function isInQuietWindow(): boolean {
+  const inWindow = Date.now() < __quietWindowUntil;
+  if (inWindow) {
+    const remaining = Math.max(0, __quietWindowUntil - Date.now());
+    console.log(`🕊️  Quiet window active (${Math.ceil(remaining/1000)}s left) — skipping tick`);
+  }
+  return inWindow;
+}
 
 async function runPipeline(label = "scheduled") {
   if (__pipelineRunning) {
@@ -267,6 +283,7 @@ async function startAllCronJobs(once: boolean) {
     cron.schedule(EARLY_CRON, async () => {
       const tickAt = isoNY();
       console.log(`⏱️ [CRON] early tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
       await runPipeline('early-slot');
     }, { timezone: TZ });
     console.log(`✅ Early pipeline scheduled @ ${EARLY_CRON} (NY, Mon–Fri) valid=${EARLY_VALID}`);
@@ -278,6 +295,7 @@ async function startAllCronJobs(once: boolean) {
     cron.schedule(DAY_CRON, async () => {
       const tickAt = isoNY();
       console.log(`⏱️ [CRON] day tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
       await runPipeline('day-slot');
     }, { timezone: TZ });
     console.log(`✅ Day pipeline scheduled @ ${DAY_CRON} (NY, Mon–Fri) valid=${DAY_VALID}`);
@@ -289,6 +307,7 @@ async function startAllCronJobs(once: boolean) {
         process.env.ALLOW_CLEAR = 'true';
         await db.clearAllTables();
         console.log('✅ Daily clear done');
+        enterQuietWindow();
       } catch (e) {
         console.error('❌ Daily clear failed', e);
       } finally {
