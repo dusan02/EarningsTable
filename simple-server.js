@@ -44,7 +44,7 @@ try {
 
 const app = express();
 // Disable Express default ETag generation; we'll set a stable custom ETag
-app.set('etag', false);
+app.set("etag", false);
 // Enable gzip/br compression
 app.use(compression());
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
@@ -251,19 +251,39 @@ app.get("/api/final-report", async (req, res) => {
       data: serializedData,
       count: data.length,
       timestamp: new Date().toISOString(),
-      dataTimestamp: dataTimestamp ? new Date(dataTimestamp).toISOString() : null,
+      dataTimestamp: dataTimestamp
+        ? new Date(dataTimestamp).toISOString()
+        : null,
     };
-    const etag = 'W/"' + crypto
-      .createHash("sha1")
-      .update(JSON.stringify({ c: payload.count, dt: payload.dataTimestamp, h: serializedData.map(i => i.symbol) }))
-      .digest("hex") + '"';
+    const etag =
+      'W/"' +
+      crypto
+        .createHash("sha1")
+        .update(
+          JSON.stringify({
+            c: payload.count,
+            dt: payload.dataTimestamp,
+            h: serializedData.map((i) => i.symbol),
+          })
+        )
+        .digest("hex") +
+      '"';
 
-    if (req.headers["if-none-match"] === etag) {
+    // Honor If-None-Match (may contain multiple values); accept weak/strong variants
+    const inm = (req.headers["if-none-match"] || "").toString();
+    const candidates = inm
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const strong = etag.replace(/^W\//, "");
+    const matches = candidates.some((c) => c === etag || c === strong || ("W/" + c) === etag || c === "*");
+    if (matches) {
       res.status(304).end();
       return;
     }
 
-    if (payload.dataTimestamp) res.setHeader("Last-Modified", payload.dataTimestamp);
+    if (payload.dataTimestamp)
+      res.setHeader("Last-Modified", payload.dataTimestamp);
     res.setHeader("ETag", etag);
     res.json(payload);
   } catch (error) {
