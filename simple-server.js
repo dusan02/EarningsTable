@@ -8,6 +8,8 @@ console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const compression = require("compression");
+const crypto = require("crypto");
 
 // Try to use Prisma client from modules/shared first (where it's generated)
 // This is the ONLY source we use - no fallback to root
@@ -41,6 +43,8 @@ try {
 }
 
 const app = express();
+// Enable gzip/br compression
+app.use(compression());
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
 app.use("/api", (_req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
@@ -236,13 +240,30 @@ app.get("/api/final-report", async (req, res) => {
 
     // Convert BigInt and Date values to strings for JSON serialization
     const serializedData = data.map(serializeFinalReport);
-
-    res.json({
+    const dataTimestamp = serializedData.reduce((max, it) => {
+      const t = it.updatedAt ? Date.parse(it.updatedAt) : 0;
+      return t > max ? t : max;
+    }, 0);
+    const payload = {
       success: true,
       data: serializedData,
       count: data.length,
       timestamp: new Date().toISOString(),
-    });
+      dataTimestamp: dataTimestamp ? new Date(dataTimestamp).toISOString() : null,
+    };
+    const etag = 'W/"' + crypto
+      .createHash("sha1")
+      .update(JSON.stringify({ c: payload.count, dt: payload.dataTimestamp, h: serializedData.map(i => i.symbol) }))
+      .digest("hex") + '"';
+
+    if (req.headers["if-none-match"] === etag) {
+      res.status(304).end();
+      return;
+    }
+
+    if (payload.dataTimestamp) res.setHeader("Last-Modified", payload.dataTimestamp);
+    res.setHeader("ETag", etag);
+    res.json(payload);
   } catch (error) {
     console.error("❌ Error fetching FinalReport:", error);
     console.error("Error name:", error.name);
