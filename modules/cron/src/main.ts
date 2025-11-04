@@ -289,7 +289,7 @@ async function startAllCronJobs(once: boolean) {
     console.log(`✅ Early pipeline scheduled @ ${EARLY_CRON} (NY, Mon–Fri) valid=${EARLY_VALID}`);
 
     // 2) Deň: 04:00–20:00 každých 5 min
-    const DAY_CRON = '*/5 4-20 * * 1-5';
+    const DAY_CRON = '*/5 4-23 * * 1-5';
     const DAY_VALID = cron.validate(DAY_CRON);
     if (!DAY_VALID) console.error(`❌ Invalid cron expression: ${DAY_CRON}`);
     cron.schedule(DAY_CRON, async () => {
@@ -299,6 +299,39 @@ async function startAllCronJobs(once: boolean) {
       await runPipeline('day-slot');
     }, { timezone: TZ });
     console.log(`✅ Day pipeline scheduled @ ${DAY_CRON} (NY, Mon–Fri) valid=${DAY_VALID}`);
+    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
+    const EVENING_CRON = '*/5 0-2 * * 1-5';
+    const EVENING_VALID = cron.validate(EVENING_CRON);
+    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
+    cron.schedule(EVENING_CRON, async () => {
+      const tickAt = isoNY();
+      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
+      await runPipeline('evening-slot');
+    }, { timezone: TZ });
+    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
+    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
+    const EVENING_CRON = '*/5 0-2 * * 1-5';
+    const EVENING_VALID = cron.validate(EVENING_CRON);
+    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
+    cron.schedule(EVENING_CRON, async () => {
+      const tickAt = isoNY();
+      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
+      await runPipeline('evening-slot');
+    }, { timezone: TZ });
+    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
+    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
+    const EVENING_CRON = '*/5 0-2 * * 1-5';
+    const EVENING_VALID = cron.validate(EVENING_CRON);
+    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
+    cron.schedule(EVENING_CRON, async () => {
+      const tickAt = isoNY();
+      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
+      await runPipeline('evening-slot');
+    }, { timezone: TZ });
+    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
 
     // Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
     cron.schedule('0 3 * * 1-5', async () => {
