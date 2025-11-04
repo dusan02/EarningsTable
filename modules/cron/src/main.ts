@@ -275,72 +275,33 @@ async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
   if (!once) {
-    // ✅ 5-min „prázdne“ okno po cleare (03:00–03:05 NY)
-    // 1) Early slot: 03:05–03:55 každých 5 min
-    const EARLY_CRON = '5,10,15,20,25,30,35,40,45,50,55 3 * * 1-5';
-    const EARLY_VALID = cron.validate(EARLY_CRON);
-    if (!EARLY_VALID) console.error(`❌ Invalid cron expression: ${EARLY_CRON}`);
-    cron.schedule(EARLY_CRON, async () => {
+    // Unified cron: každých 5 minút počas celého dňa (okrem 03:00–03:05 pre reset)
+    const UNIFIED_CRON = '*/5 * * * 1-5';
+    const UNIFIED_VALID = cron.validate(UNIFIED_CRON);
+    if (!UNIFIED_VALID) console.error(`❌ Invalid cron expression: ${UNIFIED_CRON}`);
+    cron.schedule(UNIFIED_CRON, async () => {
       const tickAt = isoNY();
-      console.log(`⏱️ [CRON] early tick @ ${tickAt} (NY)`);
+      const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+      const hour = nowNY.getHours();
+      const minute = nowNY.getMinutes();
+      if (hour === 3 && minute === 0) {
+        console.log(`⏭️  [CRON] skipping tick @ ${tickAt} (NY) - daily clear time`);
+        return;
+      }
+      console.log(`⏱️ [CRON] tick @ ${tickAt} (NY)`);
       if (isInQuietWindow()) return;
-      await runPipeline('early-slot');
+      await runPipeline('unified-slot');
     }, { timezone: TZ });
-    console.log(`✅ Early pipeline scheduled @ ${EARLY_CRON} (NY, Mon–Fri) valid=${EARLY_VALID}`);
+    console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, Mon–Fri, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
 
-    // 2) Deň: 04:00–20:00 každých 5 min
-    const DAY_CRON = '*/5 4-23 * * 1-5';
-    const DAY_VALID = cron.validate(DAY_CRON);
-    if (!DAY_VALID) console.error(`❌ Invalid cron expression: ${DAY_CRON}`);
-    cron.schedule(DAY_CRON, async () => {
-      const tickAt = isoNY();
-      console.log(`⏱️ [CRON] day tick @ ${tickAt} (NY)`);
-      if (isInQuietWindow()) return;
-      await runPipeline('day-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Day pipeline scheduled @ ${DAY_CRON} (NY, Mon–Fri) valid=${DAY_VALID}`);
-    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
-    const EVENING_CRON = '*/5 0-2 * * 1-5';
-    const EVENING_VALID = cron.validate(EVENING_CRON);
-    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
-    cron.schedule(EVENING_CRON, async () => {
-      const tickAt = isoNY();
-      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
-      if (isInQuietWindow()) return;
-      await runPipeline('evening-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
-    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
-    const EVENING_CRON = '*/5 0-2 * * 1-5';
-    const EVENING_VALID = cron.validate(EVENING_CRON);
-    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
-    cron.schedule(EVENING_CRON, async () => {
-      const tickAt = isoNY();
-      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
-      if (isInQuietWindow()) return;
-      await runPipeline('evening-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
-    // 2b) Večer/Noč: 00:00–02:55 každých 5 min - pokrýva večer a noc
-    const EVENING_CRON = '*/5 0-2 * * 1-5';
-    const EVENING_VALID = cron.validate(EVENING_CRON);
-    if (!EVENING_VALID) console.error(`❌ Invalid cron expression: ${EVENING_CRON}`);
-    cron.schedule(EVENING_CRON, async () => {
-      const tickAt = isoNY();
-      console.log(`⏱️ [CRON] evening tick @ ${tickAt} (NY)`);
-      if (isInQuietWindow()) return;
-      await runPipeline('evening-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Evening pipeline scheduled @ ${EVENING_CRON} (NY, Mon–Fri, 00:00–02:55) valid=${EVENING_VALID}`);
-
-    // Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
+    // Daily clear job (03:00 AM weekdays) – reset databázy
     cron.schedule('0 3 * * 1-5', async () => {
       try {
         console.log('🧹 Daily clear starting @ 03:00 NY');
         process.env.ALLOW_CLEAR = 'true';
         await db.clearAllTables();
         console.log('✅ Daily clear done');
-        enterQuietWindow();
+        enterQuietWindow(); // 5-minútová pauza po cleare
       } catch (e) {
         console.error('❌ Daily clear failed', e);
       } finally {
@@ -354,7 +315,7 @@ async function startAllCronJobs(once: boolean) {
     // Start synthetic tests job
     await syntheticTestsJob.start();
 
-    // 🛡️  Jednorazový guard – ak by early slot nebehol (reštart okolo 03:30 a pod.)
+    // 🛡️  Jednorazový guard – ak by unified cron nebehol (reštart okolo 03:30 a pod.)
     // plánuje / spustí runPipeline v okne po daily cleare
     scheduleBootGuardAfterClear();
 
@@ -376,29 +337,15 @@ async function startAllCronJobs(once: boolean) {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
+  console.log('�� Graceful shutdown initiated');
   console.log('↩️ SIGINT: shutting down…');
-  try { 
-    await db.disconnect(); 
-  } catch {} 
-  return;
+  await db.disconnect().catch(() => {});
+  process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
+  console.log('🛑 Graceful shutdown initiated');
   console.log('↩️ SIGTERM: shutting down…');
-  try { 
-    await db.disconnect(); 
-  } catch {} 
-  return;
-});
-
-// Safety for unhandled errors
-process.on('unhandledRejection', (r) => console.error('unhandledRejection:', r));
-process.on('uncaughtException', (e) => { 
-  console.error('uncaughtException:', e); 
-  return; 
-});
-
-bootstrap().catch((e) => {
-  console.error('Bootstrap failed:', e);
-  return;
+  await db.disconnect().catch(() => {});
+  process.exit(0);
 });
