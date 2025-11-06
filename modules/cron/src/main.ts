@@ -404,3 +404,9 @@ process.on('SIGTERM', async () => {
   await db.disconnect().catch(() => {});
   process.exit(0);
 });
+
+// Start the application
+bootstrap().catch((error) => {
+  console.error('❌ Failed to start:', error);
+  process.exit(1);
+});
