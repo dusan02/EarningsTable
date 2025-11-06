@@ -214,11 +214,51 @@ async function runPipeline(label = "scheduled") {
 }
 
 /**
- * Jednorazový „boot guard“ po daily cleare:
- * - Ak je aktuálny NY čas medzi 03:00–03:29:59, naplánuje runPipeline presne na 03:30 NY (setTimeout).
- * - Ak je medzi 03:30–03:35, spustí pipeline ihneď (záchytný scenár po reštarte).
- * - Inak nerobí nič – spoľahneme sa na pravidelné crony.
+ * Boot guard funkcie:
+ * - scheduleBootGuardAfterClear: Ak je NY čas medzi 03:00–03:29:59, naplánuje runPipeline na 03:30 NY
+ * - checkAndRunDailyResetIfNeeded: Ak sa proces reštartuje po 03:00 NY, spustí denný reset manuálne
  */
+async function checkAndRunDailyResetIfNeeded() {
+  try {
+    const now = new Date();
+    const nowNY = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const nyHour = nowNY.getHours();
+    const nyMinute = nowNY.getMinutes();
+    
+    // Ak je medzi 03:00-03:05 NY, skontroluj či už bol reset
+    if (nyHour === 3 && nyMinute < 5) {
+      // Skontroluj dátum posledného resetu (cez počet záznamov v tabuľkách)
+      const today = new Date(nowNY);
+      today.setHours(0, 0, 0, 0);
+      
+      // Ak sú v databáze záznamy z predošlého dňa, reset nebol spustený
+      const oldRecords = await prisma.finhubData.findFirst({
+        where: {
+          reportDate: { lt: today }
+        }
+      });
+      
+      if (oldRecords) {
+        console.log('🛡️ Boot guard: Detected old data, running missed daily reset');
+        try {
+          process.env.ALLOW_CLEAR = 'true';
+          await db.clearAllTables();
+          console.log('✅ Boot guard: Daily reset completed');
+          enterQuietWindow();
+        } catch (e) {
+          console.error('❌ Boot guard: Daily reset failed', e);
+        } finally {
+          delete process.env.ALLOW_CLEAR;
+        }
+      } else {
+        console.log('🛡️ Boot guard: No old data found, daily reset already done');
+      }
+    }
+  } catch (e) {
+    console.error('❌ checkAndRunDailyResetIfNeeded error:', e);
+  }
+}
+
 function scheduleBootGuardAfterClear() {
   try {
     const now = new Date();
@@ -295,20 +335,32 @@ async function startAllCronJobs(once: boolean) {
     console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, Mon–Fri, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
 
     // Daily clear job (03:00 AM weekdays) – reset databázy
-    cron.schedule('0 3 * * 1-5', async () => {
-      try {
-        console.log('🧹 Daily clear starting @ 03:00 NY');
-        process.env.ALLOW_CLEAR = 'true';
-        await db.clearAllTables();
-        console.log('✅ Daily clear done');
-        enterQuietWindow(); // 5-minútová pauza po cleare
-      } catch (e) {
-        console.error('❌ Daily clear failed', e);
-      } finally {
-        delete process.env.ALLOW_CLEAR;
+    const DAILY_CLEAR_CRON = '0 3 * * 1-5';
+    const DAILY_CLEAR_VALID = cron.validate(DAILY_CLEAR_CRON);
+    if (!DAILY_CLEAR_VALID) {
+      console.error(`❌ Invalid cron expression for daily clear: ${DAILY_CLEAR_CRON}`);
+    } else {
+      const scheduledTask = cron.schedule(DAILY_CLEAR_CRON, async () => {
+        try {
+          const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+          console.log(`🧹 Daily clear starting @ 03:00 NY (actual NY time: ${nowNY.toLocaleString()})`);
+          process.env.ALLOW_CLEAR = 'true';
+          await db.clearAllTables();
+          console.log('✅ Daily clear done');
+          enterQuietWindow(); // 5-minútová pauza po cleare
+        } catch (e) {
+          console.error('❌ Daily clear failed', e);
+        } finally {
+          delete process.env.ALLOW_CLEAR;
+        }
+      }, { timezone: TZ, scheduled: true });
+      
+      if (scheduledTask) {
+        console.log(`✅ Daily clear job scheduled @ ${DAILY_CLEAR_CRON} (03:00 NY, Mon-Fri) valid=${DAILY_CLEAR_VALID}`);
+      } else {
+        console.error('❌ Failed to schedule daily clear job');
       }
-    }, { timezone: TZ });
-    console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
+    }
 
     console.log('✅ All cron jobs started successfully');
 
@@ -318,6 +370,9 @@ async function startAllCronJobs(once: boolean) {
     // 🛡️  Jednorazový guard – ak by unified cron nebehol (reštart okolo 03:30 a pod.)
     // plánuje / spustí runPipeline v okne po daily cleare
     scheduleBootGuardAfterClear();
+    
+    // 🛡️ Boot guard pre daily clear - ak sa proces reštartuje po 03:00, spusti reset
+    checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive (bez hackov so stdin)
