@@ -30,8 +30,8 @@ module.exports = {
     {
       name: "earnings-cron",
       cwd: "./modules/cron",
-      script: "npm",
-      args: "run start",
+      script: "node_modules/.bin/tsx",
+      args: "src/main.ts start",
       interpreter: "none",
       autorestart: true,
       max_restarts: 10,
