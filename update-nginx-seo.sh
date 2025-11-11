@@ -13,6 +13,15 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Check if running as root
+if [ "$EUID" -eq 0 ]; then
+    SUDO=""
+    echo "Running as root - sudo not needed"
+else
+    SUDO="sudo"
+    echo "Not running as root - will use sudo"
+fi
+
 # Configuration
 NGINX_CONFIG="/etc/nginx/sites-available/earnings-table"
 NGINX_ENABLED="/etc/nginx/sites-enabled/earnings-table"
