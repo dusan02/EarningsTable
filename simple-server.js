@@ -45,6 +45,90 @@ try {
 const app = express();
 // Disable Express default ETag generation; we'll set a stable custom ETag
 app.set("etag", false);
+
+// SEO: Serve robots.txt and sitemap.xml FIRST - before any other routes or middleware
+app.get("/robots.txt", (req, res) => {
+  console.log("[robots] ✅ Route handler called!");
+  const fs = require("fs");
+  // Try multiple possible paths (__dirname and process.cwd())
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "robots.txt"),
+    path.resolve(process.cwd(), "public", "robots.txt"),
+    path.join(__dirname, "public", "robots.txt"),
+    path.join(process.cwd(), "public", "robots.txt"),
+  ];
+
+  let robotsPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      robotsPath = p;
+      break;
+    }
+  }
+
+  console.log("[robots] Requested");
+  console.log("[robots] __dirname:", __dirname);
+  console.log("[robots] process.cwd():", process.cwd());
+  console.log("[robots] Trying paths:", possiblePaths);
+  console.log("[robots] Found at:", robotsPath);
+
+  if (!robotsPath) {
+    console.error("[robots] File not found in any of:", possiblePaths);
+    return res.status(404).json({ error: "robots.txt not found" });
+  }
+
+  res.setHeader("Content-Type", "text/plain");
+  res.sendFile(robotsPath, (err) => {
+    if (err) {
+      console.error("[robots] Error serving robots.txt:", err);
+      res.status(500).json({ error: "Error serving robots.txt" });
+    } else {
+      console.log("[robots] ✅ Successfully served robots.txt");
+    }
+  });
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  console.log("[sitemap] ✅ Route handler called!");
+  const fs = require("fs");
+  // Try multiple possible paths (__dirname and process.cwd())
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "sitemap.xml"),
+    path.resolve(process.cwd(), "public", "sitemap.xml"),
+    path.join(__dirname, "public", "sitemap.xml"),
+    path.join(process.cwd(), "public", "sitemap.xml"),
+  ];
+
+  let sitemapPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      sitemapPath = p;
+      break;
+    }
+  }
+
+  console.log("[sitemap] Requested");
+  console.log("[sitemap] __dirname:", __dirname);
+  console.log("[sitemap] process.cwd():", process.cwd());
+  console.log("[sitemap] Trying paths:", possiblePaths);
+  console.log("[sitemap] Found at:", sitemapPath);
+
+  if (!sitemapPath) {
+    console.error("[sitemap] File not found in any of:", possiblePaths);
+    return res.status(404).json({ error: "sitemap.xml not found" });
+  }
+
+  res.setHeader("Content-Type", "application/xml");
+  res.sendFile(sitemapPath, (err) => {
+    if (err) {
+      console.error("[sitemap] Error serving sitemap.xml:", err);
+      res.status(500).json({ error: "Error serving sitemap.xml" });
+    } else {
+      console.log("[sitemap] ✅ Successfully served sitemap.xml");
+    }
+  });
+});
+
 // Enable gzip/br compression
 app.use(compression());
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
@@ -145,89 +229,6 @@ app.get("/site.webmanifest", (req, res) => {
   });
 });
 
-// SEO: Serve robots.txt - MUST be before catch-all routes
-app.get("/robots.txt", (req, res) => {
-  console.log("[robots] ✅ Route handler called!");
-  const fs = require("fs");
-  // Try multiple possible paths (__dirname and process.cwd)
-  const possiblePaths = [
-    path.resolve(__dirname, "public", "robots.txt"),
-    path.resolve(process.cwd(), "public", "robots.txt"),
-    path.join(__dirname, "public", "robots.txt"),
-    path.join(process.cwd(), "public", "robots.txt"),
-  ];
-
-  let robotsPath = null;
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      robotsPath = p;
-      break;
-    }
-  }
-
-  console.log("[robots] Requested");
-  console.log("[robots] __dirname:", __dirname);
-  console.log("[robots] process.cwd():", process.cwd());
-  console.log("[robots] Trying paths:", possiblePaths);
-  console.log("[robots] Found at:", robotsPath);
-
-  if (!robotsPath) {
-    console.error("[robots] File not found in any of:", possiblePaths);
-    return res.status(404).json({ error: "robots.txt not found" });
-  }
-
-  res.setHeader("Content-Type", "text/plain");
-  res.sendFile(robotsPath, (err) => {
-    if (err) {
-      console.error("[robots] Error serving robots.txt:", err);
-      res.status(500).json({ error: "Error serving robots.txt" });
-    } else {
-      console.log("[robots] ✅ Successfully served robots.txt");
-    }
-  });
-});
-
-// SEO: Serve sitemap.xml - MUST be before catch-all routes
-app.get("/sitemap.xml", (req, res) => {
-  console.log("[sitemap] ✅ Route handler called!");
-  const fs = require("fs");
-  // Try multiple possible paths (__dirname and process.cwd)
-  const possiblePaths = [
-    path.resolve(__dirname, "public", "sitemap.xml"),
-    path.resolve(process.cwd(), "public", "sitemap.xml"),
-    path.join(__dirname, "public", "sitemap.xml"),
-    path.join(process.cwd(), "public", "sitemap.xml"),
-  ];
-
-  let sitemapPath = null;
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      sitemapPath = p;
-      break;
-    }
-  }
-
-  console.log("[sitemap] Requested");
-  console.log("[sitemap] __dirname:", __dirname);
-  console.log("[sitemap] process.cwd():", process.cwd());
-  console.log("[sitemap] Trying paths:", possiblePaths);
-  console.log("[sitemap] Found at:", sitemapPath);
-
-  if (!sitemapPath) {
-    console.error("[sitemap] File not found in any of:", possiblePaths);
-    return res.status(404).json({ error: "sitemap.xml not found" });
-  }
-
-  res.setHeader("Content-Type", "application/xml");
-  res.sendFile(sitemapPath, (err) => {
-    if (err) {
-      console.error("[sitemap] Error serving sitemap.xml:", err);
-      res.status(500).json({ error: "Error serving sitemap.xml" });
-    } else {
-      console.log("[sitemap] ✅ Successfully served sitemap.xml");
-    }
-  });
-});
 
 // Prisma client
 // Set environment variables to force using Prisma runtime from modules/shared
