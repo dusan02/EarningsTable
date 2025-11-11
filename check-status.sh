@@ -72,9 +72,10 @@ echo ""
 
 # Check if monitor is running
 echo -e "${BLUE}Monitor Script:${NC}"
-if pgrep -f "monitor-dns-and-auto-certbot.sh" > /dev/null; then
+if pgrep -f "monitor-dns-and-auto-certbot" > /dev/null; then
     echo -e "  ${GREEN}✅ Monitor script is running${NC}"
     echo "  (Checking DNS every 60 seconds, will auto-run certbot when ready)"
+    pgrep -f "monitor-dns-and-auto-certbot" | head -1 | xargs ps -p 2>/dev/null | tail -1 || true
 else
     echo -e "  ${YELLOW}⚠️  Monitor script not running${NC}"
     echo "  Run: ./monitor-dns-and-auto-certbot.sh"

@@ -105,11 +105,11 @@ echo -e "${BLUE}4️⃣ Certbot / Monitor Check${NC}"
 echo "----------------------"
 
 CERTBOT_PID=$(pgrep -f certbot || echo "")
-MONITOR_PID=$(pgrep -f monitor-dns-and-auto-certbot.sh || echo "")
+MONITOR_PID=$(pgrep -f "monitor-dns-and-auto-certbot" || echo "")
 
 if [ -n "$CERTBOT_PID" ]; then
     echo -e "${GREEN}✅ Certbot is running (PID: $CERTBOT_PID)${NC}"
-    pgrep -a certbot | head -2
+    pgrep -f certbot | head -1 | xargs ps -p 2>/dev/null | tail -1 || true
 else
     echo -e "${YELLOW}⚠️  Certbot is not running${NC}"
 fi
@@ -118,7 +118,7 @@ echo ""
 
 if [ -n "$MONITOR_PID" ]; then
     echo -e "${GREEN}✅ Monitor script is running (PID: $MONITOR_PID)${NC}"
-    pgrep -a monitor-dns-and-auto-certbot.sh | head -2
+    pgrep -f "monitor-dns-and-auto-certbot" | head -1 | xargs ps -p 2>/dev/null | tail -1 || true
 else
     echo -e "${YELLOW}⚠️  Monitor script is not running${NC}"
     echo "  Run: ./monitor-dns-and-auto-certbot.sh"
