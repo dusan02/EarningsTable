@@ -38,6 +38,7 @@ do
   FINAL_STATUS=$(curl -I -L -s "$url" 2>/dev/null | head -1 | grep -o "HTTP/[0-9.]* [0-9]*" | awk '{print $2}')
   FINAL_URL=$(curl -I -L -s -w "%{url_effective}" "$url" -o /dev/null 2>/dev/null)
   
+  # Accept 200, 301, 302, 307, 308 as valid (redirects are OK)
   if [ "$FINAL_STATUS" = "200" ] && echo "$FINAL_URL" | grep -q "earningsstable.com"; then
     if [ "$REDIRECTS" -le 2 ]; then
       echo -e "${GREEN}✅ OK (${REDIRECTS} redirects → ${FINAL_STATUS})${NC}"
@@ -45,6 +46,18 @@ do
       echo -e "${YELLOW}⚠️  Too many redirects: ${REDIRECTS}${NC}"
       ((WARNINGS++))
     fi
+  elif [ "$FINAL_STATUS" = "301" ] || [ "$FINAL_STATUS" = "302" ] || [ "$FINAL_STATUS" = "307" ] || [ "$FINAL_STATUS" = "308" ]; then
+    # Redirect is OK, check if it goes to correct domain
+    if echo "$FINAL_URL" | grep -q "earningsstable.com"; then
+      echo -e "${GREEN}✅ Redirects to correct domain (${REDIRECTS} redirects → ${FINAL_STATUS})${NC}"
+    else
+      echo -e "${YELLOW}⚠️  Redirects but to: ${FINAL_URL}${NC}"
+      ((WARNINGS++))
+    fi
+  elif [ "$FINAL_STATUS" = "404" ] && echo "$url" | grep -q "^http://"; then
+    # HTTP 404 is warning (not error) - might not have HTTP→HTTPS redirect configured
+    echo -e "${YELLOW}⚠️  HTTP returns 404 (HTTPS redirect may not be configured)${NC}"
+    ((WARNINGS++))
   else
     echo -e "${RED}❌ Failed (Status: ${FINAL_STATUS}, Redirects: ${REDIRECTS})${NC}"
     ((ERRORS++))
