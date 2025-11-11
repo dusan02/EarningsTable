@@ -415,8 +415,26 @@ async function startAllCronJobs(once: boolean) {
 
 // Old separate cron functions removed - now using unified smart pipeline
 
+// Signal logging for debugging
+process.on('beforeExit', (code) => {
+  console.error(`⚠️ beforeExit: ${code}`);
+});
+
+process.on('exit', (code) => {
+  console.error(`⚠️ exit: ${code}`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 uncaughtException:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 unhandledRejection:', reason);
+});
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
+  console.warn('↩️ SIGINT received');
   console.log('�� Graceful shutdown initiated');
   console.log('↩️ SIGINT: shutting down…');
   await db.disconnect().catch(() => {});
@@ -424,6 +442,7 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
+  console.warn('↩️ SIGTERM received');
   console.log('🛑 Graceful shutdown initiated');
   console.log('↩️ SIGTERM: shutting down…');
   await db.disconnect().catch(() => {});

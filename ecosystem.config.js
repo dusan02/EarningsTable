@@ -33,10 +33,14 @@ module.exports = {
       script: "node_modules/.bin/tsx",
       args: "src/main.ts start",
       interpreter: "none",
+      watch: false,                 // Explicitly disable watch in production
       autorestart: true,
+      min_uptime: "10s",            // Process must run for 10s to be considered stable
       max_restarts: 10,
       restart_delay: 5000,
       max_memory_restart: "300M",
+      kill_timeout: 8000,
+      listen_timeout: 10000,
       env: {
         NODE_ENV: "production",
         CRON_TZ: "America/New_York",
