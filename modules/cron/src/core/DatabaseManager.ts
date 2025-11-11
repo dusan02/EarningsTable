@@ -277,40 +277,46 @@ export class DatabaseManager {
   async copySymbolsToPolygonData(): Promise<void> {
     console.log('🔄 Copying symbols from FinhubData to PolygonData...');    
 
-    const symbols = await prisma.finhubData.findMany({
-      select: { symbol: true },
-      distinct: ['symbol'],
-      where: { symbol: { not: '' } }
-    });
+    try {
+      const symbols = await prisma.finhubData.findMany({
+        select: { symbol: true },
+        distinct: ['symbol'],
+        where: { symbol: { not: '' } }
+      });
 
-    if (symbols.length === 0) {
-      console.log('⚠️ No symbols to copy');
-      return;
+      if (symbols.length === 0) {
+        console.log('⚠️ No symbols to copy');
+        return;
+      }
+
+      // Batch upsert pre lepšiu výkonnosť
+      const batchSize = 100;
+      let total = 0;
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize);
+        console.log(`  → Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(symbols.length / batchSize)} (${batch.length} symbols)`);
+        await prisma.$transaction(
+          batch.map(symbol =>
+            prisma.polygonData.upsert({
+              where: { symbol: symbol.symbol },
+              create: {
+                symbol: symbol.symbol,
+                symbolBoolean: true
+              },
+              update: {
+                symbolBoolean: true
+              }
+            })
+          )
+        );
+        total += batch.length;
+      }
+
+      console.log(`✓ PolygonData: inserted ${total} (deduped) symbols`);
+    } catch (error) {
+      console.error('❌ Error copying symbols to PolygonData:', error);
+      throw error;
     }
-
-    // Batch upsert pre lepšiu výkonnosť
-    const batchSize = 100;
-    let total = 0;
-    for (let i = 0; i < symbols.length; i += batchSize) {
-      const batch = symbols.slice(i, i + batchSize);
-      await prisma.$transaction(
-        batch.map(symbol =>
-          prisma.polygonData.upsert({
-            where: { symbol: symbol.symbol },
-            create: {
-              symbol: symbol.symbol,
-              symbolBoolean: true
-            },
-            update: {
-              symbolBoolean: true
-            }
-          })
-        )
-      );
-      total += batch.length;
-    }
-
-    console.log(`✓ PolygonData: inserted ${total} (deduped) symbols`);
   }
 
   async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
