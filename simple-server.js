@@ -148,14 +148,30 @@ app.get("/site.webmanifest", (req, res) => {
 // SEO: Serve robots.txt
 app.get("/robots.txt", (req, res) => {
   const fs = require("fs");
-  const robotsPath = path.resolve(__dirname, "public", "robots.txt");
+  // Try multiple possible paths (__dirname and process.cwd)
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "robots.txt"),
+    path.resolve(process.cwd(), "public", "robots.txt"),
+    path.join(__dirname, "public", "robots.txt"),
+    path.join(process.cwd(), "public", "robots.txt"),
+  ];
 
-  console.log("[robots] Requested, checking path:", robotsPath);
+  let robotsPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      robotsPath = p;
+      break;
+    }
+  }
+
+  console.log("[robots] Requested");
   console.log("[robots] __dirname:", __dirname);
-  console.log("[robots] File exists:", fs.existsSync(robotsPath));
+  console.log("[robots] process.cwd():", process.cwd());
+  console.log("[robots] Trying paths:", possiblePaths);
+  console.log("[robots] Found at:", robotsPath);
 
-  if (!fs.existsSync(robotsPath)) {
-    console.error("[robots] File not found at:", robotsPath);
+  if (!robotsPath) {
+    console.error("[robots] File not found in any of:", possiblePaths);
     return res.status(404).json({ error: "robots.txt not found" });
   }
 
@@ -171,14 +187,30 @@ app.get("/robots.txt", (req, res) => {
 // SEO: Serve sitemap.xml
 app.get("/sitemap.xml", (req, res) => {
   const fs = require("fs");
-  const sitemapPath = path.resolve(__dirname, "public", "sitemap.xml");
+  // Try multiple possible paths (__dirname and process.cwd)
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "sitemap.xml"),
+    path.resolve(process.cwd(), "public", "sitemap.xml"),
+    path.join(__dirname, "public", "sitemap.xml"),
+    path.join(process.cwd(), "public", "sitemap.xml"),
+  ];
 
-  console.log("[sitemap] Requested, checking path:", sitemapPath);
+  let sitemapPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      sitemapPath = p;
+      break;
+    }
+  }
+
+  console.log("[sitemap] Requested");
   console.log("[sitemap] __dirname:", __dirname);
-  console.log("[sitemap] File exists:", fs.existsSync(sitemapPath));
+  console.log("[sitemap] process.cwd():", process.cwd());
+  console.log("[sitemap] Trying paths:", possiblePaths);
+  console.log("[sitemap] Found at:", sitemapPath);
 
-  if (!fs.existsSync(sitemapPath)) {
-    console.error("[sitemap] File not found at:", sitemapPath);
+  if (!sitemapPath) {
+    console.error("[sitemap] File not found in any of:", possiblePaths);
     return res.status(404).json({ error: "sitemap.xml not found" });
   }
 
