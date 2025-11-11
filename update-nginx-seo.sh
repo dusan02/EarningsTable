@@ -27,7 +27,7 @@ fi
 
 # Backup existing config
 echo -e "${YELLOW}📦 Backing up existing config...${NC}"
-sudo cp "$NGINX_CONFIG" "${NGINX_CONFIG}.backup.$(date +%Y%m%d-%H%M%S)"
+$SUDO cp "$NGINX_CONFIG" "${NGINX_CONFIG}.backup.$(date +%Y%m%d-%H%M%S)"
 echo -e "${GREEN}✅ Backup created${NC}"
 
 # Check if SSL certificates exist
@@ -45,7 +45,7 @@ fi
 # Create updated Nginx config
 echo -e "${YELLOW}⚙️  Creating updated Nginx configuration...${NC}"
 
-sudo tee "$NGINX_CONFIG" > /dev/null << 'NGINX_EOF'
+$SUDO tee "$NGINX_CONFIG" > /dev/null << 'NGINX_EOF'
 # Earnings Table Nginx Configuration with SEO redirects
 # HTTP → HTTPS redirects
 # Old domains → New domain redirects
@@ -197,18 +197,21 @@ echo -e "${GREEN}✅ Nginx configuration updated${NC}"
 
 # Test configuration
 echo -e "${YELLOW}🧪 Testing Nginx configuration...${NC}"
-if sudo nginx -t; then
+if $SUDO nginx -t; then
     echo -e "${GREEN}✅ Nginx configuration is valid${NC}"
 else
     echo -e "${RED}❌ Nginx configuration has errors${NC}"
-    echo "Restoring backup..."
-    sudo cp "${NGINX_CONFIG}.backup.$(date +%Y%m%d-%H%M%S)" "$NGINX_CONFIG"
+    BACKUP_FILE=$(ls -t ${NGINX_CONFIG}.backup.* 2>/dev/null | head -1)
+    if [ -n "$BACKUP_FILE" ]; then
+        echo "Restoring backup: $BACKUP_FILE"
+        $SUDO cp "$BACKUP_FILE" "$NGINX_CONFIG"
+    fi
     exit 1
 fi
 
 # Reload Nginx
 echo -e "${YELLOW}🔄 Reloading Nginx...${NC}"
-sudo systemctl reload nginx
+$SUDO systemctl reload nginx
 echo -e "${GREEN}✅ Nginx reloaded${NC}"
 
 echo ""
