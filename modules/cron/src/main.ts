@@ -387,9 +387,9 @@ async function startAllCronJobs(once: boolean) {
 
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive (bez hackov so stdin) - Promise, ktorý sa nikdy nerozrieši
-    await new Promise<void>((resolve) => {
+    await new Promise((resolve) => {
       // Nikdy nevoláme resolve() -> proces zostane nažive
-    }));
+    });
   }
 
   if (once) {
