@@ -145,8 +145,9 @@ app.get("/site.webmanifest", (req, res) => {
   });
 });
 
-// SEO: Serve robots.txt
+// SEO: Serve robots.txt - MUST be before catch-all routes
 app.get("/robots.txt", (req, res) => {
+  console.log("[robots] ✅ Route handler called!");
   const fs = require("fs");
   // Try multiple possible paths (__dirname and process.cwd)
   const possiblePaths = [
@@ -180,12 +181,15 @@ app.get("/robots.txt", (req, res) => {
     if (err) {
       console.error("[robots] Error serving robots.txt:", err);
       res.status(500).json({ error: "Error serving robots.txt" });
+    } else {
+      console.log("[robots] ✅ Successfully served robots.txt");
     }
   });
 });
 
-// SEO: Serve sitemap.xml
+// SEO: Serve sitemap.xml - MUST be before catch-all routes
 app.get("/sitemap.xml", (req, res) => {
+  console.log("[sitemap] ✅ Route handler called!");
   const fs = require("fs");
   // Try multiple possible paths (__dirname and process.cwd)
   const possiblePaths = [
@@ -219,6 +223,8 @@ app.get("/sitemap.xml", (req, res) => {
     if (err) {
       console.error("[sitemap] Error serving sitemap.xml:", err);
       res.status(500).json({ error: "Error serving sitemap.xml" });
+    } else {
+      console.log("[sitemap] ✅ Successfully served sitemap.xml");
     }
   });
 });
