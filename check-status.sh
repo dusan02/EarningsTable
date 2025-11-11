@@ -61,7 +61,7 @@ echo ""
 
 # Check SSL
 echo -e "${BLUE}SSL Status:${NC}"
-SSL_CERT="/etc/letsencrypt/live/earningstable.com/fullchain.pem"
+SSL_CERT="/etc/letsencrypt/live/earningsstable.com/fullchain.pem"
 if [ -f "$SSL_CERT" ]; then
     echo -e "  ${GREEN}✅ SSL certificate exists${NC}"
 else
