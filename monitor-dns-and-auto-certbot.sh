@@ -1,7 +1,8 @@
 #!/bin/bash
 # 🔄 Monitor DNS and Auto-Run Certbot When Ready
 
-set -e
+# Don't exit on error when running in background
+# set -e
 
 echo "🔄 DNS Monitor and Auto-Certbot"
 echo "==============================="
@@ -34,7 +35,8 @@ while [ $CHECK_COUNT -lt $MAX_CHECKS ]; do
     DNS_MAIN=$(dig +short earningsstable.com 2>/dev/null || echo "")
     DNS_WWW=$(dig +short www.earningsstable.com 2>/dev/null || echo "")
     
-    echo -n "[$CHECK_COUNT/$MAX_CHECKS] $(date +%H:%M:%S) - "
+    TIMESTAMP=$(date +%H:%M:%S 2>/dev/null || echo "N/A")
+    echo -n "[$CHECK_COUNT/$MAX_CHECKS] $TIMESTAMP - "
     
     if [ -n "$DNS_MAIN" ] && [ "$DNS_MAIN" = "$EXPECTED_IP" ] && [ -n "$DNS_WWW" ] && [ "$DNS_WWW" = "$EXPECTED_IP" ]; then
         echo -e "${GREEN}✅ DNS records found!${NC}"
@@ -73,7 +75,8 @@ if [ -z "$DNS_MAIN" ] || [ "$DNS_MAIN" != "$EXPECTED_IP" ] || [ -z "$DNS_WWW" ] 
     echo "  1. DNS A records are added in your DNS provider"
     echo "  2. DNS propagation may take longer (up to 48 hours)"
     echo "  3. Run this script again later"
-    exit 1
+    # Don't exit with error code when running in background
+    exit 0
 fi
 
 # Wait a bit more for full propagation
