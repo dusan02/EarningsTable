@@ -387,8 +387,16 @@ async function startAllCronJobs(once: boolean) {
 
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive - cron joby udržiavajú event loop nažive
-    // process.stdin.resume() zabezpečí, že proces zostane nažive
+    // Použijeme setInterval + await na udržanie procesu nažive
     process.stdin.resume();
+    
+    // Udržať proces nažive pomocou setInterval
+    await new Promise((resolve) => {
+      setInterval(() => {
+        // Keep process alive - cron jobs maintain the event loop
+      }, 60000);
+      // Nikdy nerozriešiť Promise -> proces zostane nažive
+    });
   }
 
   if (once) {
