@@ -52,6 +52,10 @@ read -p "Remove debug route /__nginx__ and X-Debug-Block headers? (y/N): " -n 1 
 echo ""
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Remove backup files first (they cause conflicts)
+    echo "Removing backup files from sites-enabled..."
+    rm -f /etc/nginx/sites-enabled/*.backup.*
+    
     # Backup
     cp "$MAIN_CONFIG" "${MAIN_CONFIG}.backup.$(date +%Y%m%d-%H%M%S)"
     

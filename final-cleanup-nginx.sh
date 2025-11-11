@@ -34,8 +34,9 @@ if nginx -t 2>&1 | grep -q "successful"; then
     echo -e "${GREEN}✅ Config valid${NC}"
     
     # Check for conflicts
-    CONFLICTS=$(nginx -t 2>&1 | grep -c "conflicting server name" || echo "0")
-    if [ "$CONFLICTS" -eq 0 ]; then
+    CONFLICTS=$(nginx -t 2>&1 | grep -c "conflicting server name" 2>/dev/null || echo "0")
+    CONFLICTS=${CONFLICTS//[^0-9]/}  # Remove any non-numeric characters
+    if [ -z "$CONFLICTS" ] || [ "$CONFLICTS" -eq 0 ]; then
         echo -e "${GREEN}✅ No conflicting server names!${NC}"
     else
         echo -e "${YELLOW}⚠️  Still have $CONFLICTS conflicts${NC}"
