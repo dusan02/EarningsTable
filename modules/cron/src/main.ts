@@ -157,7 +157,9 @@ async function startDailyCycle() {
   await manager.start();
   
   // Keep-alive
-  await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
+  await new Promise<void>((resolve) => {
+    // nikdy nerezolvni -> udrží event loop
+  });
 }
 
 
@@ -387,18 +389,18 @@ async function startAllCronJobs(once: boolean) {
 
     console.log('Press Ctrl+C to stop all cron jobs');
     // Keep-alive - cron joby udržiavajú event loop nažive
-    // Použijeme jednoduchý keep-alive mechanizmus
     process.stdin.resume();
     
-    // Udržať proces nažive - Promise, ktorý sa nikdy nerozrieši
-    // setInterval zabezpečí, že event loop zostane aktívny
+    // Udržať proces nažive - setInterval zabezpečí, že event loop zostane aktívny
     const keepAlive = setInterval(() => {
       // Keep process alive - cron jobs maintain the event loop
     }, 60000);
     
     // Await na Promise, ktorý sa nikdy nerozrieši
-    await new Promise(() => {
+    // Explicitné parametre pre esbuild parser
+    await new Promise<void>((resolve) => {
       // Nikdy nerozriešiť -> proces zostane nažive
+      // resolve sa nikdy nezavolá
     });
   }
 
