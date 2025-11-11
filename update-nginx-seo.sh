@@ -111,16 +111,18 @@ server {
     gzip_proxied expired no-cache no-store private must-revalidate auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/javascript application/json;
     
-    # SEO: Serve robots.txt and sitemap.xml directly
+    # SEO: Serve robots.txt and sitemap.xml directly from disk (BEFORE proxy)
     location = /robots.txt {
         alias /var/www/earnings-table/public/robots.txt;
         access_log off;
+        default_type text/plain;
         add_header Content-Type text/plain;
     }
     
     location = /sitemap.xml {
         alias /var/www/earnings-table/public/sitemap.xml;
         access_log off;
+        default_type application/xml;
         add_header Content-Type application/xml;
     }
     

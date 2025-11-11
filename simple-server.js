@@ -46,6 +46,16 @@ const app = express();
 // Disable Express default ETag generation; we'll set a stable custom ETag
 app.set("etag", false);
 
+// Global request logger to see ALL incoming requests
+app.use((req, res, next) => {
+  console.log(`[ALL REQUESTS] ${req.method} ${req.path}`);
+  next();
+});
+
+// Serve /public directory as static files (fallback if Nginx doesn't handle it)
+const PUBLIC_DIR = path.resolve(__dirname, "public");
+app.use(express.static(PUBLIC_DIR, { fallthrough: true }));
+
 // SEO: Serve robots.txt and sitemap.xml FIRST - before any other routes or middleware
 app.get("/robots.txt", (req, res) => {
   console.log("[robots] ✅ Route handler called!");
