@@ -386,10 +386,10 @@ async function startAllCronJobs(once: boolean) {
     checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
-    // Keep-alive (bez hackov so stdin) - Promise, ktorý sa nikdy nerozrieši
-    await new Promise((resolve) => {
-      // Nikdy nevoláme resolve() -> proces zostane nažive
-    });
+    // Keep-alive - proces zostane nažive pomocou while loop
+    while (true) {
+      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute
+    }
   }
 
   if (once) {
