@@ -22,7 +22,7 @@ echo -e "${GREEN}✅ All backup files removed${NC}"
 # Step 2: Check for symlinks
 echo ""
 echo -e "${BLUE}Step 2: Checking for symlinks...${NC}"
-ls -la /etc/nginx/sites-enabled/ | grep -E "->|earnings"
+ls -la /etc/nginx/sites-enabled/ | grep -E "earnings"
 
 # Check if earnings-table is symlinked
 if [ -L "/etc/nginx/sites-enabled/earnings-table" ]; then
