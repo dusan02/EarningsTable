@@ -388,20 +388,20 @@ async function startAllCronJobs(once: boolean) {
     checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
-    // Keep-alive - cron joby udržiavajú event loop nažive
+    // Keep-alive - explicit infinite loop to prevent process exit
     process.stdin.resume();
     
-    // Udržať proces nažive - setInterval zabezpečí, že event loop zostane aktívny
+    // Keep event loop active with periodic heartbeat
     const keepAlive = setInterval(() => {
-      // Keep process alive - cron jobs maintain the event loop
+      // Periodic heartbeat to keep event loop active
+      // This ensures cron jobs and other async operations stay alive
     }, 60000);
     
-    // Await na Promise, ktorý sa nikdy nerozrieši
-    // Explicitné parametre pre esbuild parser
-    await new Promise<void>((resolve) => {
-      // Nikdy nerozriešiť -> proces zostane nažive
-      // resolve sa nikdy nezavolá
-    });
+    // Infinite loop with delay to keep process alive
+    // This ensures the event loop never drains and process stays running
+    while (true) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 60000));
+    }
   }
 
   if (once) {
