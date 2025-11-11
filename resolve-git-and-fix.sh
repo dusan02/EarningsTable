@@ -38,9 +38,17 @@ else
     echo -e "${GREEN}✅ No local changes detected${NC}"
 fi
 
-# Step 2: Pull latest changes
+# Step 2: Remove untracked resolve-git-and-fix.sh if it exists (downloaded via curl)
 echo ""
-echo -e "${BLUE}Step 2: Pulling latest changes...${NC}"
+echo -e "${BLUE}Step 2: Cleaning up untracked files...${NC}"
+if [ -f "resolve-git-and-fix.sh" ] && ! git ls-files --error-unmatch resolve-git-and-fix.sh >/dev/null 2>&1; then
+    echo "Removing untracked resolve-git-and-fix.sh (will be pulled from git)..."
+    rm -f resolve-git-and-fix.sh
+fi
+
+# Step 3: Pull latest changes
+echo ""
+echo -e "${BLUE}Step 3: Pulling latest changes...${NC}"
 if git pull origin feat/skeleton-loading-etag; then
     echo -e "${GREEN}✅ Pull successful${NC}"
 else
@@ -49,9 +57,9 @@ else
     exit 1
 fi
 
-# Step 3: Make quick-fix script executable and run it
+# Step 4: Make quick-fix script executable and run it
 echo ""
-echo -e "${BLUE}Step 3: Running quick fix...${NC}"
+echo -e "${BLUE}Step 4: Running quick fix...${NC}"
 if [ -f "quick-fix-backup-and-dns-check.sh" ]; then
     chmod +x quick-fix-backup-and-dns-check.sh
     ./quick-fix-backup-and-dns-check.sh
