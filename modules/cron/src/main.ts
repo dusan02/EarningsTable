@@ -386,10 +386,11 @@ async function startAllCronJobs(once: boolean) {
     checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
-    // Keep-alive - proces zostane nažive pomocou while loop
-    while (true) {
-      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute
-    }
+    // Keep-alive - proces zostane nažive pomocou setInterval
+    // Cron joby už udržiavajú event loop nažive, takže toto je len bezpečnostná miera
+    setInterval(() => {
+      // Keep process alive - cron jobs maintain the event loop
+    }, 60000);
   }
 
   if (once) {
