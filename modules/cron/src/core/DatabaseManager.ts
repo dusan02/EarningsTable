@@ -283,20 +283,34 @@ export class DatabaseManager {
       where: { symbol: { not: '' } }
     });
 
-    for (const symbol of symbols) {
-      await prisma.polygonData.upsert({
-        where: { symbol: symbol.symbol },
-        create: {
-          symbol: symbol.symbol,
-          symbolBoolean: true
-        },
-        update: {
-          symbolBoolean: true
-        }
-      });
+    if (symbols.length === 0) {
+      console.log('⚠️ No symbols to copy');
+      return;
     }
 
-    console.log(`✓ PolygonData: inserted ${symbols.length} (deduped) symbols`);
+    // Batch upsert pre lepšiu výkonnosť
+    const batchSize = 100;
+    let total = 0;
+    for (let i = 0; i < symbols.length; i += batchSize) {
+      const batch = symbols.slice(i, i + batchSize);
+      await prisma.$transaction(
+        batch.map(symbol =>
+          prisma.polygonData.upsert({
+            where: { symbol: symbol.symbol },
+            create: {
+              symbol: symbol.symbol,
+              symbolBoolean: true
+            },
+            update: {
+              symbolBoolean: true
+            }
+          })
+        )
+      );
+      total += batch.length;
+    }
+
+    console.log(`✓ PolygonData: inserted ${total} (deduped) symbols`);
   }
 
   async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
