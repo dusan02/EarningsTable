@@ -85,6 +85,12 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// SEO: Set X-Robots-Tag header for all responses
+app.use((req, res, next) => {
+  res.setHeader("X-Robots-Tag", "index, follow");
+  next();
+});
+
 // Serve logos from the correct directory (robust to working dir)
 const LOGO_DIR = path.resolve(
   process.cwd(),
@@ -135,6 +141,52 @@ app.get("/site.webmanifest", (req, res) => {
     if (err) {
       console.error("[manifest] Error serving manifest:", err);
       res.status(500).json({ error: "Error serving manifest" });
+    }
+  });
+});
+
+// SEO: Serve robots.txt
+app.get("/robots.txt", (req, res) => {
+  const fs = require("fs");
+  const robotsPath = path.resolve(__dirname, "public", "robots.txt");
+
+  console.log("[robots] Requested, checking path:", robotsPath);
+  console.log("[robots] __dirname:", __dirname);
+  console.log("[robots] File exists:", fs.existsSync(robotsPath));
+
+  if (!fs.existsSync(robotsPath)) {
+    console.error("[robots] File not found at:", robotsPath);
+    return res.status(404).json({ error: "robots.txt not found" });
+  }
+
+  res.setHeader("Content-Type", "text/plain");
+  res.sendFile(robotsPath, (err) => {
+    if (err) {
+      console.error("[robots] Error serving robots.txt:", err);
+      res.status(500).json({ error: "Error serving robots.txt" });
+    }
+  });
+});
+
+// SEO: Serve sitemap.xml
+app.get("/sitemap.xml", (req, res) => {
+  const fs = require("fs");
+  const sitemapPath = path.resolve(__dirname, "public", "sitemap.xml");
+
+  console.log("[sitemap] Requested, checking path:", sitemapPath);
+  console.log("[sitemap] __dirname:", __dirname);
+  console.log("[sitemap] File exists:", fs.existsSync(sitemapPath));
+
+  if (!fs.existsSync(sitemapPath)) {
+    console.error("[sitemap] File not found at:", sitemapPath);
+    return res.status(404).json({ error: "sitemap.xml not found" });
+  }
+
+  res.setHeader("Content-Type", "application/xml");
+  res.sendFile(sitemapPath, (err) => {
+    if (err) {
+      console.error("[sitemap] Error serving sitemap.xml:", err);
+      res.status(500).json({ error: "Error serving sitemap.xml" });
     }
   });
 });
