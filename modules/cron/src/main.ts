@@ -88,7 +88,7 @@ async function bootstrap() {
 
       case 'status':
         console.log('📊 Cron Jobs Status:');
-        console.log('  ✅ Pipeline: Finnhub → Polygon (03:05-03:55, 04:00-20:00 every 5min @ America/New_York)');
+        console.log('  ✅ Pipeline: Finnhub → Polygon (every 5min @ America/New_York, 24/7 except 03:00)');
         console.log('  ✅ Daily Clear: 03:00 NY (Mon-Fri)');
         console.log('  ✅ Boot Guard: Automatic recovery after restart');
         console.log('  ✅ Environment: Validated');
@@ -97,7 +97,7 @@ async function bootstrap() {
       case 'list':
         console.log('📋 Available Cron Jobs:');
         console.log('  - Daily Cycle Manager (03:00 clear, 03:05 start, every 5min until 02:30)');
-        console.log('  - Pipeline (03:05-03:55, 04:00-20:00): Finnhub → Polygon');
+        console.log('  - Pipeline: Finnhub → Polygon every 5min (24/7 except 03:00)');
         console.log('  - Daily clear 03:00 NY (Mon–Fri)');
         console.log('  - Boot guard recovery system');
         break;
@@ -131,8 +131,7 @@ Options:
 
 Schedule:
   🧹 03:00 NY - Daily clear (Mon-Fri)
-  📊 03:05-03:55 NY - Early slot every 5min (Mon-Fri)
-  📊 04:00-20:00 NY - Day slot every 5min (Mon-Fri)
+  📊 Every 5min NY - Pipeline 24/7 (Mon-Fri, except 03:00)
   🛡️ Boot guard - Automatic recovery after restart
 
 Examples:
@@ -199,7 +198,15 @@ async function runPipeline(label = "scheduled") {
     const metrics = await optimizedPipeline.runPipeline(label);
     
     // Record performance metrics
-    performanceMonitor.recordSnapshot(metrics);
+    performanceMonitor.recordSnapshot({
+      pipelineDuration: metrics.duration,
+      finnhubDuration: metrics.finnhubDuration,
+      polygonDuration: metrics.polygonDuration,
+      logoDuration: metrics.logoDuration,
+      dbDuration: metrics.dbDuration,
+      totalRecords: metrics.totalRecords,
+      symbolsChanged: metrics.symbolsChanged
+    });
     
     // Save performance data to database
     await performanceMonitor.saveToDatabase();
@@ -315,7 +322,8 @@ async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
   if (!once) {
-    // Unified cron: každých 5 minút počas celého dňa (okrem 03:00–03:05 pre reset)
+    // Unified cron: každých 5 minút počas celého dňa (okrem 03:00 pre reset)
+    // Cron expression: */5 * * * 1-5 = každých 5 min počas celého dňa, Mon-Fri
     const UNIFIED_CRON = '*/5 * * * 1-5';
     const UNIFIED_VALID = cron.validate(UNIFIED_CRON);
     if (!UNIFIED_VALID) console.error(`❌ Invalid cron expression: ${UNIFIED_CRON}`);
@@ -324,10 +332,13 @@ async function startAllCronJobs(once: boolean) {
       const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
       const hour = nowNY.getHours();
       const minute = nowNY.getMinutes();
+      
+      // Preskočiť 03:00 (kedy beží daily clear)
       if (hour === 3 && minute === 0) {
         console.log(`⏭️  [CRON] skipping tick @ ${tickAt} (NY) - daily clear time`);
         return;
       }
+      
       console.log(`⏱️ [CRON] tick @ ${tickAt} (NY)`);
       if (isInQuietWindow()) return;
       await runPipeline('unified-slot');
