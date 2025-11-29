@@ -216,7 +216,7 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
                     onClick={() => handleSort('marketCap')}
                   >
                     <div className="flex items-center justify-center space-x-1">
-                      <span>Market Cap</span>
+                      <span>MKT CAP</span>
                       <SortIcon field="marketCap" />
                     </div>
                   </th>

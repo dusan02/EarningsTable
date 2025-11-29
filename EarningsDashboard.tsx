@@ -293,7 +293,7 @@ export default function EarningsDashboard() {
                       onClick={() => handleSort('marketCap')}
                       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
                     >
-                      <span>Market Cap</span>
+                      <span>MKT CAP</span>
                       <SortIcon field="marketCap" />
                     </button>
                   </th>

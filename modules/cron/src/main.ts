@@ -325,8 +325,8 @@ async function startAllCronJobs(once: boolean) {
   
   if (!once) {
     // Unified cron: každých 5 minút počas celého dňa (okrem 03:00 pre reset)
-    // Cron expression: */5 * * * 1-5 = každých 5 min počas celého dňa, Mon-Fri
-    const UNIFIED_CRON = '*/5 * * * 1-5';
+    // Cron expression: */5 * * * * = každých 5 min, 24/7
+    const UNIFIED_CRON = '*/5 * * * *';
     const UNIFIED_VALID = cron.validate(UNIFIED_CRON);
     if (!UNIFIED_VALID) console.error(`❌ Invalid cron expression: ${UNIFIED_CRON}`);
     cron.schedule(UNIFIED_CRON, async () => {
@@ -345,7 +345,7 @@ async function startAllCronJobs(once: boolean) {
       if (isInQuietWindow()) return;
       await runPipeline('unified-slot');
     }, { timezone: TZ });
-    console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, Mon–Fri, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
+    console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, 24/7, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
 
     // Daily clear job (03:00 AM weekdays) – reset databázy
     const DAILY_CLEAR_CRON = '0 3 * * 1-5';
