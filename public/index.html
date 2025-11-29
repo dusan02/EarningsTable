@@ -15,21 +15,24 @@
     <meta name="language" content="English">
     <meta name="revisit-after" content="1 days">
     
-    <!-- Open Graph / Facebook -->
+    <!-- Canonical -->
+    <link rel="canonical" href="https://earningsstable.com/" />
+    
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://earnings-table.com/">
+    <meta property="og:url" content="https://earningsstable.com/">
     <meta property="og:title" content="Earnings Table - Real-time Financial Data Dashboard">
-    <meta property="og:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance with our comprehensive financial data dashboard powered by Polygon.">
-    <meta property="og:image" content="https://earnings-table.com/og-image.png">
+    <meta property="og:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance.">
+    <meta property="og:image" content="https://earningsstable.com/og-image.png">
     <meta property="og:site_name" content="Earnings Table">
     <meta property="og:locale" content="en_US">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://earnings-table.com/">
+    <meta property="twitter:url" content="https://earningsstable.com/">
     <meta property="twitter:title" content="Earnings Table - Real-time Financial Data Dashboard">
-    <meta property="twitter:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance with our comprehensive financial data dashboard powered by Polygon.">
-    <meta property="twitter:image" content="https://earnings-table.com/twitter-image.png">
+    <meta property="twitter:description" content="Track company earnings, market cap, EPS, revenue surprises, and stock performance.">
+    <meta property="twitter:image" content="https://earningsstable.com/twitter-image.png">
     <meta property="twitter:creator" content="@earnings_table">
     <meta property="twitter:site" content="@earnings_table">
     
@@ -40,9 +43,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Earnings Table">
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://earnings-table.com/">
-    
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -51,39 +51,29 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     
-    <!-- Structured Data (JSON-LD) -->
+    <!-- JSON-LD -->
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Earnings Table",
+      "description": "Real-time financial data dashboard with company earnings, market cap, EPS, and revenue information",
+      "url": "https://earningsstable.com/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web Browser",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Organization", "name": "Independent Financial Data Provider" },
+      "publisher": {
+        "@type": "Organization",
         "name": "Earnings Table",
-        "description": "Real-time financial data dashboard with company earnings, market cap, EPS, and revenue information",
-        "url": "https://earnings-table.com/",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "Web Browser",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-        },
-        "author": {
-            "@type": "Organization",
-            "name": "Independent Financial Data Provider"
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "Earnings Table",
-            "logo": {
-                "@type": "ImageObject",
-                "url": "https://earnings-table.com/logo.png"
-            }
-        },
-        "datePublished": "2024-01-01",
-        "dateModified": "2024-01-15",
-        "inLanguage": "en-US",
-        "isAccessibleForFree": true,
-        "browserRequirements": "Requires JavaScript. Requires HTML5.",
-        "softwareVersion": "1.0.0"
+        "logo": { "@type": "ImageObject", "url": "https://earningsstable.com/logo.png" }
+      },
+      "datePublished": "2024-01-01",
+      "dateModified": "2024-01-15",
+      "inLanguage": "en-US",
+      "isAccessibleForFree": true,
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0.0"
     }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -616,7 +606,7 @@
                                    </th>
                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer group hover:bg-blue-100 dark:hover:bg-blue-800/40 smooth-transition relative bg-blue-100 dark:bg-blue-800/50 touch-manipulation whitespace-nowrap" onclick="sortTable('marketCap')" style="width: 20%;">
                                        <div class="flex items-center justify-center">
-                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">Market Cap</span>
+                                           <span class="group-hover:text-blue-900 dark:group-hover:text-white smooth-transition">MKT CAP</span>
                                            <span id="sort-marketCap" class="ml-1 sm:ml-2 text-blue-900 dark:text-white opacity-100 smooth-transition font-bold text-sm sm:text-lg">↓</span>
                                        </div>
                                    </th>
@@ -683,6 +673,8 @@
         let allData = [];
         let filteredData = [];
         let currentSort = { field: 'marketCap', direction: 'desc' };
+        let currentSearch = '';
+        let currentFetchController = null;
 
         // Theme management
         function initTheme() {
@@ -749,11 +741,14 @@
         }
 
         function formatRevenue(value) {
-            if (!value) return '-';
-            const num = Number(value);
-            if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-            if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-            return `$${num.toFixed(0)}`;
+            const num = typeof value === 'bigint' ? Number(value) : Number(value);
+            if (!Number.isFinite(num)) return '-';
+            if (num <= 0) return '-';
+            const abs = Math.abs(num);
+            if (abs >= 1e12) return `$${(abs / 1e12).toFixed(2)}T`;
+            if (abs >= 1e9) return `$${(abs / 1e9).toFixed(2)}B`;
+            if (abs >= 1e6) return `$${(abs / 1e6).toFixed(2)}M`;
+            return `$${abs.toFixed(0)}`;
         }
 
         function determineCompanySize(apiSize, marketCap) {
@@ -807,6 +802,7 @@
                 currentSort.field = field;
                 currentSort.direction = 'asc';
             }
+            try { localStorage.setItem('et_sort', JSON.stringify(currentSort)); } catch {}
 
             // Update sort indicators
             updateSortIndicators();
@@ -986,10 +982,16 @@
             try {
                 console.log('Fetching data...');
                 showLoading();
-                
-                const response = await fetch('/api/final-report');
+                if (currentFetchController) { try { currentFetchController.abort(); } catch {} }
+                currentFetchController = new AbortController();
+                const response = await fetch('/api/final-report', { signal: currentFetchController.signal, headers: { 'If-None-Match': window.__lastEtag || '' } });
                 console.log('Response status:', response.status);
-                
+                if (response.status === 304) {
+                    console.log('Not modified (304), keeping current data');
+                    await fetchCronStatus();
+                    showTable();
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -998,6 +1000,8 @@
                 console.log('API result:', result);
                 
                 if (result.success) {
+                    const etag = response.headers.get('ETag');
+                    if (etag) window.__lastEtag = etag;
                     allData = result.data.map(item => ({
                         symbol: item.symbol,
                         name: item.name || '-',
@@ -1018,7 +1022,20 @@
                     
                     filteredData = [...allData];
                     
-                    // Apply default sorting (MarketCap DESC)
+                    // Restore persisted search/sort
+                    try {
+                        const savedSort = JSON.parse(localStorage.getItem('et_sort')||'null');
+                        if (savedSort && savedSort.field && savedSort.direction) currentSort = savedSort;
+                        const savedQuery = localStorage.getItem('et_search')||'';
+                        if (savedQuery) {
+                            currentSearch = savedQuery;
+                            const si = document.getElementById('search-input');
+                            if (si) si.value = savedQuery;
+                            filterData(savedQuery);
+                        }
+                    } catch {}
+
+                    // Apply default sorting (MarketCap DESC) if nothing persisted
                     applySorting();
                     updateSortIndicators();
                     
@@ -1044,17 +1061,124 @@
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                // Fallback to last-good snapshot
+                try {
+                    const r2 = await fetch('/api/final-report/last-good');
+                    if (r2.ok) {
+                        const j2 = await r2.json();
+                        if (j2.success && Array.isArray(j2.data) && j2.data.length) {
+                            allData = j2.data.map(item => ({
+                                symbol: item.symbol,
+                                name: item.name || '-',
+                                size: determineCompanySize(item.size, item.marketCap),
+                                marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                                marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                                price: item.price || 0,
+                                logoUrl: item.logoUrl || null,
+                                logoSource: item.logoSource || null,
+                                change: item.change || 0,
+                                epsActual: item.epsActual || 0,
+                                epsEst: item.epsEst || 0,
+                                epsSurp: item.epsSurp || 0,
+                                revActual: item.revActual ? Number(item.revActual) : 0,
+                                revEst: item.revEst ? Number(item.revEst) : 0,
+                                revSurp: item.revSurp || 0,
+                            }));
+                            filteredData = [...allData];
+                            applySorting();
+                            updateSortIndicators();
+                            renderTable();
+                            showTable();
+                            await fetchCronStatus();
+                            return;
+                        }
+                    }
+                } catch(_) {}
                 showError(error.message);
             }
         }
 
         // UI state management
+        function renderSkeleton(count = 12) {
+            const tbody = document.getElementById('table-body');
+            const cardBody = document.getElementById('card-body');
+            if (tbody) {
+                const rows = Array.from({ length: count }).map((_, i) => `
+                <tr class="border-b border-neutral-200 dark:border-transparent ${i % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-neutral-100 dark:bg-slate-700'}">
+                    <td class="px-2 sm:px-4 lg:px-6 py-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 sm:w-14 lg:w-16 sm:h-14 lg:h-16 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                            <div class="flex-1">
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse mb-2"></div>
+                                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-2">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 ml-auto animate-pulse"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 ml-auto mt-2 animate-pulse"></div>
+                    </td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-2 text-center">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto animate-pulse"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mx-auto mt-2 animate-pulse"></div>
+                    </td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-2 text-center">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto animate-pulse"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mx-auto mt-2 animate-pulse"></div>
+                    </td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-2 text-center">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mx-auto animate-pulse"></div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mx-auto mt-2 animate-pulse"></div>
+                    </td>
+                </tr>`).join('');
+                tbody.innerHTML = rows;
+            }
+            if (cardBody) {
+                const cards = Array.from({ length: Math.min(8, count) }).map(() => `
+                <div class="company-card">
+                    <div class="card-header">
+                        <div class="card-header-item">
+                            <div class="card-logo bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                        </div>
+                        <div class="card-header-item card-ticker-name-combined">
+                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
+                            <span class="card-separator">|</span>
+                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28 animate-pulse"></div>
+                        </div>
+                        <div class="card-header-item">
+                            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-14 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="card-data-grid">
+                        <div class="card-data-column">
+                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mt-3 animate-pulse"></div>
+                        </div>
+                        <div class="card-data-column">
+                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mt-3 animate-pulse"></div>
+                        </div>
+                        <div class="card-data-column">
+                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
+                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mt-3 animate-pulse"></div>
+                        </div>
+                        <div class="card-data-column">
+                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mt-3 animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>`).join('');
+                cardBody.innerHTML = cards;
+            }
+        }
         function showLoading() {
-            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
-            document.getElementById('status-bar').classList.add('hidden');
-            document.getElementById('table-container').classList.add('hidden');
-            document.getElementById('card-container').classList.add('hidden');
+            document.getElementById('status-bar').classList.remove('hidden');
+            // Show containers with skeletons to prevent layout jumps
+            document.getElementById('table-container').classList.remove('hidden');
+            document.getElementById('card-container').classList.remove('hidden');
+            renderSkeleton();
         }
 
         function showError(message) {
@@ -1257,7 +1381,7 @@
                         <!-- Column 1: Market Cap -->
                         <div class="card-data-column">
                             <div>
-                                <div class="card-data-label">Market Cap</div>
+                                <div class="card-data-label">MKT CAP</div>
                                 <div class="card-data-value">${formatMarketCap(item.marketCap)}</div>
                             </div>
                             <div class="card-data-change ${getChangeColor(item.marketCapDiff)}">
@@ -1308,26 +1432,32 @@
         // Event listeners
         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
         document.getElementById('retry-btn').addEventListener('click', fetchData);
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) refreshBtn.addEventListener('click', fetchData);
         document.getElementById('search-input').addEventListener('input', (e) => {
-            filterData(e.target.value);
+            currentSearch = e.target.value || '';
+            try { localStorage.setItem('et_search', currentSearch); } catch {}
+            filterData(currentSearch);
         });
 
-        // Auto-refresh mechanism
-        let autoRefreshInterval;
+        // Update mechanism
+        let updateCheckInterval;
         let lastDataHash = null;
         
-        // Silent data refresh without UI flicker
-        async function silentDataRefresh() {
+        // Check for updates without UI flicker; updates only if data changed
+        async function checkForUpdate() {
             try {
-                console.log('Silent data refresh...');
+                console.log('Check for update...');
+                if (currentFetchController) { try { currentFetchController.abort(); } catch {} }
+                currentFetchController = new AbortController();
+                const response = await fetch('/api/final-report', { signal: currentFetchController.signal, headers: { 'If-None-Match': window.__lastEtag || '' } });
+                if (response.status === 304) { await fetchCronStatus(); return; }
+                if (!response.ok) { return; }
                 
-                const response = await fetch('/api/final-report');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                const etag = response.headers.get('ETag');
                 const result = await response.json();
                 if (result.success) {
+                    if (etag) window.__lastEtag = etag;
                     // Create hash of current data to detect changes
                     const newData = result.data.map(item => ({
                         symbol: item.symbol,
@@ -1381,33 +1511,22 @@
                         // Show refresh indicator
                         showRefreshIndicator();
                     } else {
-                        console.log('No data changes detected');
-                        // Still update timestamp
                         await fetchCronStatus();
                     }
                 }
             } catch (error) {
-                console.error('Silent refresh error:', error);
+                console.error('Update check error:', error);
+                // no throw; keep UI state
             }
         }
         
-        function startAutoRefresh() {
-            // Clear existing interval
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-            
-            // Check for updates every 15 seconds (more frequent for better UX)
-            autoRefreshInterval = setInterval(async () => {
-                await silentDataRefresh();
-            }, 15000); // 15 seconds
+        function startUpdateChecks() {
+            if (updateCheckInterval) clearInterval(updateCheckInterval);
+            // Only check every 60s; update happens only when backend data changed (cron done)
+            updateCheckInterval = setInterval(checkForUpdate, 60000);
         }
-        
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
+        function stopUpdateChecks() {
+            if (updateCheckInterval) { clearInterval(updateCheckInterval); updateCheckInterval = null; }
         }
         
         // Show refresh indicator briefly
@@ -1426,12 +1545,23 @@
             initTheme();
             updateLastUpdatedTime(); // Initialize timestamp and market session
             fetchData();
-            startAutoRefresh();
+            startUpdateChecks();
         });
         
         // Clean up on page unload
         window.addEventListener('beforeunload', function() {
-            stopAutoRefresh();
+            stopUpdateChecks();
+        });
+
+        // Pause auto-refresh when tab hidden, resume on visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopUpdateChecks();
+                if (currentFetchController) { try { currentFetchController.abort(); } catch {} }
+            } else {
+                startUpdateChecks();
+                checkForUpdate();
+            }
         });
 
         // Fallback prepínanie layoutu, keď media queries neprejdú (alebo je cache/štýly mimo)

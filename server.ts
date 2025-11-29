@@ -9,6 +9,14 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// SEO: Set X-Robots-Tag header for all responses
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'index, follow');
+  next();
+});
+
+// Serve static files (including robots.txt and sitemap.xml from public/)
 app.use(express.static(__dirname));
 
 // API Routes
@@ -24,6 +32,16 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
+});
+
+// SEO: Serve robots.txt and sitemap.xml explicitly
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.setHeader('Content-Type', 'application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
 });
 
 // Serve simple dashboard for all other routes

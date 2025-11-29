@@ -277,26 +277,46 @@ export class DatabaseManager {
   async copySymbolsToPolygonData(): Promise<void> {
     console.log('🔄 Copying symbols from FinhubData to PolygonData...');    
 
-    const symbols = await prisma.finhubData.findMany({
-      select: { symbol: true },
-      distinct: ['symbol'],
-      where: { symbol: { not: '' } }
-    });
-
-    for (const symbol of symbols) {
-      await prisma.polygonData.upsert({
-        where: { symbol: symbol.symbol },
-        create: {
-          symbol: symbol.symbol,
-          symbolBoolean: true
-        },
-        update: {
-          symbolBoolean: true
-        }
+    try {
+      const symbols = await prisma.finhubData.findMany({
+        select: { symbol: true },
+        distinct: ['symbol'],
+        where: { symbol: { not: '' } }
       });
-    }
 
-    console.log(`✓ PolygonData: inserted ${symbols.length} (deduped) symbols`);
+      if (symbols.length === 0) {
+        console.log('⚠️ No symbols to copy');
+        return;
+      }
+
+      // Batch upsert pre lepšiu výkonnosť
+      const batchSize = 100;
+      let total = 0;
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize);
+        console.log(`  → Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(symbols.length / batchSize)} (${batch.length} symbols)`);
+        await prisma.$transaction(
+          batch.map(symbol =>
+            prisma.polygonData.upsert({
+              where: { symbol: symbol.symbol },
+              create: {
+                symbol: symbol.symbol,
+                symbolBoolean: true
+              },
+              update: {
+                symbolBoolean: true
+              }
+            })
+          )
+        );
+        total += batch.length;
+      }
+
+      console.log(`✓ PolygonData: inserted ${total} (deduped) symbols`);
+    } catch (error) {
+      console.error('❌ Error copying symbols to PolygonData:', error);
+      throw error;
+    }
   }
 
   async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
@@ -403,10 +423,7 @@ export class DatabaseManager {
 
     const polygonSymbols = await prisma.polygonData.findMany({
       select: { symbol: true },
-      where: {
-        // Relaxed condition: accept records with marketCap present even if live price is missing
-        marketCap: { not: null }
-      },
+      // Relax filter: do not require marketCap; presence in PolygonData is enough
     });
 
     const finhubSymbolSet = new Set(finhubSymbols.map(s => s.symbol));      
@@ -414,7 +431,7 @@ export class DatabaseManager {
 
     const commonSymbols = Array.from(finhubSymbolSet).filter(symbol => polygonSymbolSet.has(symbol));
 
-    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData (marketCap present)`);
+    console.log(`📊 Found ${commonSymbols.length} symbols in both FinhubData and PolygonData`);
     // Use deterministic timestamps for this run (NY midnight)
     const { getRunTimestamps } = await import('../utils/time.js');
     const { reportDate: reportDateISO, snapshotDate: snapshotDateISO } = getRunTimestamps();
@@ -441,8 +458,16 @@ export class DatabaseManager {
           ? ((finhubData.epsActual - finhubData.epsEstimate) / Math.abs(finhubData.epsEstimate)) * 100
           : null;
 
-        const revSurp = (finhubData.revenueActual != null && finhubData.revenueEstimate != null && finhubData.revenueEstimate !== 0n)
-          ? new Decimal(finhubData.revenueActual.toString()).minus(finhubData.revenueEstimate.toString()).div(new Decimal(finhubData.revenueEstimate.toString()).abs()).times(100).toNumber()
+        // Revenue guards: treat non-positive or missing values as unavailable
+        const hasValidRevActual = finhubData.revenueActual != null && finhubData.revenueActual > 0n;
+        const hasValidRevEst = finhubData.revenueEstimate != null && finhubData.revenueEstimate > 0n;
+
+        const revSurp = (hasValidRevActual && hasValidRevEst)
+          ? new Decimal(finhubData.revenueActual!.toString())
+              .minus(finhubData.revenueEstimate!.toString())
+              .div(new Decimal(finhubData.revenueEstimate!.toString()).abs())
+              .times(100)
+              .toNumber()
           : null;
 
         const priceToUse = polygonData.price ?? polygonData.previousCloseRaw;
@@ -452,6 +477,11 @@ export class DatabaseManager {
         const roundedEpsEst = finhubData.epsEstimate != null ? Math.round(finhubData.epsEstimate * 100) / 100 : null;
         const roundedEpsSurp = epsSurp != null ? Math.round(epsSurp * 100) / 100 : null;
         const roundedRevSurp = revSurp != null ? Math.round(revSurp * 100) / 100 : null;
+
+        // Sanitize revenue fields written to FinalReport
+        const safeRevActual = hasValidRevActual ? finhubData.revenueActual : null;
+        // Keep estimate as-is (can be null); only surprise depends on validity above
+        const safeRevEst = finhubData.revenueEstimate;
 
         const createData = normalizeFinalReportDates({
           symbol,
@@ -464,8 +494,8 @@ export class DatabaseManager {
           epsActual: roundedEpsActual,
           epsEst: roundedEpsEst,
           epsSurp: roundedEpsSurp,
-          revActual: finhubData.revenueActual,
-          revEst: finhubData.revenueEstimate,
+          revActual: safeRevActual,
+          revEst: safeRevEst,
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
@@ -484,8 +514,8 @@ export class DatabaseManager {
           epsActual: roundedEpsActual,
           epsEst: roundedEpsEst,
           epsSurp: roundedEpsSurp,
-          revActual: finhubData.revenueActual,
-          revEst: finhubData.revenueEstimate,
+          revActual: safeRevActual,
+          revEst: safeRevEst,
           revSurp: roundedRevSurp,
           reportDate: reportDateISO,
           snapshotDate: snapshotDateISO,
@@ -631,12 +661,18 @@ export class DatabaseManager {
   }
 
   async clearAllTables(): Promise<void> {
-    console.log('🛑 Clearing all database tables...');
+    if (process.env.ALLOW_CLEAR !== 'true') {
+      console.log('🧹 Skipping clearAllTables (ALLOW_CLEAR!=true)');
+      return;
+    }
+    console.log('🛑 Clearing all database tables (transaction)...');
 
-    await prisma.finalReport.deleteMany();
-    await prisma.polygonData.deleteMany();
-    await prisma.finhubData.deleteMany();
-    await prisma.cronStatus.deleteMany();
+    await prisma.$transaction([
+      prisma.finalReport.deleteMany(),
+      prisma.polygonData.deleteMany(),
+      prisma.finhubData.deleteMany(),
+      prisma.cronStatus.deleteMany(),
+    ]);
 
     console.log('✅ All tables cleared successfully');
   }

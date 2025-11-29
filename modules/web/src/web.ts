@@ -13,6 +13,12 @@ const PORT = process.env.PORT || 5555;
 // Middleware
 app.use(express.json());
 
+// SEO: Set X-Robots-Tag header for all responses
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'index, follow');
+  next();
+});
+
 // Static files with cache control
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   extensions: ["html"],
@@ -171,6 +177,16 @@ app.get('/api/final-report', async (req, res) => {
       error: 'Failed to fetch final report data'
     });
   }
+});
+
+// SEO: Serve robots.txt and sitemap.xml explicitly
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../../public', 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.setHeader('Content-Type', 'application/xml');
+  res.sendFile(path.join(__dirname, '../../../public', 'sitemap.xml'));
 });
 
 // Hlavná HTML stránka - serve index.html with mobile cards support

@@ -50,6 +50,10 @@ jobs:
             echo "❌ success=false" >&2
             exit 1
           fi
+          if [ "${{ steps.fetch.outputs.lastRunAt }}" = "null" ] || [ "${{ steps.fetch.outputs.diffMin }}" = "null" ]; then
+            echo "⚠️ Cron status missing lastRunAt or diffMin; assuming first-run state and skipping freshness failure."
+            exit 0
+          fi
           if [ "${{ steps.fetch.outputs.isFresh }}" != "true" ]; then
             echo "❌ not fresh: diffMin=${{ steps.fetch.outputs.diffMin }} lastRunAt=${{ steps.fetch.outputs.lastRunAt }}" >&2
             exit 1

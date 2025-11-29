@@ -8,6 +8,8 @@ console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const compression = require("compression");
+const crypto = require("crypto");
 
 // Try to use Prisma client from modules/shared first (where it's generated)
 // This is the ONLY source we use - no fallback to root
@@ -22,13 +24,13 @@ try {
     "@prisma",
     "client"
   );
-  
+
   // Check if file exists first
   const fs = require("fs");
   if (!fs.existsSync(sharedPrismaPath)) {
     throw new Error(`Prisma client not found at: ${sharedPrismaPath}`);
   }
-  
+
   PrismaClient = require(sharedPrismaPath).PrismaClient;
   console.log("[Prisma] ✅ Using client from modules/shared");
   console.log("[Prisma] Path:", sharedPrismaPath);
@@ -41,6 +43,104 @@ try {
 }
 
 const app = express();
+// Disable Express default ETag generation; we'll set a stable custom ETag
+app.set("etag", false);
+
+// Global request logger to see ALL incoming requests
+app.use((req, res, next) => {
+  console.log(`[ALL REQUESTS] ${req.method} ${req.path}`);
+  next();
+});
+
+// Serve /public directory as static files (fallback if Nginx doesn't handle it)
+const PUBLIC_DIR = path.resolve(__dirname, "public");
+app.use(express.static(PUBLIC_DIR, { fallthrough: true }));
+
+// SEO: Serve robots.txt and sitemap.xml FIRST - before any other routes or middleware
+app.get("/robots.txt", (req, res) => {
+  console.log("[robots] ✅ Route handler called!");
+  const fs = require("fs");
+  // Try multiple possible paths (__dirname and process.cwd())
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "robots.txt"),
+    path.resolve(process.cwd(), "public", "robots.txt"),
+    path.join(__dirname, "public", "robots.txt"),
+    path.join(process.cwd(), "public", "robots.txt"),
+  ];
+
+  let robotsPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      robotsPath = p;
+      break;
+    }
+  }
+
+  console.log("[robots] Requested");
+  console.log("[robots] __dirname:", __dirname);
+  console.log("[robots] process.cwd():", process.cwd());
+  console.log("[robots] Trying paths:", possiblePaths);
+  console.log("[robots] Found at:", robotsPath);
+
+  if (!robotsPath) {
+    console.error("[robots] File not found in any of:", possiblePaths);
+    return res.status(404).json({ error: "robots.txt not found" });
+  }
+
+  res.setHeader("Content-Type", "text/plain");
+  res.sendFile(robotsPath, (err) => {
+    if (err) {
+      console.error("[robots] Error serving robots.txt:", err);
+      res.status(500).json({ error: "Error serving robots.txt" });
+    } else {
+      console.log("[robots] ✅ Successfully served robots.txt");
+    }
+  });
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  console.log("[sitemap] ✅ Route handler called!");
+  const fs = require("fs");
+  // Try multiple possible paths (__dirname and process.cwd())
+  const possiblePaths = [
+    path.resolve(__dirname, "public", "sitemap.xml"),
+    path.resolve(process.cwd(), "public", "sitemap.xml"),
+    path.join(__dirname, "public", "sitemap.xml"),
+    path.join(process.cwd(), "public", "sitemap.xml"),
+  ];
+
+  let sitemapPath = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      sitemapPath = p;
+      break;
+    }
+  }
+
+  console.log("[sitemap] Requested");
+  console.log("[sitemap] __dirname:", __dirname);
+  console.log("[sitemap] process.cwd():", process.cwd());
+  console.log("[sitemap] Trying paths:", possiblePaths);
+  console.log("[sitemap] Found at:", sitemapPath);
+
+  if (!sitemapPath) {
+    console.error("[sitemap] File not found in any of:", possiblePaths);
+    return res.status(404).json({ error: "sitemap.xml not found" });
+  }
+
+  res.setHeader("Content-Type", "application/xml");
+  res.sendFile(sitemapPath, (err) => {
+    if (err) {
+      console.error("[sitemap] Error serving sitemap.xml:", err);
+      res.status(500).json({ error: "Error serving sitemap.xml" });
+    } else {
+      console.log("[sitemap] ✅ Successfully served sitemap.xml");
+    }
+  });
+});
+
+// Enable gzip/br compression
+app.use(compression());
 // Disable caching for all API responses to avoid stale data in browsers/CDNs
 app.use("/api", (_req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
@@ -49,54 +149,41 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 // CRON status endpoint (basic)
-app.get("/api/cron/status", async (_req, res) => {
-  let prisma;
+async function handleCronStatus(_req, res) {
+  // Minimal, DB-free status to avoid runtime dependency issues
   try {
-    const { PrismaClient } = await import("@prisma/client");
-    prisma = new PrismaClient();
-    const status = await prisma.cronStatus.findUnique({
-      where: { jobType: "pipeline" },
-      select: {
-        lastRunAt: true,
-        status: true,
-        recordsProcessed: true,
-        errorMessage: true,
-      },
-    });
-    const nowUtc = new Date();
     const nyNowISO = new Date(
       new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
     ).toISOString();
-    const last = status && status.lastRunAt ? new Date(status.lastRunAt) : null;
-    const diffMin = last
-      ? Math.round((nowUtc.getTime() - last.getTime()) / 60000)
-      : null;
-    res.json({
+    return res.json({
       success: true,
       nyNowISO,
-      lastRunAt: last ? last.toISOString() : null,
-      diffMin,
-      isFresh: diffMin != null && diffMin <= 6,
-      status: status ? status.status : null,
-      recordsProcessed: status ? status.recordsProcessed : null,
-      error: status ? status.errorMessage : null,
+      lastRunAt: null,
+      diffMin: null,
+      isFresh: false,
+      status: "unavailable",
+      recordsProcessed: null,
+      error: null,
     });
   } catch (e) {
-    res
-      .status(500)
-      .json({ success: false, error: e && e.message ? e.message : String(e) });
-  } finally {
-    try {
-      if (prisma) await prisma.$disconnect();
-    } catch {}
+    return res.json({ success: true, status: "unavailable" });
   }
-});
+}
+app.get("/api/cron/status", handleCronStatus);
+// Backward compatible alias for frontend calling /api/cron-status
+app.get("/api/cron-status", handleCronStatus);
 
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// SEO: Set X-Robots-Tag header for all responses
+app.use((req, res, next) => {
+  res.setHeader("X-Robots-Tag", "index, follow");
+  next();
+});
 
 // Serve logos from the correct directory (robust to working dir)
 const LOGO_DIR = path.resolve(
@@ -109,9 +196,24 @@ const LOGO_DIR = path.resolve(
 console.log("[logos] serving from:", LOGO_DIR);
 app.use("/logos", express.static(LOGO_DIR));
 
-// Serve favicon
-app.get("/favicon.ico", (req, res) => {
-  res.sendFile(path.join(__dirname, "favicon.svg"));
+// Serve favicon (.ico and .svg) with fallbacks
+app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
+  const fs = require("fs");
+  const svgInRepo = path.join(__dirname, "favicon.svg");
+  const svgInWeb = path.resolve(
+    process.cwd(),
+    "modules",
+    "web",
+    "public",
+    "logos",
+    "favicon.svg"
+  );
+  const icoInRepo = path.join(__dirname, "favicon.ico");
+  const candidate = [svgInRepo, svgInWeb, icoInRepo].find((p) =>
+    fs.existsSync(p)
+  );
+  if (!candidate) return res.status(404).end();
+  res.sendFile(candidate);
 });
 
 // Serve site.webmanifest
@@ -137,36 +239,66 @@ app.get("/site.webmanifest", (req, res) => {
   });
 });
 
+
 // Prisma client
 // Set environment variables to force using Prisma runtime from modules/shared
-const sharedPrismaRuntimePath = path.resolve(__dirname, "modules", "shared", "node_modules", ".prisma", "client");
+const sharedPrismaRuntimePath = path.resolve(
+  __dirname,
+  "modules",
+  "shared",
+  "node_modules",
+  ".prisma",
+  "client"
+);
 const fs = require("fs");
 
 console.log("[Prisma] Checking runtime path:", sharedPrismaRuntimePath);
-console.log("[Prisma] Runtime path exists:", fs.existsSync(sharedPrismaRuntimePath));
+console.log(
+  "[Prisma] Runtime path exists:",
+  fs.existsSync(sharedPrismaRuntimePath)
+);
 
 // Try to find and set Prisma runtime paths dynamically
 if (fs.existsSync(sharedPrismaRuntimePath)) {
   const files = fs.readdirSync(sharedPrismaRuntimePath);
   console.log("[Prisma] Runtime files:", files);
-  
-  const queryEngine = files.find(f => f.includes("query_engine") && f.endsWith(".so.node"));
-  const schemaEngine = files.find(f => f.includes("schema-engine") && !f.includes(".so.node"));
-  
+
+  const queryEngine = files.find(
+    (f) => f.includes("query_engine") && f.endsWith(".so.node")
+  );
+  const schemaEngine = files.find(
+    (f) => f.includes("schema-engine") && !f.includes(".so.node")
+  );
+
   if (queryEngine) {
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(sharedPrismaRuntimePath, queryEngine);
-    console.log("[Prisma] ✅ Runtime library set:", process.env.PRISMA_QUERY_ENGINE_LIBRARY);
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(
+      sharedPrismaRuntimePath,
+      queryEngine
+    );
+    console.log(
+      "[Prisma] ✅ Runtime library set:",
+      process.env.PRISMA_QUERY_ENGINE_LIBRARY
+    );
   } else {
     console.log("[Prisma] ⚠️ Query engine not found in runtime files");
   }
   if (schemaEngine) {
-    process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(sharedPrismaRuntimePath, schemaEngine);
-    console.log("[Prisma] ✅ Schema engine set:", process.env.PRISMA_SCHEMA_ENGINE_BINARY);
+    process.env.PRISMA_SCHEMA_ENGINE_BINARY = path.join(
+      sharedPrismaRuntimePath,
+      schemaEngine
+    );
+    console.log(
+      "[Prisma] ✅ Schema engine set:",
+      process.env.PRISMA_SCHEMA_ENGINE_BINARY
+    );
   } else {
     console.log("[Prisma] ⚠️ Schema engine not found in runtime files");
   }
 } else {
-  console.error("[Prisma] ❌ Runtime path does not exist:", sharedPrismaRuntimePath);
+  console.error(
+    "[Prisma] ❌ Runtime path does not exist:",
+    sharedPrismaRuntimePath
+  );
 }
 
 const prisma = new PrismaClient({
@@ -211,13 +343,50 @@ app.get("/api/final-report", async (req, res) => {
 
     // Convert BigInt and Date values to strings for JSON serialization
     const serializedData = data.map(serializeFinalReport);
-
-    res.json({
+    const dataTimestamp = serializedData.reduce((max, it) => {
+      const t = it.updatedAt ? Date.parse(it.updatedAt) : 0;
+      return t > max ? t : max;
+    }, 0);
+    const payload = {
       success: true,
       data: serializedData,
       count: data.length,
       timestamp: new Date().toISOString(),
-    });
+      dataTimestamp: dataTimestamp
+        ? new Date(dataTimestamp).toISOString()
+        : null,
+    };
+    const etag =
+      'W/"' +
+      crypto
+        .createHash("sha1")
+        .update(
+          JSON.stringify({
+            c: payload.count,
+            dt: payload.dataTimestamp,
+            h: serializedData.map((i) => i.symbol),
+          })
+        )
+        .digest("hex") +
+      '"';
+
+    // Honor If-None-Match (may contain multiple values); accept weak/strong variants
+    const inm = (req.headers["if-none-match"] || "").toString();
+    const candidates = inm
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const strong = etag.replace(/^W\//, "");
+    const matches = candidates.some((c) => c === etag || c === strong || ("W/" + c) === etag || c === "*");
+    if (matches) {
+      res.status(304).end();
+      return;
+    }
+
+    if (payload.dataTimestamp)
+      res.setHeader("Last-Modified", payload.dataTimestamp);
+    res.setHeader("ETag", etag);
+    res.json(payload);
   } catch (error) {
     console.error("❌ Error fetching FinalReport:", error);
     console.error("Error name:", error.name);
@@ -451,6 +620,7 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/final-report/stats`);
   console.log(`   GET  /api/final-report/:symbol`);
   console.log(`   POST /api/final-report/refresh`);
+  console.log(`   GET  /api/cron-status (alias: /api/cron/status)`);
   console.log(`   GET  /api/health`);
   console.log(`🌐 API URL: http://localhost:${PORT}`);
 });

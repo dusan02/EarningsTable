@@ -88,7 +88,7 @@ async function bootstrap() {
 
       case 'status':
         console.log('📊 Cron Jobs Status:');
-        console.log('  ✅ Pipeline: Finnhub → Polygon (03:05-03:55, 04:00-20:00 every 5min @ America/New_York)');
+        console.log('  ✅ Pipeline: Finnhub → Polygon (every 5min @ America/New_York, 24/7 except 03:00)');
         console.log('  ✅ Daily Clear: 03:00 NY (Mon-Fri)');
         console.log('  ✅ Boot Guard: Automatic recovery after restart');
         console.log('  ✅ Environment: Validated');
@@ -97,7 +97,7 @@ async function bootstrap() {
       case 'list':
         console.log('📋 Available Cron Jobs:');
         console.log('  - Daily Cycle Manager (03:00 clear, 03:05 start, every 5min until 02:30)');
-        console.log('  - Pipeline (03:05-03:55, 04:00-20:00): Finnhub → Polygon');
+        console.log('  - Pipeline: Finnhub → Polygon every 5min (24/7 except 03:00)');
         console.log('  - Daily clear 03:00 NY (Mon–Fri)');
         console.log('  - Boot guard recovery system');
         break;
@@ -131,8 +131,7 @@ Options:
 
 Schedule:
   🧹 03:00 NY - Daily clear (Mon-Fri)
-  📊 03:05-03:55 NY - Early slot every 5min (Mon-Fri)
-  📊 04:00-20:00 NY - Day slot every 5min (Mon-Fri)
+  📊 Every 5min NY - Pipeline 24/7 (Mon-Fri, except 03:00)
   🛡️ Boot guard - Automatic recovery after restart
 
 Examples:
@@ -158,12 +157,30 @@ async function startDailyCycle() {
   await manager.start();
   
   // Keep-alive
-  await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
+  await new Promise<void>((resolve) => {
+    // nikdy nerezolvni -> udrží event loop
+  });
 }
 
 
 let __pipelineRunning = false;
 const PIPELINE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+const QUIET_WINDOW_MS = 5 * 60 * 1000; // 5 minutes after daily clear
+let __quietWindowUntil = 0;
+
+function enterQuietWindow() {
+  __quietWindowUntil = Date.now() + QUIET_WINDOW_MS;
+  console.log(`🕊️  Entering quiet window for ${Math.round(QUIET_WINDOW_MS/1000)}s`);
+}
+
+function isInQuietWindow(): boolean {
+  const inWindow = Date.now() < __quietWindowUntil;
+  if (inWindow) {
+    const remaining = Math.max(0, __quietWindowUntil - Date.now());
+    console.log(`🕊️  Quiet window active (${Math.ceil(remaining/1000)}s left) — skipping tick`);
+  }
+  return inWindow;
+}
 
 async function runPipeline(label = "scheduled") {
   if (__pipelineRunning) {
@@ -183,7 +200,15 @@ async function runPipeline(label = "scheduled") {
     const metrics = await optimizedPipeline.runPipeline(label);
     
     // Record performance metrics
-    performanceMonitor.recordSnapshot(metrics);
+    performanceMonitor.recordSnapshot({
+      pipelineDuration: metrics.duration,
+      finnhubDuration: metrics.finnhubDuration,
+      polygonDuration: metrics.polygonDuration,
+      logoDuration: metrics.logoDuration,
+      dbDuration: metrics.dbDuration,
+      totalRecords: metrics.totalRecords,
+      symbolsChanged: metrics.symbolsChanged
+    });
     
     // Save performance data to database
     await performanceMonitor.saveToDatabase();
@@ -198,11 +223,51 @@ async function runPipeline(label = "scheduled") {
 }
 
 /**
- * Jednorazový „boot guard“ po daily cleare:
- * - Ak je aktuálny NY čas medzi 03:00–03:29:59, naplánuje runPipeline presne na 03:30 NY (setTimeout).
- * - Ak je medzi 03:30–03:35, spustí pipeline ihneď (záchytný scenár po reštarte).
- * - Inak nerobí nič – spoľahneme sa na pravidelné crony.
+ * Boot guard funkcie:
+ * - scheduleBootGuardAfterClear: Ak je NY čas medzi 03:00–03:29:59, naplánuje runPipeline na 03:30 NY
+ * - checkAndRunDailyResetIfNeeded: Ak sa proces reštartuje po 03:00 NY, spustí denný reset manuálne
  */
+async function checkAndRunDailyResetIfNeeded() {
+  try {
+    const now = new Date();
+    const nowNY = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+    const nyHour = nowNY.getHours();
+    const nyMinute = nowNY.getMinutes();
+    
+    // Ak je medzi 03:00-03:05 NY, skontroluj či už bol reset
+    if (nyHour === 3 && nyMinute < 5) {
+      // Skontroluj dátum posledného resetu (cez počet záznamov v tabuľkách)
+      const today = new Date(nowNY);
+      today.setHours(0, 0, 0, 0);
+      
+      // Ak sú v databáze záznamy z predošlého dňa, reset nebol spustený
+      const oldRecords = await prisma.finhubData.findFirst({
+        where: {
+          reportDate: { lt: today }
+        }
+      });
+      
+      if (oldRecords) {
+        console.log('🛡️ Boot guard: Detected old data, running missed daily reset');
+        try {
+          process.env.ALLOW_CLEAR = 'true';
+          await db.clearAllTables();
+          console.log('✅ Boot guard: Daily reset completed');
+          enterQuietWindow();
+        } catch (e) {
+          console.error('❌ Boot guard: Daily reset failed', e);
+        } finally {
+          delete process.env.ALLOW_CLEAR;
+        }
+      } else {
+        console.log('🛡️ Boot guard: No old data found, daily reset already done');
+      }
+    }
+  } catch (e) {
+    console.error('❌ checkAndRunDailyResetIfNeeded error:', e);
+  }
+}
+
 function scheduleBootGuardAfterClear() {
   try {
     const now = new Date();
@@ -259,56 +324,84 @@ async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
   
   if (!once) {
-    // ✅ 5-min „prázdne“ okno po cleare (03:00–03:05 NY)
-    // 1) Early slot: 03:05–03:55 každých 5 min
-    const EARLY_CRON = '5,10,15,20,25,30,35,40,45,50,55 3 * * 1-5';
-    const EARLY_VALID = cron.validate(EARLY_CRON);
-    if (!EARLY_VALID) console.error(`❌ Invalid cron expression: ${EARLY_CRON}`);
-    cron.schedule(EARLY_CRON, async () => {
+    // Unified cron: každých 5 minút počas celého dňa (okrem 03:00 pre reset)
+    // Cron expression: */5 * * * * = každých 5 min, 24/7
+    const UNIFIED_CRON = '*/5 * * * *';
+    const UNIFIED_VALID = cron.validate(UNIFIED_CRON);
+    if (!UNIFIED_VALID) console.error(`❌ Invalid cron expression: ${UNIFIED_CRON}`);
+    cron.schedule(UNIFIED_CRON, async () => {
       const tickAt = isoNY();
-      console.log(`⏱️ [CRON] early tick @ ${tickAt} (NY)`);
-      await runPipeline('early-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Early pipeline scheduled @ ${EARLY_CRON} (NY, Mon–Fri) valid=${EARLY_VALID}`);
-
-    // 2) Deň: 04:00–20:00 každých 5 min
-    const DAY_CRON = '*/5 4-20 * * 1-5';
-    const DAY_VALID = cron.validate(DAY_CRON);
-    if (!DAY_VALID) console.error(`❌ Invalid cron expression: ${DAY_CRON}`);
-    cron.schedule(DAY_CRON, async () => {
-      const tickAt = isoNY();
-      console.log(`⏱️ [CRON] day tick @ ${tickAt} (NY)`);
-      await runPipeline('day-slot');
-    }, { timezone: TZ });
-    console.log(`✅ Day pipeline scheduled @ ${DAY_CRON} (NY, Mon–Fri) valid=${DAY_VALID}`);
-
-    // Daily clear job (03:00 AM weekdays) – jedna, konzistentná metla
-    cron.schedule('0 3 * * 1-5', async () => {
-      try {
-        console.log('🧹 Daily clear starting @ 03:00 NY');
-        process.env.ALLOW_CLEAR = 'true';
-        await db.clearAllTables();
-        console.log('✅ Daily clear done');
-      } catch (e) {
-        console.error('❌ Daily clear failed', e);
-      } finally {
-        delete process.env.ALLOW_CLEAR;
+      const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+      const hour = nowNY.getHours();
+      const minute = nowNY.getMinutes();
+      
+      // Preskočiť 03:00 (kedy beží daily clear)
+      if (hour === 3 && minute === 0) {
+        console.log(`⏭️  [CRON] skipping tick @ ${tickAt} (NY) - daily clear time`);
+        return;
       }
+      
+      console.log(`⏱️ [CRON] tick @ ${tickAt} (NY)`);
+      if (isInQuietWindow()) return;
+      await runPipeline('unified-slot');
     }, { timezone: TZ });
-    console.log('✅ Daily clear job scheduled @ 03:00 NY (Mon-Fri)');
+    console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, 24/7, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
+
+    // Daily clear job (03:00 AM weekdays) – reset databázy
+    const DAILY_CLEAR_CRON = '0 3 * * 1-5';
+    const DAILY_CLEAR_VALID = cron.validate(DAILY_CLEAR_CRON);
+    if (!DAILY_CLEAR_VALID) {
+      console.error(`❌ Invalid cron expression for daily clear: ${DAILY_CLEAR_CRON}`);
+    } else {
+      const scheduledTask = cron.schedule(DAILY_CLEAR_CRON, async () => {
+        try {
+          const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+          console.log(`🧹 Daily clear starting @ 03:00 NY (actual NY time: ${nowNY.toLocaleString()})`);
+          process.env.ALLOW_CLEAR = 'true';
+          await db.clearAllTables();
+          console.log('✅ Daily clear done');
+          enterQuietWindow(); // 5-minútová pauza po cleare
+        } catch (e) {
+          console.error('❌ Daily clear failed', e);
+        } finally {
+          delete process.env.ALLOW_CLEAR;
+        }
+      }, { timezone: TZ, scheduled: true });
+      
+      if (scheduledTask) {
+        console.log(`✅ Daily clear job scheduled @ ${DAILY_CLEAR_CRON} (03:00 NY, Mon-Fri) valid=${DAILY_CLEAR_VALID}`);
+      } else {
+        console.error('❌ Failed to schedule daily clear job');
+      }
+    }
 
     console.log('✅ All cron jobs started successfully');
 
     // Start synthetic tests job
     await syntheticTestsJob.start();
 
-    // 🛡️  Jednorazový guard – ak by early slot nebehol (reštart okolo 03:30 a pod.)
+    // 🛡️  Jednorazový guard – ak by unified cron nebehol (reštart okolo 03:30 a pod.)
     // plánuje / spustí runPipeline v okne po daily cleare
     scheduleBootGuardAfterClear();
+    
+    // 🛡️ Boot guard pre daily clear - ak sa proces reštartuje po 03:00, spusti reset
+    checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
-    // Keep-alive (bez hackov so stdin)
-    await new Promise<void>(() => {}); // nikdy nerezolvni -> udrží event loop
+    // Keep-alive - explicit infinite loop to prevent process exit
+    process.stdin.resume();
+    
+    // Keep event loop active with periodic heartbeat
+    const keepAlive = setInterval(() => {
+      // Periodic heartbeat to keep event loop active
+      // This ensures cron jobs and other async operations stay alive
+    }, 60000);
+    
+    // Infinite loop with delay to keep process alive
+    // This ensures the event loop never drains and process stays running
+    while (true) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 60000));
+    }
   }
 
   if (once) {
@@ -322,31 +415,42 @@ async function startAllCronJobs(once: boolean) {
 
 // Old separate cron functions removed - now using unified smart pipeline
 
+// Signal logging for debugging
+process.on('beforeExit', (code) => {
+  console.error(`⚠️ beforeExit: ${code}`);
+});
+
+process.on('exit', (code) => {
+  console.error(`⚠️ exit: ${code}`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 uncaughtException:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 unhandledRejection:', reason);
+});
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
+  console.warn('↩️ SIGINT received');
+  console.log('�� Graceful shutdown initiated');
   console.log('↩️ SIGINT: shutting down…');
-  try { 
-    await db.disconnect(); 
-  } catch {} 
-  return;
+  await db.disconnect().catch(() => {});
+  process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
+  console.warn('↩️ SIGTERM received');
+  console.log('🛑 Graceful shutdown initiated');
   console.log('↩️ SIGTERM: shutting down…');
-  try { 
-    await db.disconnect(); 
-  } catch {} 
-  return;
+  await db.disconnect().catch(() => {});
+  process.exit(0);
 });
 
-// Safety for unhandled errors
-process.on('unhandledRejection', (r) => console.error('unhandledRejection:', r));
-process.on('uncaughtException', (e) => { 
-  console.error('uncaughtException:', e); 
-  return; 
-});
-
-bootstrap().catch((e) => {
-  console.error('Bootstrap failed:', e);
-  return;
+// Start the application
+bootstrap().catch((error) => {
+  console.error('❌ Failed to start:', error);
+  process.exit(1);
 });
