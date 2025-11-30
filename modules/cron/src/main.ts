@@ -44,8 +44,25 @@ async function getTodaySymbolsFromFinnhub(): Promise<string[]> {
   return rows.map(r => r.symbol);
 }
 
+function applyCliOverrides(args: string[]) {
+  const dateArg = args.find((arg) => arg.startsWith('--date='));
+  if (dateArg) {
+    const [, value] = dateArg.split('=');
+    if (value) {
+      process.env.FINNHUB_FORCE_DATE = value;
+      console.log(`📅 Finnhub override date set via CLI: ${value}`);
+    }
+  }
+
+  if (args.includes('--force')) {
+    process.env.FINNHUB_FORCE = 'true';
+    console.log('🔄 Finnhub force mode enabled via CLI');
+  }
+}
+
 async function bootstrap() {
   const args = process.argv.slice(2);
+  applyCliOverrides(args);
   const command = args[0];
   const once = args.includes('--once') || process.env.RUN_ONCE === 'true';
 
