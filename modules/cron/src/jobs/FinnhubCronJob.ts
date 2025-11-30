@@ -1,8 +1,8 @@
 import { BaseCronJob } from '../core/BaseCronJob.js';
 import { fetchTodayEarnings } from '../finnhub.js';
 import { db } from '../core/DatabaseManager.js';
-import { todayIsoNY } from '../config.js';
 import { processLogosInBatches } from '../core/logoService.js';
+import { resolveFinnhubTargetDate } from './finnhub.js';
 
 export class FinnhubCronJob extends BaseCronJob {
   constructor() {
@@ -21,7 +21,7 @@ export class FinnhubCronJob extends BaseCronJob {
     await db.updateCronStatus('finnhub', 'running');
     
     try {
-      const isoDate = todayIsoNY();
+      const isoDate = resolveFinnhubTargetDate();
       console.log(`📅 Fetching earnings for ${isoDate} (NY time)`);
       
       const rows = await fetchTodayEarnings(process.env.FINNHUB_TOKEN!, isoDate);

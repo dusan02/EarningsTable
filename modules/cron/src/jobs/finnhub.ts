@@ -12,16 +12,33 @@ interface FinnhubJobResult {
   upserted: number; 
 }
 
+const DATE_OVERRIDE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+export function resolveFinnhubTargetDate(preferred?: string): string {
+  const override = preferred || process.env.FINNHUB_FORCE_DATE;
+  if (override) {
+    if (DATE_OVERRIDE_REGEX.test(override)) {
+      console.log(`📅 Finnhub override date in use: ${override}`);
+      return override;
+    }
+    console.warn(`⚠️ Ignoring invalid Finnhub date override "${override}" (expected YYYY-MM-DD). Falling back to today.`);
+  }
+  return todayIsoNY();
+}
+
+function resolveForceMode(explicit?: boolean): boolean {
+  return Boolean(explicit || process.env.FINNHUB_FORCE === 'true');
+}
+
 export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<FinnhubJobResult> {
   const startTime = Date.now();
   console.log('🚀 Starting Finnhub job execution...');
   
   try {
-    // Use provided date or default to today
-    const isoDate = options.date || todayIsoNY();
+    const isoDate = resolveFinnhubTargetDate(options.date);
     console.log(`📅 Fetching earnings for ${isoDate} (NY time)`);
     
-    if (options.force) {
+    if (resolveForceMode(options.force)) {
       console.log('🔄 Force mode: will overwrite existing data');
     }
     
