@@ -3,6 +3,7 @@ import { db } from './core/DatabaseManager.js';
 import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
 import { processSymbolsInBatches } from './core/priceService.js';
+import { processLogosInBatches } from './core/logoService.js';
 import { IdempotencyManager } from '../../shared/src/idempotency.js';
 import { TimezoneManager } from '../../shared/src/timezone.js';
 import { logoSyncManager } from '../../shared/src/logo-sync.js';
@@ -148,14 +149,17 @@ export class OptimizedPipeline {
     console.log(`🖼️ Processing ${symbols.length} symbols for logos (optimized)...`);
 
     try {
-      // Use logo sync manager for better performance
-      const result = await logoSyncManager.syncLogosFromFS();
+      // Fetch missing logos
+      const fetchResult = await processLogosInBatches(symbols, 12, 6);
+      
+      // Sync filesystem to database (to ensure everything is consistent)
+      const syncResult = await logoSyncManager.syncLogosFromFS();
       
       const duration = Date.now() - startTime;
       this.metrics!.logoDuration = duration;
 
-      console.log(`✅ Logo processing completed: ${result.synced} synced in ${duration}ms`);
-      return { processed: result.synced, duration };
+      console.log(`✅ Logo processing completed: ${fetchResult.success} fetched, ${syncResult.synced} synced in ${duration}ms`);
+      return { processed: syncResult.synced, duration };
 
     } catch (error: any) {
       console.error('❌ Logo processing failed:', error);
