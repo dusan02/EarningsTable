@@ -2,6 +2,7 @@
 import { db } from './core/DatabaseManager.js';
 import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
+import { processSymbolsInBatches } from './core/priceService.js';
 import { IdempotencyManager } from '../../shared/src/idempotency.js';
 import { TimezoneManager } from '../../shared/src/timezone.js';
 import { logoSyncManager } from '../../shared/src/logo-sync.js';
@@ -118,15 +119,22 @@ export class OptimizedPipeline {
     console.log(`📊 Processing ${symbols.length} symbols with Polygon (optimized)...`);
 
     try {
-      // Use optimized batch processing
-      const result = await this.processPolygonBatch(symbols);
+      // Use optimized batch processing from priceService
+      // Increase concurrency for faster processing
+      const marketData = await processSymbolsInBatches(symbols, 100, 12);
       
+      // Save data to database
+      if (marketData.length > 0) {
+        console.log(`💾 Saving ${marketData.length} records to PolygonData...`);
+        await db.updatePolygonMarketCapData(marketData);
+      }
+
       const duration = Date.now() - startTime;
       this.metrics!.polygonDuration = duration;
-      this.metrics!.totalRecords += result.processed;
+      this.metrics!.totalRecords += marketData.length;
 
-      console.log(`✅ Polygon processing completed: ${result.processed} symbols in ${duration}ms`);
-      return { processed: result.processed, duration };
+      console.log(`✅ Polygon processing completed: ${marketData.length} symbols in ${duration}ms`);
+      return { processed: marketData.length, duration };
 
     } catch (error: any) {
       console.error('❌ Polygon processing failed:', error);
@@ -156,51 +164,6 @@ export class OptimizedPipeline {
     }
   }
 
-  private async processPolygonBatch(symbols: string[]): Promise<{ processed: number }> {
-    // Optimized batch processing with better concurrency
-    const BATCH_SIZE = 300; // Increased from 200
-    const CONCURRENCY = 40; // Increased from 25
-    
-    const batches = this.chunkArray(symbols, BATCH_SIZE);
-    let totalProcessed = 0;
-
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      console.log(`   → Processing batch ${i + 1}/${batches.length} (${batch.length} symbols)`);
-      
-      // Process batch with high concurrency
-      const results = await this.processBatchWithConcurrency(batch, CONCURRENCY);
-      totalProcessed += results.length;
-      
-      // Small delay between batches to prevent rate limiting
-      if (i < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-
-    return { processed: totalProcessed };
-  }
-
-  private async processBatchWithConcurrency(symbols: string[], concurrency: number): Promise<any[]> {
-    const pLimit = (await import('p-limit')).default;
-    const limit = pLimit(concurrency);
-    
-    const tasks = symbols.map(symbol => 
-      limit(() => this.processSymbol(symbol))
-    );
-    
-    const results = await Promise.allSettled(tasks);
-    return results
-      .filter(result => result.status === 'fulfilled')
-      .map(result => (result as PromiseFulfilledResult<any>).value);
-  }
-
-  private async processSymbol(symbol: string): Promise<any> {
-    // Implement optimized symbol processing
-    // This would call the actual Polygon API processing
-    return { symbol, processed: true };
-  }
-
   private handleParallelResults(polygonResult: PromiseSettledResult<any>, logoResult: PromiseSettledResult<any>): void {
     if (polygonResult.status === 'rejected') {
       this.metrics!.errors.push(`Polygon failed: ${polygonResult.reason}`);
@@ -209,14 +172,6 @@ export class OptimizedPipeline {
     if (logoResult.status === 'rejected') {
       this.metrics!.errors.push(`Logo failed: ${logoResult.reason}`);
     }
-  }
-
-  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      chunks.push(array.slice(i, i + chunkSize));
-    }
-    return chunks;
   }
 
   private logPerformanceMetrics(): void {
