@@ -1,0 +1,61 @@
+<svg version="1.1" id="Layer_1" xmlns:x="ns_extend;" xmlns:i="ns_ai;" xmlns:graph="ns_graphs;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 645.8 100" style="enable-background:new 0 0 645.8 100;" xml:space="preserve">
+ <style type="text/css">
+  .st0{fill:#004990;}
+	.st1{fill:#E1251B;}
+	.st2{fill:#0082CA;}
+ </style>
+ <metadata>
+  <sfw xmlns="ns_sfw;">
+   <slices>
+   </slices>
+   <sliceSourceBounds bottomLeftOrigin="true" height="100" width="645.8" x="-211.1" y="-222.9">
+   </sliceSourceBounds>
+   <optimizationSettings>
+    <targetSettings fileFormat="JPEGFormat" targetSettingsID="0">
+     <JPEGFormat blurAmount="0" embedICCProfile="false" matteColor="#FFFFFF" noMatteColor="false" optimized="true" progressive="false" quality="60">
+     </JPEGFormat>
+    </targetSettings>
+   </optimizationSettings>
+  </sfw>
+ </metadata>
+ <g>
+  <polygon class="st0" points="64.4,94.6 127.2,94.6 95.8,47.4 	">
+  </polygon>
+  <polygon class="st1" points="0,0 64.4,94.6 95.8,47.4 64.5,0 	">
+  </polygon>
+  <polygon class="st2" points="127.4,0 95.8,47.4 127.2,94.6 191.8,0 	">
+  </polygon>
+  <polygon class="st0" points="256.3,30 238.4,75.6 220.3,30 198.4,30 227.6,99.6 248.3,99.6 277.3,30 	">
+  </polygon>
+  <rect x="327.1" y="29.4" class="st0" width="19.4" height="70.3">
+  </rect>
+  <rect x="470.1" y="29.4" class="st0" width="19.4" height="70.3">
+  </rect>
+  <polygon class="st0" points="367.4,99.7 391,99.7 409.2,44.8 390.3,44.8 380,81.2 369.5,44.8 349.1,44.8 	">
+  </polygon>
+  <polygon class="st0" points="495.6,44.9 495.5,99.7 514.9,99.7 514.9,44.9 	">
+  </polygon>
+  <rect x="495.6" y="29.4" class="st0" width="19.4" height="10.3">
+  </rect>
+  <g>
+   <path class="st0" d="M558.9,44.8h-37.8v54.9h19.3V56.2H555v43.5h19.4V58.8C574.3,47.8,567.4,44.8,558.9,44.8">
+   </path>
+   <path class="st0" d="M449.8,99.7c9.5,0,14.1-4.5,14.1-13c0-7.4,0-28.4,0-28.4c0-11.2-7.4-13.5-14.3-13.5h-25.3
+			c-6.9,0-14.3,2.3-14.3,13.5c0,0,0,21,0,28.4c0,8.4,4.7,13,14.2,13H449.8z M429.6,88.3l0-32.2h14.9v32.2H429.6z">
+   </path>
+   <path class="st0" d="M320.8,58.9c0-11-7-14-16.5-14h-27.7l-4.3,10.3h29.2V63H282c-8,0-15.4,2.6-15.4,14v10.6
+			c0,8.2,4.9,12.1,14.9,12.1c7.7,0,39.3,0,39.3,0V58.9z M301.5,88.3h-16.4v-15h16.4L301.5,88.3z">
+   </path>
+   <path class="st0" d="M580,59.6v26.1c0,5,1.8,8,2.9,9.4c2.5,2.9,6.5,4.7,13.7,4.7h30.8l2.7-10.3h-30.9v-8.8h20.5
+			c8.5,0,13.8-3.2,13.8-12.7c0-6.6,0-10.2,0-10.2c0-10-6.6-12.7-15.2-12.7c-5,0-13.1,0-21.9,0C586.8,44.8,580,49,580,59.6
+			 M599.3,56.2h16.4v14h-16.4L599.3,56.2z">
+   </path>
+   <path class="st0" d="M139.8,96.2V95h4.4v1.2h-1.5v3.8h-1.5v-3.8H139.8z M146.7,95l0.9,2.9l0.9-2.9h2.1v5h-1.3v-3.6l-1.1,3.6H147
+			l-1.1-3.6v3.6h-1.3v-5H146.7z">
+   </path>
+   <path class="st0" d="M635,96.2V95h4.4v1.2h-1.5v3.8h-1.5v-3.8H635z M642,95l0.9,2.9l0.9-2.9h2.1v5h-1.3v-3.6l-1.1,3.6h-1.1
+			l-1.1-3.6v3.6h-1.3v-5H642z">
+   </path>
+  </g>
+ </g>
+</svg>

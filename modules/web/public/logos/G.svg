@@ -1,0 +1,67 @@
+<svg version="1.1" id="svg8" xmlns:x="ns_extend;" xmlns:i="ns_ai;" xmlns:graph="ns_graphs;" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 171.6 50" style="enable-background:new 0 0 171.6 50;" xml:space="preserve">
+ <style type="text/css">
+  .st0{fill:#FA555F;}
+	.st1{fill:#27AECF;}
+	.st2{fill:#073262;}
+ </style>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>
+     image/svg+xml
+    </dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage">
+    </dc:type>
+    <dc:title>
+    </dc:title>
+   </cc:Work>
+  </rdf:RDF>
+  <sfw xmlns="ns_sfw;">
+   <slices>
+   </slices>
+   <sliceSourceBounds bottomLeftOrigin="true" height="50" width="171.6" x="52.6" y="253.1">
+   </sliceSourceBounds>
+  </sfw>
+ </metadata>
+ <sodipodi:namedview bordercolor="#666666" borderopacity="1.0" fit-margin-bottom="0" fit-margin-left="0" fit-margin-right="0" fit-margin-top="0" id="base" inkscape:current-layer="layer1" inkscape:cx="85.999999" inkscape:cy="31.5" inkscape:document-units="mm" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:window-height="744" inkscape:window-maximized="1" inkscape:window-width="1280" inkscape:window-x="-4" inkscape:window-y="-4" inkscape:zoom="5.2151163" pagecolor="#ffffff" showgrid="false" units="px">
+ </sodipodi:namedview>
+ <g>
+  <polygon class="st0" points="18,0 0,12.5 9.1,18.8 18,12.6 26.9,18.8 36,12.5 	">
+  </polygon>
+  <polygon class="st1" points="0,37.5 18,50 18,37.4 9.1,31.2 9.1,18.8 0,12.5 	">
+  </polygon>
+  <rect x="18" y="25" class="st1" width="9" height="12.4">
+  </rect>
+  <polygon class="st2" points="18,50 36,37.5 36,25 18,37.4 	">
+  </polygon>
+  <polygon class="st0" points="27,31.2 18,25 26.9,18.8 36,25 	">
+  </polygon>
+  <g>
+   <path class="st1" d="M61.1,29.8c2.5,0,4.7-2.3,4.7-5.1s-2.1-5.1-4.7-5.1c-2.5,0-4.6,2.3-4.6,5.1S58.6,29.8,61.1,29.8 M57.1,33.9
+			c0.8,1.5,2.3,2.5,4,2.5c2.5,0,4.5-2.2,4.5-4.9v-0.2l-0.1,0c-1.4,1.4-3.2,2.3-5.2,2.3c-4.3,0-7.8-4-7.8-8.8c0-4.9,3.5-8.8,7.8-8.8
+			c2,0,3.8,0.9,5.2,2.3l0.1,0v-1.8h4v15.2c0,4.8-3.5,8.7-8.3,8.7c-3.2,0-6-1.7-7.5-4.3L57.1,33.9z">
+   </path>
+   <path class="st1" d="M84,22.4L84,22.4c-0.9-1.7-2.4-2.8-4.3-2.8c-1.9,0-3.4,1-4.3,2.8l0,0.1H84z M83.6,28.2l2.8,2.8
+			c-1.6,1.6-3.9,2.6-6.3,2.6c-4.9,0-8.9-3.9-8.9-8.8c0-4.9,3.8-8.8,8.6-8.8c4.8,0,8.6,3.9,8.6,8.8c0,0.8-0.1,1-0.1,1H75.2
+			c0,1.9,2.2,4,4.7,4C81.3,29.8,82.6,29.1,83.6,28.2">
+   </path>
+   <path class="st1" d="M94.1,24.7v8.4h-4V16.4h4v2l0.1,0c1.4-1.7,3.2-2.5,5.1-2.5c7.2,0,7.3,6.5,7.3,8.5v8.7h-4v-8.4
+			c0-2,0-5.1-4.2-5.1C96,19.6,94.1,21.9,94.1,24.7">
+   </path>
+   <path class="st1" d="M116.9,19.6c-2.6,0-4.7,2.3-4.7,5.1c0,2.8,2.1,5.1,4.7,5.1c2.5,0,4.6-2.3,4.6-5.1
+			C121.6,21.9,119.5,19.6,116.9,19.6 M117.8,33.6c-2,0-3.8-0.8-5.2-2.3l-0.1,0v8.4h-4V16.4h4v1.8l0.1,0c1.4-1.4,3.2-2.3,5.2-2.3
+			c4.3,0,7.8,3.9,7.8,8.8C125.6,29.6,122.1,33.6,117.8,33.6">
+   </path>
+   <path class="st1" d="M135.6,29.8c2.5,0,4.6-2.2,4.6-5.1c0-2.8-2.1-5.1-4.6-5.1c-2.5,0-4.6,2.3-4.6,5.1
+			C130.9,27.6,133.1,29.8,135.6,29.8 M134.7,15.9c2,0,3.8,0.9,5.2,2.3l0.1,0v-1.8h4v16.8h-4v-1.7l-0.1-0.1c-1.4,1.4-3.2,2.3-5.2,2.3
+			c-4.3,0-7.8-3.9-7.8-8.8C126.9,19.8,130.4,15.9,134.7,15.9">
+   </path>
+   <path class="st1" d="M160.7,30.9c-1.6,1.6-3.9,2.7-6.3,2.7c-4.9,0-8.9-3.9-8.9-8.8c0-4.9,3.9-8.8,8.9-8.8c2.5,0,4.7,1,6.3,2.7
+			l-2.8,2.6c-0.9-1-2.1-1.5-3.5-1.5c-2.7,0-4.9,2.3-4.9,5.1c0,2.8,2.1,5.1,4.9,5.1c1.4,0,2.7-0.6,3.6-1.6L160.7,30.9z">
+   </path>
+   <polygon class="st1" points="168.8,20.2 168.8,33.1 164.8,33.1 164.8,20.2 162,20.2 162,16.4 164.8,16.4 164.8,8.8 168.8,8.8 
+			168.8,16.4 171.6,16.4 171.6,20.2 		">
+   </polygon>
+  </g>
+ </g>
+</svg>
