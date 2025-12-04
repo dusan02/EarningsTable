@@ -148,25 +148,118 @@ app.use("/api", (_req, res, next) => {
   res.setHeader("Expires", "0");
   next();
 });
-// CRON status endpoint (basic)
+// CRON status endpoint (reads from database)
 async function handleCronStatus(_req, res) {
-  // Minimal, DB-free status to avoid runtime dependency issues
   try {
+    // Use FinalReport.updatedAt as primary source (more reliable, faster query)
+    let lastUpdate = null;
+    let recordsProcessed = null;
+
+    try {
+      const latestReport = await Promise.race([
+        prisma.finalReport.findFirst({
+          orderBy: { updatedAt: "desc" },
+          select: { updatedAt: true },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 3000)
+        ),
+      ]);
+
+      if (latestReport?.updatedAt) {
+        lastUpdate = latestReport.updatedAt;
+      }
+
+      // Get record count (quick query)
+      recordsProcessed = await Promise.race([
+        prisma.finalReport.count(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 2000)
+        ),
+      ]).catch(() => null);
+    } catch (reportError) {
+      console.error(
+        "[cron-status] FinalReport query failed:",
+        reportError.message
+      );
+      // Try raw SQL as fallback
+      try {
+        const sqlite3 = require("sqlite3").verbose();
+        const dbPath =
+          process.env.DATABASE_URL?.replace("file:", "") ||
+          path.resolve(__dirname, "modules", "database", "prisma", "prod.db");
+        const db = new sqlite3.Database(dbPath);
+        const row = await new Promise((resolve, reject) => {
+          db.get(
+            'SELECT datetime(MAX(updatedAt), "localtime") as lastUpdate, COUNT(*) as count FROM final_report',
+            (err, row) => {
+              db.close();
+              if (err) reject(err);
+              else resolve(row);
+            }
+          );
+        });
+        if (row?.lastUpdate) {
+          lastUpdate = new Date(row.lastUpdate);
+          recordsProcessed = row.count;
+        }
+      } catch (sqlError) {
+        console.error("[cron-status] SQL fallback failed:", sqlError.message);
+      }
+    }
+
+    const nyNow = new Date();
+    const nyNowISO = new Date(
+      nyNow.toLocaleString("en-US", { timeZone: "America/New_York" })
+    ).toISOString();
+
+    if (lastUpdate) {
+      const lastRun = new Date(lastUpdate);
+      const diffMs = nyNow - lastRun;
+      const diffMin = Math.floor(diffMs / 60000);
+
+      return res.json({
+        success: true,
+        nyNowISO,
+        lastUpdate: lastUpdate.toISOString(), // Frontend expects 'lastUpdate'
+        lastRunAt: lastUpdate.toISOString(),
+        diffMin,
+        isFresh: diffMin < 10, // Consider fresh if less than 10 minutes
+        status: "success",
+        recordsProcessed: recordsProcessed,
+        error: null,
+      });
+    }
+
+    // No status found - return current time as fallback
+    return res.json({
+      success: true,
+      nyNowISO,
+      lastUpdate: nyNowISO, // Frontend expects 'lastUpdate'
+      lastRunAt: null,
+      diffMin: null,
+      isFresh: false,
+      status: "unknown",
+      recordsProcessed: null,
+      error: null,
+    });
+  } catch (e) {
+    console.error("[cron-status] Error:", e);
+    // Fallback to current time
     const nyNowISO = new Date(
       new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
     ).toISOString();
     return res.json({
       success: true,
       nyNowISO,
+      lastUpdate: nyNowISO, // Frontend expects 'lastUpdate'
       lastRunAt: null,
       diffMin: null,
       isFresh: false,
-      status: "unavailable",
+      status: "error",
       recordsProcessed: null,
-      error: null,
+      error: e.message,
     });
-  } catch (e) {
-    return res.json({ success: true, status: "unavailable" });
   }
 }
 app.get("/api/cron/status", handleCronStatus);
@@ -238,7 +331,6 @@ app.get("/site.webmanifest", (req, res) => {
     }
   });
 });
-
 
 // Prisma client
 // Set environment variables to force using Prisma runtime from modules/shared
@@ -377,7 +469,9 @@ app.get("/api/final-report", async (req, res) => {
       .map((s) => s.trim())
       .filter(Boolean);
     const strong = etag.replace(/^W\//, "");
-    const matches = candidates.some((c) => c === etag || c === strong || ("W/" + c) === etag || c === "*");
+    const matches = candidates.some(
+      (c) => c === etag || c === strong || "W/" + c === etag || c === "*"
+    );
     if (matches) {
       res.status(304).end();
       return;
