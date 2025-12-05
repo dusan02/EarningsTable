@@ -94,8 +94,12 @@ export class SyntheticTestRunner {
       });
 
       if (response.status === 200) {
-        const data = response.data;
-        const symbolCount = Array.isArray(data) ? data.length : 0;
+        // API returns { success: true, data: [...], count: ... }
+        const responseData = response.data;
+        const dataArray = Array.isArray(responseData) 
+          ? responseData 
+          : (responseData?.data || []);
+        const symbolCount = dataArray.length;
         
         if (symbolCount >= 20) {
           return {
