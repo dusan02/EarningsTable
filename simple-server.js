@@ -438,6 +438,7 @@ app.get("/api/final-report", async (req, res) => {
 
     // Get all data first
     const allData = await prisma.finalReport.findMany();
+    console.log("🔍 DEBUG: Got data from DB, count:", allData.length);
     
     // Debug: log before sorting
     const withCap = allData.filter(d => d.marketCap != null).length;
