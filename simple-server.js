@@ -168,6 +168,14 @@ async function handleCronStatus(_req, res) {
 
       if (latestReport?.updatedAt) {
         lastUpdate = latestReport.updatedAt;
+        console.log(
+          "[cron-status] Got lastUpdate from Prisma:",
+          lastUpdate.toISOString()
+        );
+      } else {
+        console.log(
+          "[cron-status] Prisma query succeeded but no updatedAt found"
+        );
       }
 
       // Get record count (quick query)
@@ -191,7 +199,7 @@ async function handleCronStatus(_req, res) {
         const db = new sqlite3.Database(dbPath);
         const row = await new Promise((resolve, reject) => {
           db.get(
-            'SELECT datetime(MAX(updatedAt), "localtime") as lastUpdate, COUNT(*) as count FROM final_report',
+            "SELECT MAX(updatedAt) as lastUpdate, COUNT(*) as count FROM final_report",
             (err, row) => {
               db.close();
               if (err) reject(err);
@@ -200,6 +208,7 @@ async function handleCronStatus(_req, res) {
           );
         });
         if (row?.lastUpdate) {
+          // updatedAt is stored as ISO string in SQLite
           lastUpdate = new Date(row.lastUpdate);
           recordsProcessed = row.count;
         }
