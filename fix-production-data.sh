@@ -53,7 +53,8 @@ diagnose() {
     echo ""
     echo -e "${YELLOW}7. Overenie dát v databáze${NC}"
     cd "$CRON_DIR"
-    npx tsx -e "
+    # Použiť správnu cestu k modulom
+    NODE_PATH="$CRON_DIR/node_modules:$PROJECT_DIR/node_modules" npx tsx -e "
     import('./src/core/DatabaseManager.js').then(async ({ db }) => {
       try {
         const finhub = await db.getFinhubData();
@@ -69,21 +70,27 @@ diagnose() {
         console.log('');
         console.log('📋 Cron Statuses:');
         cronStatuses.forEach(s => {
-          console.log('  -', s.name + ':', s.status, '(last run:', s.lastRunAt || 'never', ')');
+          const lastRun = s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : 'never';
+          console.log('  -', s.name + ':', s.status, '(last run:', lastRun, ')');
         });
         
         if (final.length === 0) {
           console.log('');
           console.log('⚠️  VAROVANIE: FinalReport je prázdny!');
+        } else if (final.length > 0) {
+          console.log('');
+          console.log('✅ Dáta sú v databáze!');
+          console.log('   Prvý záznam:', final[0].symbol || 'N/A');
         }
         
         await db.disconnect();
       } catch (e) {
         console.error('❌ Error:', e.message);
+        console.error('   Stack:', e.stack);
         process.exit(1);
       }
     });
-    " 2>/dev/null || echo -e "${RED}❌ Nepodarilo sa pripojiť k databáze${NC}"
+    " 2>&1 || echo -e "${RED}❌ Nepodarilo sa pripojiť k databáze (skontrolujte DATABASE_URL v .env)${NC}"
     
     echo ""
     echo -e "${YELLOW}8. Aktuálny čas (NY)${NC}"
@@ -107,9 +114,9 @@ reset_db() {
     print_header "🗑️  RESETOVANIE DATABÁZY"
     
     echo -e "${YELLOW}⚠️  Toto vymaže všetky dáta z databázy!${NC}"
-    read -p "Naozaj chcete pokračovať? (yes/no): " confirm
+    read -p "Naozaj chcete pokračovať? (yes/y/no): " confirm
     
-    if [ "$confirm" != "yes" ]; then
+    if [ "$confirm" != "yes" ] && [ "$confirm" != "y" ]; then
         echo -e "${YELLOW}❌ Zrušené${NC}"
         return
     fi
@@ -161,31 +168,20 @@ reset_cron() {
 force_run() {
     print_header "🚀 MANUÁLNE SPUSTENIE PIPELINE"
     
-    echo -e "${YELLOW}Spúšťam pipeline manuálne...${NC}"
+    echo -e "${YELLOW}Spúšťam pipeline manuálne (jednorazovo)...${NC}"
     cd "$CRON_DIR"
     
-    # Spustenie pipeline cez TypeScript
-    npx tsx -e "
-    import('./src/main.js').then(async (module) => {
-      console.log('🚀 Spúšťam pipeline...');
-      // Pipeline sa spustí automaticky pri importe
-      setTimeout(() => {
-        console.log('✅ Pipeline spustený');
-        process.exit(0);
-      }, 5000);
-    }).catch(e => {
-      console.error('❌ Error:', e.message);
-      process.exit(1);
-    });
-    " || {
-        echo -e "${YELLOW}Skúšam alternatívny spôsob...${NC}"
+    # Spustenie pipeline cez npm run cron start --once
+    echo -e "${YELLOW}Spúšťam: npm run cron start --once${NC}"
+    npm run cron start --once 2>&1 | head -50 || {
+        echo -e "${YELLOW}Skúšam alternatívny spôsob (priamo cez tsx)...${NC}"
         cd "$CRON_DIR"
-        npm run start || echo -e "${RED}❌ Nepodarilo sa spustiť pipeline${NC}"
+        npx tsx src/main.ts start --once 2>&1 | head -50 || echo -e "${RED}❌ Nepodarilo sa spustiť pipeline${NC}"
     }
     
     echo ""
     echo -e "${GREEN}✅ Pipeline bol spustený${NC}"
-    echo -e "${YELLOW}Pozrite si logy: pm2 logs earnings-cron${NC}"
+    echo -e "${YELLOW}Pozrite si logy: pm2 logs earnings-cron --lines 50${NC}"
 }
 
 # 5. Kompletný reset (všetko)
@@ -197,9 +193,9 @@ full_reset() {
     echo "  2. Reštartuje cron"
     echo "  3. Spustí pipeline manuálne"
     echo ""
-    read -p "Naozaj chcete pokračovať? (yes/no): " confirm
+    read -p "Naozaj chcete pokračovať? (yes/y/no): " confirm
     
-    if [ "$confirm" != "yes" ]; then
+    if [ "$confirm" != "yes" ] && [ "$confirm" != "y" ]; then
         echo -e "${YELLOW}❌ Zrušené${NC}"
         return
     fi
