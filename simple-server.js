@@ -438,11 +438,11 @@ app.get("/api/final-report", async (req, res) => {
 
     // Get all data first
     const allData = await prisma.finalReport.findMany();
-    console.log("🔍 DEBUG: Got data from DB, count:", allData.length);
+    console.error("🔍 DEBUG: Got data from DB, count:", allData.length);
     
     // Debug: log before sorting
     const withCap = allData.filter(d => d.marketCap != null).length;
-    console.log(`📊 Total records: ${allData.length}, with marketCap: ${withCap}`);
+    console.error(`📊 Total records: ${allData.length}, with marketCap: ${withCap}`);
     
     // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
     const data = allData.sort((a, b) => {
@@ -463,9 +463,9 @@ app.get("/api/final-report", async (req, res) => {
     });
     
     // Debug: log first 5 symbols with their marketCap
-    console.log("📊 First 5 symbols after sorting:");
+    console.error("📊 First 5 symbols after sorting:");
     data.slice(0, 5).forEach((item, idx) => {
-      console.log(`  ${idx + 1}. ${item.symbol}: marketCap=${item.marketCap != null ? Number(item.marketCap) : 'null'}`);
+      console.error(`  ${idx + 1}. ${item.symbol}: marketCap=${item.marketCap != null ? Number(item.marketCap) : 'null'}`);
     });
 
     console.log(`✅ Found ${data.length} records in FinalReport`);
