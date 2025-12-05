@@ -439,6 +439,10 @@ app.get("/api/final-report", async (req, res) => {
     // Get all data first
     const allData = await prisma.finalReport.findMany();
     
+    // Debug: log before sorting
+    const withCap = allData.filter(d => d.marketCap != null).length;
+    console.log(`📊 Total records: ${allData.length}, with marketCap: ${withCap}`);
+    
     // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
     const data = allData.sort((a, b) => {
       // Convert BigInt to Number for comparison
