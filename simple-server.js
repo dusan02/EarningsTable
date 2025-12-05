@@ -436,8 +436,21 @@ app.get("/api/final-report", async (req, res) => {
     await prisma.$connect();
     console.log("[DB] Connection successful");
 
-    const data = await prisma.finalReport.findMany({
-      orderBy: { symbol: "asc" },
+    // Get all data first
+    const allData = await prisma.finalReport.findMany();
+    
+    // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
+    const data = allData.sort((a, b) => {
+      // If both have marketCap, sort by marketCap DESC
+      if (a.marketCap != null && b.marketCap != null) {
+        return Number(b.marketCap) - Number(a.marketCap);
+      }
+      // If only a has marketCap, a comes first
+      if (a.marketCap != null) return -1;
+      // If only b has marketCap, b comes first
+      if (b.marketCap != null) return 1;
+      // Both null, sort by symbol ASC
+      return a.symbol.localeCompare(b.symbol);
     });
 
     console.log(`✅ Found ${data.length} records in FinalReport`);
