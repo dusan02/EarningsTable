@@ -441,16 +441,26 @@ app.get("/api/final-report", async (req, res) => {
     
     // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
     const data = allData.sort((a, b) => {
+      // Convert BigInt to Number for comparison
+      const aCap = a.marketCap != null ? Number(a.marketCap) : null;
+      const bCap = b.marketCap != null ? Number(b.marketCap) : null;
+      
       // If both have marketCap, sort by marketCap DESC
-      if (a.marketCap != null && b.marketCap != null) {
-        return Number(b.marketCap) - Number(a.marketCap);
+      if (aCap != null && bCap != null) {
+        return bCap - aCap;
       }
       // If only a has marketCap, a comes first
-      if (a.marketCap != null) return -1;
+      if (aCap != null) return -1;
       // If only b has marketCap, b comes first
-      if (b.marketCap != null) return 1;
+      if (bCap != null) return 1;
       // Both null, sort by symbol ASC
       return a.symbol.localeCompare(b.symbol);
+    });
+    
+    // Debug: log first 5 symbols with their marketCap
+    console.log("📊 First 5 symbols after sorting:");
+    data.slice(0, 5).forEach((item, idx) => {
+      console.log(`  ${idx + 1}. ${item.symbol}: marketCap=${item.marketCap != null ? Number(item.marketCap) : 'null'}`);
     });
 
     console.log(`✅ Found ${data.length} records in FinalReport`);
