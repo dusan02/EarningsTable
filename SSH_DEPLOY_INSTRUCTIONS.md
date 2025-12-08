@@ -12,6 +12,47 @@ ssh root@bardusa
 ssh your-username@your-server-ip
 ```
 
+## 🔄 Kompletný Git Workflow
+
+**Pozri:** [GIT_SYNC_WORKFLOW.md](GIT_SYNC_WORKFLOW.md) - Kompletný návod na synchronizáciu
+
+### Rýchle príkazy (po stiahnutí skriptov):
+
+```bash
+# 📥 Stiahnuť zmeny z GitHubu a reštartovať
+cd /var/www/earnings-table
+./quick-pull-and-restart.sh
+
+# 📤 Upload dát na GitHub
+cd /var/www/earnings-table
+./upload-data-to-git.sh "Popis zmien"
+```
+
+### Manuálne príkazy (ak skripty ešte nie sú):
+
+```bash
+# 📤 Upload dát na GitHub (manuálne)
+cd /var/www/earnings-table
+git add .
+git commit -m "Update: Production data sync $(date +%Y-%m-%d)"
+git push origin main
+
+# 📥 Stiahnuť zmeny a reštartovať (manuálne)
+cd /var/www/earnings-table
+git pull origin main
+pm2 restart earnings-table
+pm2 status
+```
+
+### Prvé stiahnutie skriptov:
+
+```bash
+# Na SSH serveri - stiahnuť najnovšie zmeny (vrátane skriptov)
+cd /var/www/earnings-table
+git pull origin main
+chmod +x quick-pull-and-restart.sh upload-data-to-git.sh
+```
+
 ## 📥 Stiahnutie zmien z GitHubu a restart
 
 ```bash
@@ -64,3 +105,15 @@ cd /var/www/earnings-table
 - Cesta `/var/www/earnings-table` existuje len na Linux serveri
 - Na Windows používajte `D:\Projects\EarningsTable`
 - **Nový skript:** `fix-production-data.sh` - diagnostika a oprava dát
+
+## 🔄 Git Synchronizácia
+
+### Workflow: SSH → Git → Lokálne PC → Git → SSH
+
+1. **SSH → Git**: `./upload-data-to-git.sh "Popis"`
+2. **Git → Lokálne PC**: `git pull origin main` (na Windows)
+3. **Opraviť kód** na lokálnom PC
+4. **Lokálne PC → Git**: `.\quick-push.ps1 "Popis oprávy"` (na Windows)
+5. **Git → SSH**: `./quick-pull-and-restart.sh` (na SSH serveri)
+
+**Viac informácií:** Pozri [GIT_SYNC_WORKFLOW.md](GIT_SYNC_WORKFLOW.md)
