@@ -16,7 +16,7 @@ ssh your-username@your-server-ip
 
 **Pozri:** [GIT_SYNC_WORKFLOW.md](GIT_SYNC_WORKFLOW.md) - Kompletný návod na synchronizáciu
 
-### Rýchle príkazy:
+### Rýchle príkazy (po stiahnutí skriptov):
 
 ```bash
 # 📥 Stiahnuť zmeny z GitHubu a reštartovať
@@ -26,6 +26,31 @@ cd /var/www/earnings-table
 # 📤 Upload dát na GitHub
 cd /var/www/earnings-table
 ./upload-data-to-git.sh "Popis zmien"
+```
+
+### Manuálne príkazy (ak skripty ešte nie sú):
+
+```bash
+# 📤 Upload dát na GitHub (manuálne)
+cd /var/www/earnings-table
+git add .
+git commit -m "Update: Production data sync $(date +%Y-%m-%d)"
+git push origin main
+
+# 📥 Stiahnuť zmeny a reštartovať (manuálne)
+cd /var/www/earnings-table
+git pull origin main
+pm2 restart earnings-table
+pm2 status
+```
+
+### Prvé stiahnutie skriptov:
+
+```bash
+# Na SSH serveri - stiahnuť najnovšie zmeny (vrátane skriptov)
+cd /var/www/earnings-table
+git pull origin main
+chmod +x quick-pull-and-restart.sh upload-data-to-git.sh
 ```
 
 ## 📥 Stiahnutie zmien z GitHubu a restart
