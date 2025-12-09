@@ -3,8 +3,20 @@ try {
 } catch (_) {
   /* optional in production */
 }
+
 console.log("[BOOT/web] cwd=" + process.cwd());
 console.log("[BOOT/web] DATABASE_URL=" + process.env.DATABASE_URL);
+
+// Warn if DATABASE_URL is not set
+if (!process.env.DATABASE_URL) {
+  console.warn("[BOOT/web] ⚠️ DATABASE_URL is not set!");
+  console.warn(
+    "[BOOT/web] Create .env file or set DATABASE_URL environment variable"
+  );
+  console.warn(
+    "[BOOT/web] Example: DATABASE_URL=file:D:/Projects/EarningsTable/modules/database/prisma/dev.db"
+  );
+}
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -12,10 +24,11 @@ const compression = require("compression");
 const crypto = require("crypto");
 
 // Try to use Prisma client from modules/shared first (where it's generated)
-// This is the ONLY source we use - no fallback to root
+// If not present, fall back to root node_modules (so we can start locally even
+// when the shared client hasn't been generated yet).
 let PrismaClient;
 try {
-  // Try to load from the generated location
+  const fs = require("fs");
   const sharedPrismaPath = path.resolve(
     __dirname,
     "modules",
@@ -25,20 +38,22 @@ try {
     "client"
   );
 
-  // Check if file exists first
-  const fs = require("fs");
-  if (!fs.existsSync(sharedPrismaPath)) {
-    throw new Error(`Prisma client not found at: ${sharedPrismaPath}`);
+  if (fs.existsSync(sharedPrismaPath)) {
+    PrismaClient = require(sharedPrismaPath).PrismaClient;
+    console.log("[Prisma] ✅ Using client from modules/shared");
+    console.log("[Prisma] Path:", sharedPrismaPath);
+  } else {
+    // Fallback to root node_modules
+    PrismaClient = require("@prisma/client").PrismaClient;
+    console.log(
+      "[Prisma] ⚠️ Shared Prisma client missing, using root @prisma/client"
+    );
   }
-
-  PrismaClient = require(sharedPrismaPath).PrismaClient;
-  console.log("[Prisma] ✅ Using client from modules/shared");
-  console.log("[Prisma] Path:", sharedPrismaPath);
 } catch (e) {
-  console.error("[Prisma] ❌ Failed to load from modules/shared:", e.message);
+  console.error("[Prisma] ❌ Failed to load Prisma client:", e.message);
   console.error("[Prisma] Error:", e);
   throw new Error(
-    `Prisma client not found in modules/shared. Run: cd modules/shared && npm install @prisma/client && cd ../database && npx prisma generate --schema=prisma/schema.prisma`
+    `Prisma client not found. Try: npm install && npx prisma generate --schema=modules/database/prisma/schema.prisma`
   );
 }
 
@@ -288,15 +303,62 @@ app.use((req, res, next) => {
 });
 
 // Serve logos from the correct directory (robust to working dir)
-const LOGO_DIR = path.resolve(
-  process.cwd(),
-  "modules",
-  "web",
-  "public",
-  "logos"
-);
+// Try multiple paths to handle different execution contexts
+const LOGO_DIR = (() => {
+  const possiblePaths = [
+    // Production paths first (most likely to exist)
+    "/var/www/earnings-table/modules/web/public/logos",
+    "/srv/EarningsTable/modules/web/public/logos",
+    // Relative paths (for development and different execution contexts)
+    path.resolve(__dirname, "modules", "web", "public", "logos"),
+    path.resolve(process.cwd(), "modules", "web", "public", "logos"),
+    path.join(__dirname, "modules", "web", "public", "logos"),
+    path.join(process.cwd(), "modules", "web", "public", "logos"),
+  ];
+
+  console.log("[logos] __dirname:", __dirname);
+  console.log("[logos] process.cwd():", process.cwd());
+  console.log("[logos] Checking paths:", possiblePaths);
+
+  for (const logoPath of possiblePaths) {
+    if (fs.existsSync(logoPath)) {
+      console.log("[logos] ✅ Found logo directory:", logoPath);
+      // Verify it has files
+      try {
+        const files = fs.readdirSync(logoPath);
+        const webpFiles = files.filter((f) => f.endsWith(".webp"));
+        console.log(
+          "[logos] ✅ Directory contains",
+          webpFiles.length,
+          "webp files"
+        );
+        return logoPath;
+      } catch (err) {
+        console.warn("[logos] ⚠️ Cannot read directory:", err.message);
+      }
+    } else {
+      console.log("[logos] ❌ Path does not exist:", logoPath);
+    }
+  }
+
+  // Fallback to first path even if it doesn't exist (will log error when accessed)
+  const fallback = possiblePaths[0];
+  console.warn(
+    "[logos] ⚠️ Logo directory not found, using fallback:",
+    fallback
+  );
+  console.warn("[logos] Tried paths:", possiblePaths);
+  return fallback;
+})();
 console.log("[logos] serving from:", LOGO_DIR);
-app.use("/logos", express.static(LOGO_DIR));
+app.use(
+  "/logos",
+  express.static(LOGO_DIR, {
+    setHeaders: (res, filePath) => {
+      console.log("[logos] Serving file:", filePath);
+    },
+  })
+);
 
 // Serve favicon (.ico and .svg) with fallbacks
 app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
@@ -364,12 +426,21 @@ if (fs.existsSync(sharedPrismaRuntimePath)) {
   const files = fs.readdirSync(sharedPrismaRuntimePath);
   console.log("[Prisma] Runtime files:", files);
 
+  // Find query engine - Windows uses .dll.node, Linux/Mac use .so.node
   const queryEngine = files.find(
-    (f) => f.includes("query_engine") && f.endsWith(".so.node")
+    (f) =>
+      f.includes("query_engine") &&
+      (f.endsWith(".so.node") || f.endsWith(".dll.node"))
   );
-  const schemaEngine = files.find(
-    (f) => f.includes("schema-engine") && !f.includes(".so.node")
-  );
+  // Schema engine is a binary executable (no extension on Unix, .exe on Windows)
+  // On Windows it might be schema-engine.exe, on Unix just schema-engine
+  const schemaEngine = files.find((f) => {
+    const isSchemaEngine = f.includes("schema-engine");
+    const isNotNode = !f.includes(".node");
+    const isNotJs = !f.endsWith(".js");
+    const isNotDts = !f.endsWith(".d.ts");
+    return isSchemaEngine && isNotNode && isNotJs && isNotDts;
+  });
 
   if (queryEngine) {
     process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(
@@ -438,18 +509,22 @@ app.get("/api/final-report", async (req, res) => {
 
     // Get all data first
     const allData = await prisma.finalReport.findMany();
-    process.stderr.write(`🔍 DEBUG: Got data from DB, count: ${allData.length}\n`);
-    
+    process.stderr.write(
+      `🔍 DEBUG: Got data from DB, count: ${allData.length}\n`
+    );
+
     // Debug: log before sorting
-    const withCap = allData.filter(d => d.marketCap != null).length;
-    process.stderr.write(`📊 Total records: ${allData.length}, with marketCap: ${withCap}\n`);
-    
+    const withCap = allData.filter((d) => d.marketCap != null).length;
+    process.stderr.write(
+      `📊 Total records: ${allData.length}, with marketCap: ${withCap}\n`
+    );
+
     // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
     const data = allData.sort((a, b) => {
       // Convert BigInt to Number for comparison
       const aCap = a.marketCap != null ? Number(a.marketCap) : null;
       const bCap = b.marketCap != null ? Number(b.marketCap) : null;
-      
+
       // If both have marketCap, sort by marketCap DESC
       if (aCap != null && bCap != null) {
         return bCap - aCap;
@@ -461,11 +536,12 @@ app.get("/api/final-report", async (req, res) => {
       // Both null, sort by symbol ASC
       return a.symbol.localeCompare(b.symbol);
     });
-    
+
     // Debug: log first 5 symbols with their marketCap
     process.stderr.write("📊 First 5 symbols after sorting:\n");
     data.slice(0, 5).forEach((item, idx) => {
-      const cap = item.marketCap != null ? Number(item.marketCap).toString() : 'null';
+      const cap =
+        item.marketCap != null ? Number(item.marketCap).toString() : "null";
       process.stderr.write(`  ${idx + 1}. ${item.symbol}: marketCap=${cap}\n`);
     });
 
@@ -736,13 +812,32 @@ app.get("/api/health", (req, res) => {
 
 // Dashboard routes - using simple-dashboard.html (nice UX)
 const DASHBOARD = path.resolve(__dirname, "simple-dashboard.html");
-app.get(["/", "/dashboard"], (req, res) => res.sendFile(DASHBOARD));
-app.get("/test-logos", (req, res) =>
-  res.sendFile(path.join(__dirname, "test-logos.html"))
-);
-app.get("/test-logo-display", (req, res) =>
-  res.sendFile(path.join(__dirname, "test-logo-display.html"))
-);
+app.get(["/", "/dashboard"], (req, res) => {
+  const fs = require("fs");
+  if (fs.existsSync(DASHBOARD)) {
+    res.sendFile(DASHBOARD);
+  } else {
+    res.status(404).json({ error: "Dashboard not found" });
+  }
+});
+app.get("/test-logos", (req, res) => {
+  const fs = require("fs");
+  const testLogosPath = path.join(__dirname, "test-logos.html");
+  if (fs.existsSync(testLogosPath)) {
+    res.sendFile(testLogosPath);
+  } else {
+    res.status(404).json({ error: "Test logos page not found" });
+  }
+});
+app.get("/test-logo-display", (req, res) => {
+  const fs = require("fs");
+  const testLogoDisplayPath = path.join(__dirname, "test-logo-display.html");
+  if (fs.existsSync(testLogoDisplayPath)) {
+    res.sendFile(testLogoDisplayPath);
+  } else {
+    res.status(404).json({ error: "Test logo display page not found" });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {
@@ -757,9 +852,51 @@ app.listen(PORT, () => {
   console.log(`🌐 API URL: http://localhost:${PORT}`);
 });
 
-// Graceful shutdown
+// Keep-alive mechanism to prevent process from exiting
+// Express server should keep event loop alive, but add explicit keep-alive as safety
+console.log("✅ Keep-alive mechanism initialized");
+const keepAlive = setInterval(() => {
+  // Heartbeat to keep event loop active - log every 5 minutes to confirm it's running
+  const now = new Date();
+  if (now.getMinutes() % 5 === 0 && now.getSeconds() < 10) {
+    console.log(
+      `💓 Keep-alive heartbeat: ${now.toISOString()}, uptime: ${process.uptime()}s`
+    );
+  }
+}, 60000);
+
+// Log process events for debugging
+process.on("beforeExit", (code) => {
+  console.error(
+    `⚠️ Process beforeExit event: ${code} at ${new Date().toISOString()}`
+  );
+  console.error("⚠️ Stack trace:", new Error().stack);
+  console.error("⚠️ Active handles:", process._getActiveHandles().length);
+  console.error("⚠️ Active requests:", process._getActiveRequests().length);
+});
+
+process.on("exit", (code) => {
+  console.error(
+    `⚠️ Process exit event: ${code} at ${new Date().toISOString()}`
+  );
+  console.error("⚠️ Process uptime before exit:", process.uptime(), "seconds");
+});
+
+// Graceful shutdown - with detailed logging to understand who sends SIGINT
 process.on("SIGINT", async () => {
+  console.error(`\n🛑 SIGINT received at ${new Date().toISOString()}`);
+  console.error("🛑 Stack trace:", new Error().stack);
+  console.error("🛑 Process uptime:", process.uptime(), "seconds");
+  console.error("🛑 Memory usage:", process.memoryUsage());
   console.log("\n🛑 Shutting down server...");
+  clearInterval(keepAlive);
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  console.log("\n🛑 SIGTERM received, shutting down server...");
+  clearInterval(keepAlive);
   await prisma.$disconnect();
   process.exit(0);
 });
