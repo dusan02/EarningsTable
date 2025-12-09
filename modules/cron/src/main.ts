@@ -106,7 +106,7 @@ async function bootstrap() {
       case 'status':
         console.log('📊 Cron Jobs Status:');
         console.log('  ✅ Pipeline: Finnhub → Polygon (every 5min @ America/New_York, 24/7 except 03:00)');
-        console.log('  ✅ Daily Clear: 03:00 NY (Mon-Fri)');
+        console.log('  ✅ Daily Clear: 03:00 NY (every day)');
         console.log('  ✅ Boot Guard: Automatic recovery after restart');
         console.log('  ✅ Environment: Validated');
         break;
@@ -147,8 +147,8 @@ Options:
   --force            Force overwrite existing data (Finnhub only)
 
 Schedule:
-  🧹 03:00 NY - Daily clear (Mon-Fri)
-  📊 Every 5min NY - Pipeline 24/7 (Mon-Fri, except 03:00)
+  🧹 03:00 NY - Daily clear (every day)
+  📊 Every 5min NY - Pipeline 24/7 (every day, except 03:00)
   🛡️ Boot guard - Automatic recovery after restart
 
 Examples:
@@ -181,7 +181,7 @@ async function startDailyCycle() {
 
 
 let __pipelineRunning = false;
-const PIPELINE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+const PIPELINE_TIMEOUT_MS = 4 * 60 * 1000; // 4 minutes timeout (less than 5 min cron interval)
 const QUIET_WINDOW_MS = 5 * 60 * 1000; // 5 minutes after daily clear
 let __quietWindowUntil = 0;
 
@@ -190,7 +190,19 @@ function enterQuietWindow() {
   console.log(`🕊️  Entering quiet window for ${Math.round(QUIET_WINDOW_MS/1000)}s`);
 }
 
+function resetQuietWindow() {
+  __quietWindowUntil = 0;
+  console.log('🕊️  Quiet window reset (process restart)');
+}
+
 function isInQuietWindow(): boolean {
+  // Reset if window expired (safety check)
+  if (__quietWindowUntil > 0 && Date.now() >= __quietWindowUntil) {
+    __quietWindowUntil = 0;
+    console.log('🕊️  Quiet window expired, reset');
+    return false;
+  }
+  
   const inWindow = Date.now() < __quietWindowUntil;
   if (inWindow) {
     const remaining = Math.max(0, __quietWindowUntil - Date.now());
@@ -205,6 +217,14 @@ async function runPipeline(label = "scheduled") {
     return;
   }
   __pipelineRunning = true;
+  
+  const startTime = new Date();
+  // Mark pipeline as running
+  try {
+    await db.updateCronStatus('pipeline', 'running', undefined, undefined, startTime);
+  } catch (logError) {
+    console.error('❌ Failed to log pipeline start:', logError);
+  }
   
   // Timeout guard to prevent stuck pipeline
   const timeoutId = setTimeout(() => {
@@ -230,9 +250,22 @@ async function runPipeline(label = "scheduled") {
     // Save performance data to database
     await performanceMonitor.saveToDatabase();
     
+    // Log successful completion
+    const duration = Date.now() - startTime.getTime();
+    try {
+      await db.updateCronStatus('pipeline', 'success', metrics.totalRecords, undefined, startTime, duration);
+    } catch (logError) {
+      console.error('❌ Failed to log pipeline success:', logError);
+    }
+    
   } catch (e) {
     console.error('❌ Pipeline failed:', e);
-    try { await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e)); } catch {}
+    const duration = Date.now() - startTime.getTime();
+    try {
+      await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e), startTime, duration);
+    } catch (logError) {
+      console.error('❌ Failed to log pipeline error:', logError);
+    }
   } finally {
     clearTimeout(timeoutId);
     __pipelineRunning = false;
@@ -241,8 +274,8 @@ async function runPipeline(label = "scheduled") {
 
 /**
  * Boot guard funkcie:
- * - scheduleBootGuardAfterClear: Ak je NY čas medzi 03:00–03:29:59, naplánuje runPipeline na 03:30 NY
- * - checkAndRunDailyResetIfNeeded: Ak sa proces reštartuje po 03:00 NY, spustí denný reset manuálne
+ * - scheduleBootGuardAfterClear: Ak je NY čas medzi 03:00–03:30, naplánuje alebo spustí runPipeline
+ * - checkAndRunDailyResetIfNeeded: Ak sa proces reštartuje medzi 03:00–03:30 NY, skontroluje a spustí denný reset ak treba
  */
 async function checkAndRunDailyResetIfNeeded() {
   try {
@@ -251,8 +284,8 @@ async function checkAndRunDailyResetIfNeeded() {
     const nyHour = nowNY.getHours();
     const nyMinute = nowNY.getMinutes();
     
-    // Ak je medzi 03:00-03:05 NY, skontroluj či už bol reset
-    if (nyHour === 3 && nyMinute < 5) {
+    // Ak je medzi 03:00-03:30 NY, skontroluj či už bol reset
+    if (nyHour === 3 && nyMinute < 30) {
       // Skontroluj dátum posledného resetu (cez počet záznamov v tabuľkách)
       const today = new Date(nowNY);
       today.setHours(0, 0, 0, 0);
@@ -298,7 +331,7 @@ function scheduleBootGuardAfterClear() {
     const nySecond = nowNY.getSeconds();
 
     const inWindow_03_00_to_03_05 = (nyHour === 3 && (nyMinute < 5 || (nyMinute === 5 && nySecond === 0)));
-    const inWindow_03_05_to_03_10 = (nyHour === 3 && nyMinute >= 5 && nyMinute < 10);
+    const inWindow_03_05_to_03_30 = (nyHour === 3 && nyMinute >= 5 && nyMinute < 30);
 
     if (inWindow_03_00_to_03_05) {
       // Cieľ: dnes 03:05:00 NY
@@ -321,9 +354,9 @@ function scheduleBootGuardAfterClear() {
       return;
     }
 
-    if (inWindow_03_05_to_03_10) {
-      // Reštart tesne po 03:05 – spusti hneď
-      console.log('🛡️  Boot guard: within 03:05–03:10 NY → running immediately');
+    if (inWindow_03_05_to_03_30) {
+      // Reštart medzi 03:05–03:30 – spusti hneď
+      console.log('🛡️  Boot guard: within 03:05–03:30 NY → running immediately');
       runPipeline('boot-guard-03:05-late').catch(err =>
         console.error('❌ Boot guard late run failed:', err)
       );
@@ -331,7 +364,7 @@ function scheduleBootGuardAfterClear() {
     }
 
     // Mimo okna – nič nerob, crony sa postarajú
-    console.log('🛡️  Boot guard: outside 03:00–03:10 NY window → no-op');
+    console.log('🛡️  Boot guard: outside 03:00–03:30 NY window → no-op');
   } catch (e) {
     console.error('❌ scheduleBootGuardAfterClear error:', e);
   }
@@ -339,6 +372,9 @@ function scheduleBootGuardAfterClear() {
 
 async function startAllCronJobs(once: boolean) {
   console.log('🚀 Starting one-big-cron pipeline...');
+  
+  // Reset quiet window on process start (in case of restart)
+  resetQuietWindow();
   
   if (!once) {
     // Unified cron: každých 5 minút počas celého dňa (okrem 03:00 pre reset)
@@ -364,8 +400,9 @@ async function startAllCronJobs(once: boolean) {
     }, { timezone: TZ });
     console.log(`✅ Unified pipeline scheduled @ ${UNIFIED_CRON} (NY, 24/7, každých 5 min okrem 03:00) valid=${UNIFIED_VALID}`);
 
-    // Daily clear job (03:00 AM weekdays) – reset databázy
-    const DAILY_CLEAR_CRON = '0 3 * * 1-5';
+    // Daily clear job (03:00 AM every day) – reset databázy
+    // Changed from '0 3 * * 1-5' to '0 3 * * *' for 7-day operation
+    const DAILY_CLEAR_CRON = '0 3 * * *';
     const DAILY_CLEAR_VALID = cron.validate(DAILY_CLEAR_CRON);
     if (!DAILY_CLEAR_VALID) {
       console.error(`❌ Invalid cron expression for daily clear: ${DAILY_CLEAR_CRON}`);
@@ -386,7 +423,7 @@ async function startAllCronJobs(once: boolean) {
       }, { timezone: TZ, scheduled: true });
       
       if (scheduledTask) {
-        console.log(`✅ Daily clear job scheduled @ ${DAILY_CLEAR_CRON} (03:00 NY, Mon-Fri) valid=${DAILY_CLEAR_VALID}`);
+        console.log(`✅ Daily clear job scheduled @ ${DAILY_CLEAR_CRON} (03:00 NY, every day) valid=${DAILY_CLEAR_VALID}`);
       } else {
         console.error('❌ Failed to schedule daily clear job');
       }
@@ -451,7 +488,16 @@ process.on('unhandledRejection', (reason) => {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.warn('↩️ SIGINT received');
+  const uptime = process.uptime();
+  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes
+  console.warn(`↩️ SIGINT received (uptime: ${uptime}s)`);
+  
+  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
+    console.warn(`⚠️ Ignoring SIGINT - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required)`);
+    console.warn('⚠️ This is likely PM2 watchdog sending premature SIGINT');
+    return; // Don't shutdown
+  }
+  
   console.log('�� Graceful shutdown initiated');
   console.log('↩️ SIGINT: shutting down…');
   await db.disconnect().catch(() => {});
@@ -459,7 +505,16 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-  console.warn('↩️ SIGTERM received');
+  const uptime = process.uptime();
+  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes
+  console.warn(`↩️ SIGTERM received (uptime: ${uptime}s)`);
+  
+  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
+    console.warn(`⚠️ Ignoring SIGTERM - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required)`);
+    console.warn('⚠️ This is likely PM2 watchdog sending premature SIGTERM');
+    return; // Don't shutdown
+  }
+  
   console.log('🛑 Graceful shutdown initiated');
   console.log('↩️ SIGTERM: shutting down…');
   await db.disconnect().catch(() => {});
