@@ -884,14 +884,16 @@ process.on("exit", (code) => {
 });
 
 // Graceful shutdown - with detailed logging to understand who sends SIGINT
+// WORKAROUND: Ignore SIGINT if process has been running for less than 10 minutes
+// This prevents PM2 watchdog from killing the process prematurely
 process.on("SIGINT", async () => {
   const timestamp = new Date().toISOString();
   const uptime = process.uptime();
   const memory = process.memoryUsage();
-  
+
   // Get full stack trace
   const stack = new Error().stack;
-  
+
   // Log to stderr (PM2 captures this)
   console.error(`\n🛑 SIGINT received at ${timestamp}`);
   console.error("🛑 Process uptime:", uptime, "seconds");
@@ -900,12 +902,32 @@ process.on("SIGINT", async () => {
   console.error(stack);
   console.error("🛑 Process ID:", process.pid);
   console.error("🛑 Parent process ID:", process.ppid);
-  console.error("🛑 Environment:", JSON.stringify({
-    NODE_ENV: process.env.NODE_ENV,
-    PM2_HOME: process.env.PM2_HOME,
-    PM2_INSTANCE_ID: process.env.pm_id,
-  }, null, 2));
-  
+  console.error(
+    "🛑 Environment:",
+    JSON.stringify(
+      {
+        NODE_ENV: process.env.NODE_ENV,
+        PM2_HOME: process.env.PM2_HOME,
+        PM2_INSTANCE_ID: process.env.pm_id,
+      },
+      null,
+      2
+    )
+  );
+
+  // WORKAROUND: Ignore SIGINT if process has been running for less than 10 minutes
+  // PM2 watchdog seems to send SIGINT every 5 minutes, which is too aggressive
+  // Only shutdown if process has been running for at least 10 minutes
+  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes in seconds
+
+  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
+    console.error(
+      `⚠️ Ignoring SIGINT - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required for shutdown)`
+    );
+    console.error("⚠️ This is likely PM2 watchdog sending premature SIGINT");
+    return; // Don't shutdown, just ignore the signal
+  }
+
   console.log("\n🛑 Shutting down server...");
   clearInterval(keepAlive);
   await prisma.$disconnect();
