@@ -521,11 +521,6 @@ export class DatabaseManager {
           logoFetchedAt: finhubData.logoFetchedAt,
         });
 
-        // Use reportDate from finhubData if available, otherwise use current run timestamp
-        const effectiveReportDate = finhubData.reportDate && finhubData.reportDate.getFullYear() > 2000 
-          ? finhubData.reportDate 
-          : reportDateISO;
-        
         const updateData = normalizeFinalReportDates({
           name: polygonData.name,
           size: polygonData.size,
