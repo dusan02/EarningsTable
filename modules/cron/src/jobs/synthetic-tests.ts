@@ -56,9 +56,9 @@ export class SyntheticTestsJob {
         suite.overallStatus === 'FAIL' ? 'Some tests failed' : undefined
       );
       
-      // Alert on failures
+      // Alert on failures (use console.log instead of console.error to avoid PM2 treating it as process failure)
       if (suite.overallStatus === 'FAIL') {
-        console.error('🚨 SYNTHETIC TESTS FAILED - Immediate attention required!');
+        console.log('⚠️ SYNTHETIC TESTS FAILED - Immediate attention required!');
         // Here you could add Slack/Email notifications
       }
       

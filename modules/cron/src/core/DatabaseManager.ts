@@ -14,11 +14,16 @@ function toDateTime(v: any): Date | null {
 }
 
 function normalizeFinalReportDates<T extends { reportDate?: any; snapshotDate?: any }>(o: T): T {
-  return {
+  const normalized = {
     ...o,
     reportDate: toDateTime(o.reportDate),
     snapshotDate: toDateTime(o.snapshotDate),
   };
+  // Debug: log if dates are being normalized incorrectly
+  if (normalized.reportDate && normalized.reportDate.getFullYear() === 2000) {
+    console.warn(`⚠️ Warning: reportDate normalized to 2000: ${normalized.reportDate.toISOString()}, original: ${o.reportDate}`);
+  }
+  return normalized;
 }
 
 export class DatabaseManager {
@@ -435,6 +440,13 @@ export class DatabaseManager {
     // Use deterministic timestamps for this run (NY midnight)
     const { getRunTimestamps } = await import('../utils/time.js');
     const { reportDate: reportDateISO, snapshotDate: snapshotDateISO } = getRunTimestamps();
+    console.log(`📅 Using reportDate: ${reportDateISO.toISOString()}, snapshotDate: ${snapshotDateISO.toISOString()}`);
+    
+    // Ensure dates are valid Date objects
+    if (!(reportDateISO instanceof Date) || isNaN(reportDateISO.getTime())) {
+      console.error(`❌ Invalid reportDate from getRunTimestamps: ${reportDateISO}`);
+      throw new Error('Invalid reportDate from getRunTimestamps');
+    }
 
     // Fetch all required rows in bulk to reduce round-trips
     const finRows = await prisma.finhubData.findMany({
@@ -483,6 +495,11 @@ export class DatabaseManager {
         // Keep estimate as-is (can be null); only surprise depends on validity above
         const safeRevEst = finhubData.revenueEstimate;
 
+        // Use reportDate from finhubData if available, otherwise use current run timestamp
+        const effectiveReportDate = finhubData.reportDate && finhubData.reportDate.getFullYear() > 2000 
+          ? finhubData.reportDate 
+          : reportDateISO;
+        
         const createData = normalizeFinalReportDates({
           symbol,
           name: polygonData.name,
@@ -497,13 +514,18 @@ export class DatabaseManager {
           revActual: safeRevActual,
           revEst: safeRevEst,
           revSurp: roundedRevSurp,
-          reportDate: reportDateISO,
+          reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
           logoUrl: finhubData.logoUrl,
           logoSource: finhubData.logoSource,
           logoFetchedAt: finhubData.logoFetchedAt,
         });
 
+        // Use reportDate from finhubData if available, otherwise use current run timestamp
+        const effectiveReportDate = finhubData.reportDate && finhubData.reportDate.getFullYear() > 2000 
+          ? finhubData.reportDate 
+          : reportDateISO;
+        
         const updateData = normalizeFinalReportDates({
           name: polygonData.name,
           size: polygonData.size,
@@ -517,11 +539,12 @@ export class DatabaseManager {
           revActual: safeRevActual,
           revEst: safeRevEst,
           revSurp: roundedRevSurp,
-          reportDate: reportDateISO,
+          reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
           logoUrl: finhubData.logoUrl,
           logoSource: finhubData.logoSource,
           logoFetchedAt: finhubData.logoFetchedAt,
+          updatedAt: new Date(), // Explicitly set updatedAt to ensure it updates
         });
 
         upserts.push({
@@ -589,7 +612,8 @@ export class DatabaseManager {
       const batch = updates.slice(i, i + batchSize);
       
       await prisma.$transaction(
-        batch.map(update =>
+        batch.flatMap(update => [
+          // Update FinhubData (for backward compatibility)
           prisma.finhubData.updateMany({
             where: { symbol: update.symbol },
             data: {
@@ -597,8 +621,17 @@ export class DatabaseManager {
               logoSource: update.logoSource,
               logoFetchedAt: new Date(),
             },
+          }),
+          // Update FinalReport (primary source for frontend)
+          prisma.finalReport.updateMany({
+            where: { symbol: update.symbol },
+            data: {
+              logoUrl: update.logoUrl,
+              logoSource: update.logoSource,
+              logoFetchedAt: new Date(),
+            },
           })
-        )
+        ])
       );
     }
     
@@ -627,23 +660,51 @@ export class DatabaseManager {
     return symbols.map(s => s.symbol);
   }
 
-  async updateCronStatus(jobType: string, status: 'success' | 'error' | 'running', recordsProcessed?: number, errorMessage?: string): Promise<void> {   
-    await prisma.cronStatus.upsert({
-      where: { jobType },
-      create: {
-        jobType,
-        lastRunAt: new Date(),
-        status,
-        recordsProcessed,
-        errorMessage,
-      },
-      update: {
-        lastRunAt: new Date(),
-        status,
-        recordsProcessed,
-        errorMessage,
-      },
-    });
+  async updateCronStatus(jobType: string, status: 'success' | 'error' | 'running', recordsProcessed?: number, errorMessage?: string, startedAt?: Date, duration?: number): Promise<void> {   
+    const now = new Date();
+    
+    // Update current status (last run)
+    try {
+      await prisma.cronStatus.upsert({
+        where: { jobType },
+        create: {
+          jobType,
+          lastRunAt: now,
+          status,
+          recordsProcessed: recordsProcessed ?? null,
+          errorMessage: errorMessage ?? null,
+        },
+        update: {
+          lastRunAt: now,
+          status,
+          recordsProcessed: recordsProcessed ?? null,
+          errorMessage: errorMessage ?? null,
+        },
+      });
+    } catch (error) {
+      console.error(`❌ Failed to update cron status for ${jobType}:`, error);
+      // Don't throw - continue to log execution
+    }
+
+    // Log execution to history (if startedAt is provided, this is a completion)
+    if (startedAt && (status === 'success' || status === 'error')) {
+      try {
+        await prisma.cronExecutionLog.create({
+          data: {
+            jobType,
+            status,
+            startedAt,
+            completedAt: now,
+            duration: duration ?? (now.getTime() - startedAt.getTime()),
+            recordsProcessed: recordsProcessed ?? null,
+            errorMessage: errorMessage ?? null,
+          },
+        });
+      } catch (error) {
+        console.error(`❌ Failed to log execution history for ${jobType}:`, error);
+        // Don't throw - status update succeeded
+      }
+    }
   }
 
   async getLastCronRun(jobType: string): Promise<Date | null> {

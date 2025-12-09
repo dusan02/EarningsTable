@@ -102,7 +102,7 @@ model FinalReport {
 
 model CronStatus {
   id            Int       @id @default(autoincrement())
-  jobType       String    @unique // "finnhub" | "polygon" | "final_report"
+  jobType       String    @unique // "finnhub" | "polygon" | "final_report" | "pipeline" | "performance-monitor"
   lastRunAt     DateTime
   status        String    // "success" | "error" | "running"
   recordsProcessed Int?
@@ -114,5 +114,23 @@ model CronStatus {
   @@index([jobType])
   @@index([lastRunAt])
   @@map("cron_status")
+}
+
+model CronExecutionLog {
+  id            Int       @id @default(autoincrement())
+  jobType       String    // "finnhub" | "polygon" | "pipeline" | "final_report"
+  status        String    // "success" | "error" | "running"
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  duration      Int?      // Duration in milliseconds
+  recordsProcessed Int?
+  errorMessage  String?
+  
+  createdAt     DateTime  @default(now())
+
+  @@index([jobType, startedAt])
+  @@index([startedAt])
+  @@index([status])
+  @@map("cron_execution_log")
 }
 

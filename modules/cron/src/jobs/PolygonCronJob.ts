@@ -16,8 +16,9 @@ export class PolygonCronJob extends BaseCronJob {
   async execute(): Promise<void> {
     console.log('🚀 Starting PolygonCronJob execution with batch processing...');
     
-    // Mark job as running
-    await db.updateCronStatus('polygon', 'running');
+    const startTime = new Date();
+    // Mark job as running (with startedAt for logging)
+    await db.updateCronStatus('polygon', 'running', undefined, undefined, startTime);
     
     try {
       // Get symbols from PolygonData table (these were copied from Finnhub)
@@ -26,7 +27,8 @@ export class PolygonCronJob extends BaseCronJob {
       
       if (symbols.length === 0) {
         console.log('⚠️ No symbols found in PolygonData table');
-        await db.updateCronStatus('polygon', 'success', 0);
+        const duration = Date.now() - startTime.getTime();
+        await db.updateCronStatus('polygon', 'success', 0, undefined, startTime, duration);
         return;
       }
 
@@ -58,14 +60,16 @@ export class PolygonCronJob extends BaseCronJob {
       console.log('🔄 STEP 4: Generating final report...');
       await db.generateFinalReport();
 
-      // Mark job as successful
-      await db.updateCronStatus('polygon', 'success', marketData.length);
+      // Mark job as successful with duration
+      const duration = Date.now() - startTime.getTime();
+      await db.updateCronStatus('polygon', 'success', marketData.length, undefined, startTime, duration);
       console.log('✅ PolygonCronJob completed successfully');
       
     } catch (error) {
       console.error('❌ PolygonCronJob failed:', error);
-      // Mark job as failed
-      await db.updateCronStatus('polygon', 'error', undefined, (error as any)?.message || 'Unknown error');
+      // Mark job as failed with duration
+      const duration = Date.now() - startTime.getTime();
+      await db.updateCronStatus('polygon', 'error', 0, (error as any)?.message || 'Unknown error', startTime, duration);
       throw error;
     }
   }

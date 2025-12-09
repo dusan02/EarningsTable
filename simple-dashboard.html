@@ -1019,7 +1019,7 @@
                         marketCap: item.marketCap ? Number(item.marketCap) : 0,
                         marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
                         price: item.price || 0,
-                        logoUrl: item.logoUrl || null,
+                        logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                         logoSource: item.logoSource || null,
                         change: item.change || 0,
                         epsActual: item.epsActual || 0,
@@ -1071,7 +1071,7 @@
                                 marketCap: item.marketCap ? Number(item.marketCap) : 0,
                                 marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
                                 price: item.price || 0,
-                                logoUrl: item.logoUrl || null,
+                                logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                                 logoSource: item.logoSource || null,
                                 change: item.change || 0,
                                 epsActual: item.epsActual || 0,
@@ -1344,7 +1344,7 @@
                     <div class="card-header">
                         <!-- Logo -->
                         <div class="card-header-item">
-                            ${item.logoUrl ? 
+                            ${(item.logoUrl && item.logoUrl.trim()) ? 
                                 `<img src="${item.logoUrl}" alt="${item.symbol} logo" class="card-logo object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                  <div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm hidden">${item.symbol}</div>` :
                                 `<div class="card-logo bg-white dark:bg-slate-400 border border-neutral-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-sm shadow-sm">${item.symbol}</div>`
@@ -1445,7 +1445,7 @@
                         marketCap: item.marketCap ? Number(item.marketCap) : 0,
                         marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
                         price: item.price || 0,
-                        logoUrl: item.logoUrl || null,
+                        logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                         logoSource: item.logoSource || null,
                         change: item.change || 0,
                         epsActual: item.epsActual || 0,
@@ -1619,7 +1619,8 @@
                     lg: 'w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24'
                 };
                 
-                if (!logoUrl) {
+                // Check if logoUrl is null, undefined, or empty/whitespace string
+                if (!logoUrl || (typeof logoUrl === 'string' && !logoUrl.trim())) {
                     return this.createFallback(symbol, size);
                 }
                 

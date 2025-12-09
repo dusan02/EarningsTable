@@ -53,6 +53,30 @@ git pull origin main
 chmod +x quick-pull-and-restart.sh upload-data-to-git.sh
 ```
 
+### ⚠️ Riešenie divergent branches:
+
+Ak sa zobrazí `fatal: Need to specify how to reconcile divergent branches`:
+
+```bash
+# Na SSH serveri
+cd /var/www/earnings-table
+
+# Nastaviť merge stratégiu
+git config pull.rebase false
+
+# Stiahnuť a zlúčiť zmeny
+git pull origin main --no-rebase
+
+# Ak sú konflikty, vyriešiť ich a potom:
+git add .
+git commit -m "Merge: Resolve conflicts"
+
+# Nastaviť skripty ako spustiteľné
+chmod +x quick-pull-and-restart.sh upload-data-to-git.sh
+```
+
+**Viac informácií:** Pozri [FIX_DIVERGENT_BRANCHES.md](FIX_DIVERGENT_BRANCHES.md)
+
 ## 📥 Stiahnutie zmien z GitHubu a restart
 
 ```bash

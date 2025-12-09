@@ -17,8 +17,9 @@ export class FinnhubCronJob extends BaseCronJob {
   async execute(): Promise<void> {
     console.log('🚀 Starting FinnhubCronJob execution...');
     
-    // Mark job as running
-    await db.updateCronStatus('finnhub', 'running');
+    const startTime = new Date();
+    // Mark job as running (with startedAt for logging)
+    await db.updateCronStatus('finnhub', 'running', undefined, undefined, startTime);
     
     try {
       const isoDate = resolveFinnhubTargetDate();
@@ -29,7 +30,8 @@ export class FinnhubCronJob extends BaseCronJob {
 
       if (rows.length === 0) {
         console.log('⚠️ No earnings reports found for today');
-        await db.updateCronStatus('finnhub', 'success', 0);
+        const duration = Date.now() - startTime.getTime();
+        await db.updateCronStatus('finnhub', 'success', 0, undefined, startTime, duration);
         return;
       }
 
@@ -55,14 +57,16 @@ export class FinnhubCronJob extends BaseCronJob {
       // Skip logo processing here - will be done in main pipeline to avoid duplicates
       console.log('🖼️ Logo processing will be handled by main pipeline to avoid duplicates');
       
-      // Mark job as successful
-      await db.updateCronStatus('finnhub', 'success', rows.length);
+      // Mark job as successful with duration
+      const duration = Date.now() - startTime.getTime();
+      await db.updateCronStatus('finnhub', 'success', rows.length, undefined, startTime, duration);
       console.log('✅ FinnhubCronJob completed successfully');
       
     } catch (error) {
       console.error('❌ FinnhubCronJob failed:', error);
-      // Mark job as failed
-      await db.updateCronStatus('finnhub', 'error', undefined, (error as any)?.message || 'Unknown error');
+      // Mark job as failed with duration
+      const duration = Date.now() - startTime.getTime();
+      await db.updateCronStatus('finnhub', 'error', 0, (error as any)?.message || 'Unknown error', startTime, duration);
       throw error;
     }
   }

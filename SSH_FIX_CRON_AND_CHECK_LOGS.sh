@@ -1,0 +1,5 @@
+#!/bin/bash
+# Pull, restart cron job, and check if logs are being written
+
+cd /srv/EarningsTable && git pull origin main && pm2 restart earnings-cron && sleep 5 && echo "=== Cron job status ===" && pm2 list | grep earnings-cron && echo "" && echo "=== Check if logs are being written (wait 2 minutes for cron to run) ===" && sleep 120 && echo "=== Database logs count ===" && sqlite3 modules/database/prisma/prod.db "SELECT COUNT(*) as total_logs FROM cron_execution_log;" && echo "" && echo "=== Latest 5 logs ===" && sqlite3 -header -column modules/database/prisma/prod.db "SELECT id, jobType, status, datetime(startedAt, 'localtime') as startedAt, datetime(completedAt, 'localtime') as completedAt, duration, recordsProcessed FROM cron_execution_log ORDER BY startedAt DESC LIMIT 5;" && echo "" && echo "=== Current CronStatus ===" && sqlite3 -header -column modules/database/prisma/prod.db "SELECT jobType, datetime(lastRunAt, 'localtime') as lastRunAt, status, recordsProcessed FROM cron_status ORDER BY lastRunAt DESC;"
+

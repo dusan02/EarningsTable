@@ -1,0 +1,5 @@
+#!/bin/bash
+# One command to check cron job and logs
+
+cd /srv/EarningsTable && echo "=== 1. Cron job status ===" && pm2 list | grep earnings-cron && echo "" && echo "=== 2. Recent cron logs (last 30 lines) ===" && pm2 logs earnings-cron --lines 30 --nostream | tail -20 && echo "" && echo "=== 3. Check for errors ===" && pm2 logs earnings-cron --err --lines 50 --nostream | grep -iE "error|failed|CronExecutionLog|updateCronStatus" | tail -10 && echo "" && echo "=== 4. Database logs count ===" && sqlite3 modules/database/prisma/prod.db "SELECT COUNT(*) as total_logs FROM cron_execution_log;" && echo "" && echo "=== 5. Latest CronStatus ===" && sqlite3 -header -column modules/database/prisma/prod.db "SELECT jobType, datetime(lastRunAt, 'localtime') as lastRunAt, status, recordsProcessed FROM cron_status ORDER BY lastRunAt DESC;" && echo "" && echo "=== 6. Latest execution logs ===" && sqlite3 -header -column modules/database/prisma/prod.db "SELECT id, jobType, status, datetime(startedAt, 'localtime') as startedAt, datetime(completedAt, 'localtime') as completedAt, duration, recordsProcessed FROM cron_execution_log ORDER BY startedAt DESC LIMIT 5;"
+

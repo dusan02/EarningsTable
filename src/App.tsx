@@ -1,5 +1,5 @@
 import React from 'react';
-import EarningsTable from './EarningsTable.tsx';
+import EarningsTable from './EarningsTable';
 
 // Sample data matching your FinalReport structure
 const sampleData = [
