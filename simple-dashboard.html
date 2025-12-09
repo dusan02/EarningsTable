@@ -1313,30 +1313,30 @@
                     
                     <!-- EPS -->
                     <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
-                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
+                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm flex flex-col items-end">
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
+                                ${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Act.</span>
                             </div>
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}
+                                ${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Est.</span>
                             </div>
                             <div class="text-sm font-semibold ${getChangeColor(item.epsSurp)}">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
+                                ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
                             </div>
                         </div>
                     </td>
                     
                     <!-- Revenue -->
                     <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
-                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
+                        <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm flex flex-col items-end">
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${formatRevenue(item.revActual)}
+                                ${formatRevenue(item.revActual)}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Act.</span>
                             </div>
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>${formatRevenue(item.revEst)}
+                                ${formatRevenue(item.revEst)}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Est.</span>
                             </div>
                             <div class="text-sm font-semibold ${getChangeColor(item.revSurp)}">
-                                <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
+                                ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
                             </div>
                         </div>
                     </td>
