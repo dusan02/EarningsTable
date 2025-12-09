@@ -935,7 +935,25 @@ process.on("SIGINT", async () => {
 });
 
 process.on("SIGTERM", async () => {
-  console.log("\n🛑 SIGTERM received, shutting down server...");
+  const uptime = process.uptime();
+  const timestamp = new Date().toISOString();
+  
+  console.error(`\n🛑 SIGTERM received at ${timestamp}`);
+  console.error("🛑 Process uptime:", uptime, "seconds");
+  
+  // WORKAROUND: Ignore SIGTERM if process has been running for less than 10 minutes
+  // PM2 watchdog seems to send SIGTERM every 5 minutes, which is too aggressive
+  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes in seconds
+
+  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
+    console.error(
+      `⚠️ Ignoring SIGTERM - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required for shutdown)`
+    );
+    console.error("⚠️ This is likely PM2 watchdog sending premature SIGTERM");
+    return; // Don't shutdown, just ignore the signal
+  }
+
+  console.log("\n🛑 Shutting down server...");
   clearInterval(keepAlive);
   await prisma.$disconnect();
   process.exit(0);
