@@ -348,7 +348,7 @@
             }
             
             .card-data-column {
-                text-align: left; /* Changed from center to left for better readability */
+                text-align: right; /* Right-align all numeric values */
                 padding: 12px 8px;
                 background: transparent;
                 border-radius: 0px;
@@ -359,6 +359,11 @@
                 flex-direction: column;
                 justify-content: space-between;
                 min-height: 80px;
+            }
+            
+            /* Market Cap column stays right-aligned (already correct) */
+            .card-data-column:first-child {
+                text-align: right;
             }
             
             .card-data-column:not(:last-child)::after {
@@ -399,6 +404,7 @@
                 text-transform: uppercase;
                 margin-bottom: 6px;
                 letter-spacing: 0.2px; /* Reduced letter spacing */
+                text-align: right; /* Right-align labels to match values */
             }
             
             .dark .card-data-label {
@@ -1296,7 +1302,7 @@
                     </td>
                     
                     <!-- Price -->
-                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
                         <div>
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
                             <div class="text-sm font-medium ${getChangeColor(item.change)}">
@@ -1306,7 +1312,7 @@
                     </td>
                     
                     <!-- EPS -->
-                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
                         <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
@@ -1321,7 +1327,7 @@
                     </td>
                     
                     <!-- Revenue -->
-                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-center" style="width: 14%;">
+                    <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
                         <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm">
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>${formatRevenue(item.revActual)}
@@ -1380,9 +1386,9 @@
                         </div>
                         
                         <!-- Column 2: Price -->
-                        <div class="card-data-column">
+                        <div class="card-data-column" style="text-align: right;">
                             <div>
-                                <div class="card-data-label">Price</div>
+                                <div class="card-data-label" style="text-align: right;">Price</div>
                                 <div class="card-data-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
                             </div>
                             <div class="card-data-change ${getChangeColor(item.change)}">
@@ -1391,11 +1397,11 @@
                         </div>
                         
                         <!-- Column 3: EPS -->
-                        <div class="card-data-column">
+                        <div class="card-data-column" style="text-align: right;">
                             <div>
-                                <div class="card-data-label">EPS</div>
+                                <div class="card-data-label" style="text-align: right;">EPS</div>
                                 <div class="card-data-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
-                                <div class="card-data-estimate">${item.epsEst ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
+                                <div class="card-data-estimate" style="text-align: right;">${item.epsEst ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
                             </div>
                             <div class="card-data-change ${getChangeColor(item.epsSurp)}">
                                 ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
@@ -1403,11 +1409,11 @@
                         </div>
                         
                         <!-- Column 4: Revenue -->
-                        <div class="card-data-column">
+                        <div class="card-data-column" style="text-align: right;">
                             <div>
-                                <div class="card-data-label">Revenue</div>
+                                <div class="card-data-label" style="text-align: right;">Revenue</div>
                                 <div class="card-data-value">${formatRevenue(item.revActual)}</div>
-                                <div class="card-data-estimate">${item.revEst ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
+                                <div class="card-data-estimate" style="text-align: right;">${item.revEst ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
                             </div>
                             <div class="card-data-change ${getChangeColor(item.revSurp)}">
                                 ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
