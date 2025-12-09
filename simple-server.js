@@ -885,10 +885,27 @@ process.on("exit", (code) => {
 
 // Graceful shutdown - with detailed logging to understand who sends SIGINT
 process.on("SIGINT", async () => {
-  console.error(`\n🛑 SIGINT received at ${new Date().toISOString()}`);
-  console.error("🛑 Stack trace:", new Error().stack);
-  console.error("🛑 Process uptime:", process.uptime(), "seconds");
-  console.error("🛑 Memory usage:", process.memoryUsage());
+  const timestamp = new Date().toISOString();
+  const uptime = process.uptime();
+  const memory = process.memoryUsage();
+  
+  // Get full stack trace
+  const stack = new Error().stack;
+  
+  // Log to stderr (PM2 captures this)
+  console.error(`\n🛑 SIGINT received at ${timestamp}`);
+  console.error("🛑 Process uptime:", uptime, "seconds");
+  console.error("🛑 Memory usage:", JSON.stringify(memory, null, 2));
+  console.error("🛑 Full stack trace:");
+  console.error(stack);
+  console.error("🛑 Process ID:", process.pid);
+  console.error("🛑 Parent process ID:", process.ppid);
+  console.error("🛑 Environment:", JSON.stringify({
+    NODE_ENV: process.env.NODE_ENV,
+    PM2_HOME: process.env.PM2_HOME,
+    PM2_INSTANCE_ID: process.env.pm_id,
+  }, null, 2));
+  
   console.log("\n🛑 Shutting down server...");
   clearInterval(keepAlive);
   await prisma.$disconnect();
