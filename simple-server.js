@@ -937,10 +937,10 @@ process.on("SIGINT", async () => {
 process.on("SIGTERM", async () => {
   const uptime = process.uptime();
   const timestamp = new Date().toISOString();
-  
+
   console.error(`\n🛑 SIGTERM received at ${timestamp}`);
   console.error("🛑 Process uptime:", uptime, "seconds");
-  
+
   // WORKAROUND: Ignore SIGTERM if process has been running for less than 10 minutes
   // PM2 watchdog seems to send SIGTERM every 5 minutes, which is too aggressive
   const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes in seconds
