@@ -305,6 +305,7 @@ app.use((req, res, next) => {
 // Serve logos from the correct directory (robust to working dir)
 // Try multiple paths to handle different execution contexts
 const LOGO_DIR = (() => {
+  const fs = require("fs");
   const possiblePaths = [
     // Production paths first (most likely to exist)
     "/var/www/earnings-table/modules/web/public/logos",
