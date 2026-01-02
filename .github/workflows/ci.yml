@@ -32,19 +32,19 @@ jobs:
 
       - name: 📥 Install dependencies
         run: |
-          npm ci
+          npm ci --legacy-peer-deps
           # Install dependencies for modules if they have package.json
           if [ -f "modules/database/package.json" ]; then
-            cd modules/database && npm ci && cd ../..
+            cd modules/database && npm ci --legacy-peer-deps && cd ../..
           fi
           if [ -f "modules/shared/package.json" ]; then
-            cd modules/shared && npm ci && cd ../..
+            cd modules/shared && npm ci --legacy-peer-deps && cd ../..
           fi
           if [ -f "modules/cron/package.json" ]; then
-            cd modules/cron && npm ci && cd ../..
+            cd modules/cron && npm ci --legacy-peer-deps && cd ../..
           fi
           if [ -f "modules/web/package.json" ]; then
-            cd modules/web && npm ci && cd ../..
+            cd modules/web && npm ci --legacy-peer-deps && cd ../..
           fi
 
       - name: 🔍 TypeScript type check
