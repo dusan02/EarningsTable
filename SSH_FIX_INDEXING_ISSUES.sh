@@ -36,9 +36,15 @@ else
     exit 1
 fi
 
-# 2. Backup Nginx config
+# 2. Backup Nginx config (outside sites-enabled to avoid conflicts)
 echo -e "${YELLOW}📦 Backing up Nginx config...${NC}"
-cp "$NGINX_CONFIG" "${NGINX_CONFIG}.backup.$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="/etc/nginx/backups"
+mkdir -p "$BACKUP_DIR"
+cp "$NGINX_CONFIG" "$BACKUP_DIR/earningstable.com.backup.$(date +%Y%m%d-%H%M%S)"
+
+# Remove old backup files from sites-enabled (they cause Nginx test failures)
+echo -e "${YELLOW}🧹 Cleaning up old backups from sites-enabled...${NC}"
+rm -f /etc/nginx/sites-enabled/*.backup.* 2>/dev/null || true
 
 # 3. Check current Nginx config
 echo -e "${YELLOW}🔍 Checking Nginx config...${NC}"
