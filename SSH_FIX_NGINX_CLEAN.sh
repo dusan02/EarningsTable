@@ -6,6 +6,7 @@ set -e
 echo "🔧 Cleaning Nginx configuration..."
 
 NGINX_CONFIG="/etc/nginx/sites-enabled/earningstable.com"
+# NOTE: Domain is earningstable.com (ONE 's'), not earningsstable.com (TWO 's')
 PUBLIC_DIR="/var/www/earnings-table/public"
 
 # Backup
@@ -22,15 +23,15 @@ cat > "$NGINX_CONFIG" << 'NGINX_EOF'
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name earningsstable.com www.earningsstable.com earnings-table.com www.earnings-table.com _;
-    return 301 https://earningsstable.com$request_uri;
+    server_name earningstable.com www.earningstable.com earnings-table.com www.earnings-table.com _;
+    return 301 https://earningstable.com$request_uri;
 }
 
-# HTTPS - Main server block for earningsstable.com
+# HTTPS - Main server block for earningstable.com
 server {
     listen 443 ssl http2 default_server;
     listen [::]:443 ssl http2 default_server;
-    server_name earningsstable.com;
+    server_name earningstable.com;
 
     # SSL certificates
     ssl_certificate /etc/letsencrypt/live/earningstable.com/fullchain.pem;
@@ -91,7 +92,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/earningstable.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/earningstable.com/privkey.pem;
 
-    return 301 https://earningsstable.com$request_uri;
+    return 301 https://earningstable.com$request_uri;
 }
 NGINX_EOF
 
@@ -111,7 +112,7 @@ if nginx -t 2>&1 | grep -q "test is successful"; then
     sleep 2
     echo "🧪 Testing..."
     
-    ROBOTS=$(curl -k -s https://earningsstable.com/robots.txt)
+    ROBOTS=$(curl -k -s https://earningstable.com/robots.txt)
     if [ -n "$ROBOTS" ] && ! echo "$ROBOTS" | grep -q "404\|not found"; then
         echo "✅ robots.txt works"
         echo "$ROBOTS"
@@ -120,7 +121,7 @@ if nginx -t 2>&1 | grep -q "test is successful"; then
         echo "$ROBOTS"
     fi
     
-    SITEMAP=$(curl -k -s https://earningsstable.com/sitemap.xml)
+    SITEMAP=$(curl -k -s https://earningstable.com/sitemap.xml)
     if [ -n "$SITEMAP" ] && echo "$SITEMAP" | grep -q "urlset\|lastmod"; then
         echo "✅ sitemap.xml works"
         echo "$SITEMAP" | head -10
