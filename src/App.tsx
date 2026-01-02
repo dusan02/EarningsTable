@@ -16,7 +16,10 @@ const sampleData = [
     epsSurp: 6.29,
     revActual: 89498000000,
     revEst: 88500000000,
-    revSurp: 1.13
+    revSurp: 1.13,
+    logoUrl: null,
+    logoSource: null,
+    logoFetchedAt: null
   },
   {
     symbol: 'MSFT',
@@ -31,7 +34,10 @@ const sampleData = [
     epsSurp: 2.81,
     revActual: 52857000000,
     revEst: 52500000000,
-    revSurp: 0.68
+    revSurp: 0.68,
+    logoUrl: null,
+    logoSource: null,
+    logoFetchedAt: null
   },
   {
     symbol: 'GOOGL',
@@ -46,7 +52,10 @@ const sampleData = [
     epsSurp: 6.90,
     revActual: 76093000000,
     revEst: 75000000000,
-    revSurp: 1.46
+    revSurp: 1.46,
+    logoUrl: null,
+    logoSource: null,
+    logoFetchedAt: null
   },
   {
     symbol: 'TSLA',
@@ -61,7 +70,10 @@ const sampleData = [
     epsSurp: 16.44,
     revActual: 23350000000,
     revEst: 22500000000,
-    revSurp: 3.78
+    revSurp: 3.78,
+    logoUrl: null,
+    logoSource: null,
+    logoFetchedAt: null
   },
   {
     symbol: 'NVDA',
@@ -76,7 +88,10 @@ const sampleData = [
     epsSurp: 19.68,
     revActual: 22103000000,
     revEst: 20000000000,
-    revSurp: 10.52
+    revSurp: 10.52,
+    logoUrl: null,
+    logoSource: null,
+    logoFetchedAt: null
   }
 ];
 
