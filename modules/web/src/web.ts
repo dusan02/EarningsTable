@@ -13,6 +13,16 @@ const PORT = process.env.PORT || 5555;
 // Middleware
 app.use(express.json());
 
+// SEO: Redirect www to non-www (canonical domain)
+app.use((req, res, next) => {
+  const host = req.get('host') || '';
+  if (host.startsWith('www.')) {
+    const canonicalUrl = `https://earningsstable.com${req.originalUrl}`;
+    return res.redirect(301, canonicalUrl);
+  }
+  next();
+});
+
 // SEO: Set X-Robots-Tag header for all responses
 app.use((req, res, next) => {
   res.setHeader('X-Robots-Tag', 'index, follow');
