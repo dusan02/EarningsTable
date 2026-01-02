@@ -53,16 +53,14 @@ server {
 
     # SEO: Serve robots.txt directly from disk (BEFORE proxy)
     location = /robots.txt {
-        root /var/www/earnings-table/public;
-        try_files /robots.txt =404;
+        alias /var/www/earnings-table/public/robots.txt;
         default_type text/plain;
         access_log off;
     }
 
     # SEO: Serve sitemap.xml directly from disk (BEFORE proxy)
     location = /sitemap.xml {
-        root /var/www/earnings-table/public;
-        try_files /sitemap.xml =404;
+        alias /var/www/earnings-table/public/sitemap.xml;
         default_type application/xml;
         access_log off;
     }
