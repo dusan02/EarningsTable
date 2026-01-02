@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://earningsstable.com/sitemap.xml
+Sitemap: https://earningstable.com/sitemap.xml
 
