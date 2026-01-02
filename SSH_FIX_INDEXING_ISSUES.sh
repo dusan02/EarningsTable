@@ -36,17 +36,17 @@ else
     exit 1
 fi
 
-# 2. Backup Nginx config (outside sites-enabled to avoid conflicts)
+# 2. Remove old backup files from sites-enabled FIRST (they cause Nginx test failures)
+echo -e "${YELLOW}🧹 Cleaning up old backups from sites-enabled...${NC}"
+rm -f /etc/nginx/sites-enabled/*.backup.* 2>/dev/null || true
+
+# 3. Backup Nginx config (outside sites-enabled to avoid conflicts)
 echo -e "${YELLOW}📦 Backing up Nginx config...${NC}"
 BACKUP_DIR="/etc/nginx/backups"
 mkdir -p "$BACKUP_DIR"
 cp "$NGINX_CONFIG" "$BACKUP_DIR/earningstable.com.backup.$(date +%Y%m%d-%H%M%S)"
 
-# Remove old backup files from sites-enabled (they cause Nginx test failures)
-echo -e "${YELLOW}🧹 Cleaning up old backups from sites-enabled...${NC}"
-rm -f /etc/nginx/sites-enabled/*.backup.* 2>/dev/null || true
-
-# 3. Check current Nginx config
+# 4. Check current Nginx config
 echo -e "${YELLOW}🔍 Checking Nginx config...${NC}"
 if grep -q "server_name.*www.earningstable.com" "$NGINX_CONFIG"; then
     echo -e "${GREEN}✅ www redirect found in config${NC}"
@@ -54,7 +54,7 @@ else
     echo -e "${YELLOW}⚠️  www redirect NOT found - will add${NC}"
 fi
 
-# 4. Test Express routes directly
+# 5. Test Express routes directly
 echo -e "${YELLOW}🧪 Testing Express routes...${NC}"
 curl -s http://localhost:5555/robots.txt > /tmp/robots_test.txt 2>&1
 if [ -s /tmp/robots_test.txt ] && ! grep -q "404" /tmp/robots_test.txt; then
@@ -75,7 +75,7 @@ else
     cat /tmp/sitemap_test.txt
 fi
 
-# 5. Check if Nginx needs www redirect block
+# 6. Check if Nginx needs www redirect block
 if ! grep -q "server_name.*www.earningstable.com.*443" "$NGINX_CONFIG"; then
     echo -e "${YELLOW}🔧 Adding www redirect block to Nginx...${NC}"
     
@@ -101,7 +101,9 @@ else
     echo -e "${GREEN}✅ www redirect block already exists${NC}"
 fi
 
-# 6. Test Nginx config
+# 7. Test Nginx config (after ensuring no backup files in sites-enabled)
+echo -e "${YELLOW}🧹 Final cleanup of backup files...${NC}"
+rm -f /etc/nginx/sites-enabled/*.backup.* 2>/dev/null || true
 echo -e "${YELLOW}🧪 Testing Nginx config...${NC}"
 if nginx -t; then
     echo -e "${GREEN}✅ Nginx config is valid${NC}"
@@ -115,7 +117,7 @@ else
     exit 1
 fi
 
-# 7. Final tests
+# 8. Final tests
 echo -e "${YELLOW}🧪 Running final tests...${NC}"
 sleep 2
 
