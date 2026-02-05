@@ -83,31 +83,11 @@
 ## 📈 PROGRES
 
 - **Systemd migrácia**: 100% ✅
-- **Pipeline fungovanie**: 100% ✅ (beží správne)
-- **Dátumy v databáze**: 90% ⚠️ (opravené v kóde, čaká na deploy a testovanie)
-- **Logy do databázy**: 80% ⚠️ (opravené v kóde, čaká na deploy a testovanie)
+- **Pipeline fungovanie**: 90% ✅ (beží, ale prepisuje dátumy)
+- **Dátumy v databáze**: 50% ⚠️ (finnhub_data OK, final_report NOK)
+- **Logy do databázy**: 0% ❌
 
-**Celkový progres: ~92%** ✅
-
-## ✅ OPRAVENÉ V KÓDE (pushnuté na GitHub)
-
-1. **`updatedAt` v `generateFinalReport()`** ✅
-   - Pridané explicitné nastavenie `updatedAt: new Date()` do `updateData`
-   
-2. **`reportDate` v `generateFinalReport()`** ✅
-   - Použitie `reportDate` z `finhubData` ak je validný (> 2000)
-   - Fallback na `getRunTimestamps()` ak nie je validný
-   
-3. **Logy do `cron_execution_log`** ✅
-   - Pridané `startedAt` pri `updateCronStatus('running')` v `FinnhubCronJob`
-   - Pridané `startedAt` pri `updateCronStatus('running')` v `PolygonCronJob`
-   
-4. **Debug logging** ✅
-   - Pridané logovanie dátumov pre diagnostiku
-   
-5. **Syntax error - duplikátna deklarácia** ✅
-   - Opravená duplikátna deklarácia `effectiveReportDate` (bol deklarovaný dvakrát)
-   - Teraz sa používa jedna premenná pre `createData` aj `updateData`
+**Celkový progres: ~60%** ⚠️
 
 ## 🔧 PRIORITNÉ OPRAVY
 

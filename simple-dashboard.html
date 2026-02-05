@@ -211,10 +211,6 @@
                 transition: all 0.3s ease;
                 position: relative;
                 overflow: hidden;
-                /* Scroll performance on long lists */
-                content-visibility: auto;
-                contain: layout paint style;
-                contain-intrinsic-size: 160px;
             }
             
             .company-card::before {
@@ -234,7 +230,18 @@
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
             
-            /* Disable heavy hover effects on touch (moved to hover-capable devices below) */
+            .company-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            
+            .company-card:hover::before {
+                opacity: 1;
+            }
+            
+            .dark .company-card:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            }
             
             /* Card header */
             .card-header {
@@ -273,8 +280,6 @@
                 justify-content: center;
                 gap: 8px;
                 text-align: center;
-                min-width: 0; /* allow truncation inside flex */
-                max-width: 100%;
             }
             
             .card-separator {
@@ -310,10 +315,6 @@
                 font-size: 13px; /* Increased from 11px */
                 color: #1f2937; /* Black for mobile */
                 line-height: 1.1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                max-width: clamp(120px, 48vw, 240px);
             }
             
             .dark .card-name {
@@ -384,10 +385,17 @@
                 border: none;
             }
             
-            /* Disable heavy hover effects on touch (moved to hover-capable devices below) */
-
-            /* Avoid animating hundreds of rows/cards on mobile (helps scroll) */
-            .fade-in { animation: none !important; }
+            .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
+                border-radius: 6px;
+                transform: translateY(-1px); /* Subtle lift effect */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            }
+            
+            .dark .card-data-column:hover {
+                background: rgba(255, 255, 255, 0.08); /* Slightly more visible hover */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
+            }
             
             .card-data-label {
                 font-size: 11px; /* Reduced from 13px to fit MARKET CAP on one line */
@@ -435,54 +443,7 @@
                 font-weight: 700;
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Same as desktop */
             }
-
-            /* Heatmap pill styling (background intensity via inline style) */
-            .heat-pill {
-                border-radius: 8px;
-                padding: 2px 6px;
-                display: inline-block;
-            }
             
-        }
-
-        /* Hover effects only on devices that actually support hover */
-        @media (hover: hover) and (pointer: fine) {
-            .company-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            }
-
-            .company-card:hover::before {
-                opacity: 1;
-            }
-
-            .dark .company-card:hover {
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            }
-
-            .card-data-column:hover {
-                background: rgba(255, 255, 255, 0.08);
-                border-radius: 6px;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            .dark .card-data-column:hover {
-                background: rgba(255, 255, 255, 0.08);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            }
-        }
-
-        /* Extra-small phones: switch to 2x2 grid for readability */
-        @media (max-width: 360px) {
-            .card-data-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-
-            .card-data-column:not(:last-child)::after {
-                display: none;
-            }
         }
         
         /* Tablet optimizations - Hybrid Layout */
@@ -602,6 +563,7 @@
                            id="search-input"
                            placeholder="Search companies..."
                            class="w-full pl-10 sm:pl-12 pr-4 sm:pr-6 py-2 sm:py-3 lg:py-4 border border-neutral-200 dark:border-white rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent smooth-transition text-sm sm:text-base lg:text-lg font-medium shadow-sm touch-manipulation"
+                           oninput="filterData(this.value)"
                        />
                    </div>
                    
@@ -837,30 +799,6 @@
             return 'text-gray-600';
         }
 
-        function clamp01(x) {
-            return Math.max(0, Math.min(1, x));
-        }
-
-        // Heatmap background intensity (for "heatmap" UX). Returns a CSS string for inline style.
-        // Uses green for positive, red for negative; intensity scales with abs(value).
-        function getHeatBgStyle(value, options = {}) {
-            const n = Number(value);
-            if (!Number.isFinite(n) || Math.abs(n) < EPS_DIFF) return '';
-
-            const {
-                maxAbs = 20,              // value that maps to maxAlpha (e.g. 20% surprise)
-                minAlpha = 0.08,
-                maxAlpha = 0.35,
-                pos = [34, 197, 94],      // tailwind green-500
-                neg = [239, 68, 68],      // tailwind red-500
-            } = options;
-
-            const intensity = clamp01(Math.abs(n) / maxAbs);
-            const alpha = minAlpha + (maxAlpha - minAlpha) * intensity;
-            const [r, g, b] = n > 0 ? pos : neg;
-            return `background-color: rgba(${r}, ${g}, ${b}, ${alpha});`;
-        }
-
         // Sorting functions
         function sortTable(field) {
             // Toggle direction if same field, otherwise start with asc
@@ -1084,18 +1022,18 @@
                         symbol: item.symbol,
                         name: item.name || '-',
                         size: determineCompanySize(item.size, item.marketCap),
-                        marketCap: item.marketCap != null ? Number(item.marketCap) : null,
-                        marketCapDiff: item.marketCapDiff != null ? Number(item.marketCapDiff) : null,
-                        price: item.price ?? null,
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
                         logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                         logoSource: item.logoSource || null,
-                        change: item.change ?? null,
-                        epsActual: item.epsActual ?? null,
-                        epsEst: item.epsEst ?? null,
-                        epsSurp: item.epsSurp ?? null,
-                        revActual: item.revActual != null ? Number(item.revActual) : null,
-                        revEst: item.revEst != null ? Number(item.revEst) : null,
-                        revSurp: item.revSurp ?? null,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
                     }));
                     
                     filteredData = [...allData];
@@ -1136,18 +1074,18 @@
                                 symbol: item.symbol,
                                 name: item.name || '-',
                                 size: determineCompanySize(item.size, item.marketCap),
-                                marketCap: item.marketCap != null ? Number(item.marketCap) : null,
-                                marketCapDiff: item.marketCapDiff != null ? Number(item.marketCapDiff) : null,
-                                price: item.price ?? null,
+                                marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                                marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                                price: item.price || 0,
                                 logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                                 logoSource: item.logoSource || null,
-                                change: item.change ?? null,
-                                epsActual: item.epsActual ?? null,
-                                epsEst: item.epsEst ?? null,
-                                epsSurp: item.epsSurp ?? null,
-                                revActual: item.revActual != null ? Number(item.revActual) : null,
-                                revEst: item.revEst != null ? Number(item.revEst) : null,
-                                revSurp: item.revSurp ?? null,
+                                change: item.change || 0,
+                                epsActual: item.epsActual || 0,
+                                epsEst: item.epsEst || 0,
+                                epsSurp: item.epsSurp || 0,
+                                revActual: item.revActual ? Number(item.revActual) : 0,
+                                revEst: item.revEst ? Number(item.revEst) : 0,
+                                revSurp: item.revSurp || 0,
                             }));
                             filteredData = [...allData];
                             applySorting();
@@ -1366,9 +1304,9 @@
                     <!-- Price -->
                     <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
                         <div>
-                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price != null ? `$${item.price.toFixed(2)}` : '-'}</div>
-                            <div class="text-sm font-medium ${getChangeColor(item.change)} heat-pill" style="${getHeatBgStyle(item.change, { maxAbs: 12 })}">
-                                ${item.change != null ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
+                            <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
+                            <div class="text-sm font-medium ${getChangeColor(item.change)}">
+                                ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                     </td>
@@ -1377,13 +1315,13 @@
                     <td class="px-1 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right" style="width: 14%;">
                         <div class="space-y-0.5 sm:space-y-1 text-xs sm:text-sm flex flex-col items-end">
                             <div class="text-xs sm:text-sm lg:text-base font-bold text-neutral-900 dark:text-white">
-                                ${item.epsActual != null ? `$${item.epsActual.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Act.</span>
+                                ${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Act.</span>
                             </div>
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
-                                ${item.epsEst != null ? `$${item.epsEst.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Est.</span>
+                                ${item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Est.</span>
                             </div>
-                            <div class="text-sm font-semibold ${getChangeColor(item.epsSurp)} heat-pill" style="${getHeatBgStyle(item.epsSurp, { maxAbs: 25 })}">
-                                ${item.epsSurp != null ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
+                            <div class="text-sm font-semibold ${getChangeColor(item.epsSurp)}">
+                                ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
                             </div>
                         </div>
                     </td>
@@ -1397,8 +1335,8 @@
                             <div class="text-xs text-neutral-600 dark:text-neutral-400 font-medium hidden sm:block">
                                 ${formatRevenue(item.revEst)}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Est.</span>
                             </div>
-                            <div class="text-sm font-semibold ${getChangeColor(item.revSurp)} heat-pill" style="${getHeatBgStyle(item.revSurp, { maxAbs: 25 })}">
-                                ${item.revSurp != null ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
+                            <div class="text-sm font-semibold ${getChangeColor(item.revSurp)}">
+                                ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}<span class="text-xs text-neutral-500 dark:text-neutral-400 ml-1">Surp.</span>
                             </div>
                         </div>
                     </td>
@@ -1451,10 +1389,10 @@
                         <div class="card-data-column" style="text-align: right;">
                             <div>
                                 <div class="card-data-label" style="text-align: right;">Price</div>
-                                <div class="card-data-value">${item.price != null ? `$${item.price.toFixed(2)}` : '-'}</div>
+                                <div class="card-data-value">${item.price ? `$${item.price.toFixed(2)}` : '-'}</div>
                             </div>
-                            <div class="card-data-change ${getChangeColor(item.change)} heat-pill" style="${getHeatBgStyle(item.change, { maxAbs: 12 })}">
-                                ${item.change != null ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
+                            <div class="card-data-change ${getChangeColor(item.change)}">
+                                ${item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                         
@@ -1462,11 +1400,11 @@
                         <div class="card-data-column" style="text-align: right;">
                             <div>
                                 <div class="card-data-label" style="text-align: right;">EPS</div>
-                                <div class="card-data-value">${item.epsActual != null ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
-                                <div class="card-data-estimate" style="text-align: right;">${item.epsEst != null ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
+                                <div class="card-data-value">${item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}</div>
+                                <div class="card-data-estimate" style="text-align: right;">${item.epsEst ? `Est: $${item.epsEst.toFixed(2)}` : ''}</div>
                             </div>
-                            <div class="card-data-change ${getChangeColor(item.epsSurp)} heat-pill" style="${getHeatBgStyle(item.epsSurp, { maxAbs: 25 })}">
-                                ${item.epsSurp != null ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
+                            <div class="card-data-change ${getChangeColor(item.epsSurp)}">
+                                ${item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                         
@@ -1475,10 +1413,10 @@
                             <div>
                                 <div class="card-data-label" style="text-align: right;">Revenue</div>
                                 <div class="card-data-value">${formatRevenue(item.revActual)}</div>
-                                <div class="card-data-estimate" style="text-align: right;">${item.revEst != null ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
+                                <div class="card-data-estimate" style="text-align: right;">${item.revEst ? `Est: ${formatRevenue(item.revEst)}` : ''}</div>
                             </div>
-                            <div class="card-data-change ${getChangeColor(item.revSurp)} heat-pill" style="${getHeatBgStyle(item.revSurp, { maxAbs: 25 })}">
-                                ${item.revSurp != null ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
+                            <div class="card-data-change ${getChangeColor(item.revSurp)}">
+                                ${item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
                             </div>
                         </div>
                     </div>
@@ -1510,18 +1448,18 @@
                         symbol: item.symbol,
                         name: item.name || '-',
                         size: determineCompanySize(item.size, item.marketCap),
-                        marketCap: item.marketCap != null ? Number(item.marketCap) : null,
-                        marketCapDiff: item.marketCapDiff != null ? Number(item.marketCapDiff) : null,
-                        price: item.price ?? null,
+                        marketCap: item.marketCap ? Number(item.marketCap) : 0,
+                        marketCapDiff: item.marketCapDiff ? Number(item.marketCapDiff) : 0,
+                        price: item.price || 0,
                         logoUrl: (item.logoUrl && item.logoUrl.trim()) || null,
                         logoSource: item.logoSource || null,
-                        change: item.change ?? null,
-                        epsActual: item.epsActual ?? null,
-                        epsEst: item.epsEst ?? null,
-                        epsSurp: item.epsSurp ?? null,
-                        revActual: item.revActual != null ? Number(item.revActual) : null,
-                        revEst: item.revEst != null ? Number(item.revEst) : null,
-                        revSurp: item.revSurp ?? null,
+                        change: item.change || 0,
+                        epsActual: item.epsActual || 0,
+                        epsEst: item.epsEst || 0,
+                        epsSurp: item.epsSurp || 0,
+                        revActual: item.revActual ? Number(item.revActual) : 0,
+                        revEst: item.revEst ? Number(item.revEst) : 0,
+                        revSurp: item.revSurp || 0,
                     }));
                     
                     // Create simple hash to detect changes
