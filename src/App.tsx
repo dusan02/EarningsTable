@@ -25,15 +25,9 @@ const App: React.FC = () => {
   const [availableDates, setAvailableDates] = useState<DateInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>('light');
-
-  // Theme initialization
-  useEffect(() => {
-    const saved = localStorage.getItem('theme') as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved || (prefersDark ? 'dark' : 'light');
-    setTheme(initial);
-  }, []);
+  const [theme, setTheme] = useState<Theme>(() => {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     const root = document.documentElement;

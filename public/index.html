@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Anti-FOUC: Apply theme before any CSS/JS loads -->
+    <script>
+      (function() {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved || (prefersDark ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+      })();
+    </script>
+
     <!-- Primary Meta Tags -->
     <title>Earnings Table — Daily Earnings Calendar & Financial Data Dashboard</title>
     <meta name="title" content="Earnings Table — Daily Earnings Calendar & Financial Data Dashboard">
@@ -144,7 +154,7 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
-<body class="h-full bg-neutral-50 dark:bg-slate-950 transition-colors duration-300">
+<body class="h-full bg-neutral-50 dark:bg-slate-950">
     <div id="root"></div>
 </body>
 </html>
