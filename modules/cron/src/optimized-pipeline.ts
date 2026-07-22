@@ -4,9 +4,9 @@ import { runFinnhubJob } from './jobs/finnhub.js';
 import { runPolygonJob } from './jobs/polygon.js';
 import { processSymbolsInBatches } from './core/priceService.js';
 import { processLogosInBatches } from './core/logoService.js';
+import { prisma } from '../../shared/src/prismaClient.js';
 import { IdempotencyManager } from '../../shared/src/idempotency.js';
 import { TimezoneManager } from '../../shared/src/timezone.js';
-import { logoSyncManager } from '../../shared/src/logo-sync.js';
 
 /**
  * Optimized Pipeline with Performance Improvements
@@ -111,7 +111,14 @@ export class OptimizedPipeline {
   }
 
   private async getAllSymbols(): Promise<string[]> {
-    const symbols = await db.getUniqueSymbolsFromPolygonData();
+    let symbols = await db.getUniqueSymbolsFromPolygonData();
+    if (symbols.length === 0) {
+      const finhubSymbols = await prisma.finhubData.findMany({
+        select: { symbol: true },
+        distinct: ['symbol'],
+      });
+      symbols = finhubSymbols.map(s => s.symbol);
+    }
     return symbols;
   }
 
@@ -146,23 +153,19 @@ export class OptimizedPipeline {
 
   private async runLogoOptimized(symbols: string[]): Promise<{ processed: number; duration: number }> {
     const startTime = Date.now();
-    console.log(`🖼️ Processing ${symbols.length} symbols for logos (optimized)...`);
+    console.log(`Processing ${symbols.length} symbols for logos (optimized)...`);
 
     try {
-      // Fetch missing logos
       const fetchResult = await processLogosInBatches(symbols, 12, 6);
-      
-      // Sync filesystem to database (to ensure everything is consistent)
-      const syncResult = await logoSyncManager.syncLogosFromFS();
-      
+
       const duration = Date.now() - startTime;
       this.metrics!.logoDuration = duration;
 
-      console.log(`✅ Logo processing completed: ${fetchResult.success} fetched, ${syncResult.synced} synced in ${duration}ms`);
-      return { processed: syncResult.synced, duration };
+      console.log(`Logo processing completed: ${fetchResult.success} fetched in ${duration}ms`);
+      return { processed: fetchResult.success, duration };
 
     } catch (error: any) {
-      console.error('❌ Logo processing failed:', error);
+      console.error('Logo processing failed:', error);
       this.metrics!.errors.push(`Logo: ${error.message}`);
       throw error;
     }

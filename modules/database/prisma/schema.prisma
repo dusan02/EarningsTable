@@ -58,7 +58,7 @@ model PolygonData {
   size             String?   // Mega, Large, Mid, Small, null
   name             String?   // Company name from Polygon API
   priceBoolean     Boolean?
-  Boolean          Boolean?
+  dataReady        Boolean?
   priceSource      String?   // 'pre'|'live'|'ah'|'min'|'day'|'prevDay'
   
   createdAt        DateTime  @default(now())

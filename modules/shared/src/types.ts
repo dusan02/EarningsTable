@@ -59,7 +59,7 @@ export type PolygonData = {
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
-  Boolean?: boolean | null;
+  dataReady?: boolean | null;
   // Logo fields
   logoUrl?: string | null;
   logoSource?: string | null;
@@ -87,7 +87,7 @@ export type CreatePolygonData = {
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
-  Boolean?: boolean | null;
+  dataReady?: boolean | null;
   priceSource?: 'pre'|'live'|'ah'|'min'|'day'|'prevDay' | null;
   // Logo fields
   logoUrl?: string | null;

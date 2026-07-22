@@ -21,7 +21,7 @@ import sharp from "sharp";
 import fs from "fs/promises";
 import path from "path";
 import { CONFIG } from '../../../shared/src/config.js';
-import { db } from './DatabaseManager.ts';
+import { db } from './DatabaseManager.js';
 import { prisma } from '../../../shared/src/prismaClient.js';
 import pLimit from 'p-limit';
 

@@ -1,360 +1,367 @@
- import React, { useState, useMemo } from 'react';
-
-interface FinalReportData {
-  symbol: string;
-  name: string;
-  size: string;
-  marketCap: number;
-  marketCapDiff: number;
-  price: number;
-  change: number;
-  epsActual: number;
-  epsEst: number;
-  epsSurp: number;
-  revActual: number;
-  revEst: number;
-  revSurp: number;
-  // Logo fields
-  logoUrl: string | null;
-  logoSource: string | null;
-  logoFetchedAt: string | null;
-}
+import React, { useState, useMemo } from 'react';
+import { FinalReportData, SortField, SortDirection } from './types';
 
 interface EarningsTableProps {
   data: FinalReportData[];
+  selectedDate: string;
 }
 
-const EarningsTable: React.FC<EarningsTableProps> = ({ data }) => {
+const EarningsTable: React.FC<EarningsTableProps> = ({ data, selectedDate }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<keyof FinalReportData>('symbol');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [sortField, setSortField] = useState<SortField>('marketCap');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const filteredAndSortedData = useMemo(() => {
     let filtered = data.filter(item =>
-      item.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      item.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     filtered.sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
-      
+
       if (aVal === null || aVal === undefined) return 1;
       if (bVal === null || bVal === undefined) return -1;
-      
+
       if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortDirection === 'asc' 
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
-      
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
       }
-      
+
       return 0;
     });
 
     return filtered;
   }, [data, searchTerm, sortField, sortDirection]);
 
-  const handleSort = (field: keyof FinalReportData) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection('desc');
     }
   };
 
-  // Active header highlight
-  const activeHeaderBg = 'bg-blue-100 dark:bg-blue-800/50';
-
-  const formatMarketCap = (value: number) => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    return `$${value.toFixed(0)}`;
+  const formatMarketCap = (value: number | string | null): string => {
+    if (!value) return '-';
+    const num = Number(value);
+    if (!isFinite(num)) return '-';
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+    if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+    return `${sign}$${abs.toFixed(0)}`;
   };
 
-  const formatRevenue = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    return `$${value.toFixed(0)}`;
+  const formatRevenue = (value: number | string | null): string => {
+    if (!value) return '-';
+    const num = Number(value);
+    if (!isFinite(num) || num <= 0) return '-';
+    const abs = Math.abs(num);
+    if (abs >= 1e12) return `$${(abs / 1e12).toFixed(2)}T`;
+    if (abs >= 1e9) return `$${(abs / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `$${(abs / 1e6).toFixed(2)}M`;
+    return `$${abs.toFixed(0)}`;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getSizeColor = (size: string) => {
-    switch (size?.toLowerCase()) {
-      case 'mega': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'large': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'mid': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'small': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-    }
-  };
-
-  const getChangeColor = (value: number) => {
-    if (value > 0) return 'text-green-600 dark:text-green-400';
+  const getChangeColor = (value: number | null): string => {
+    if (value === null || value === undefined) return 'text-neutral-400 dark:text-neutral-500';
+    if (value > 0) return 'text-emerald-600 dark:text-emerald-400';
     if (value < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    return 'text-neutral-500 dark:text-neutral-400';
   };
 
-  const SortIcon: React.FC<{ field: keyof FinalReportData }> = ({ field }) => {
-    if (sortField !== field) {
-      return <span className="text-gray-400">△</span>; // neutral triangle
+  const getSizeBadge = (size: string | null): { label: string; classes: string } => {
+    switch (size?.toLowerCase()) {
+      case 'mega':
+        return { label: 'Mega', classes: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' };
+      case 'large':
+        return { label: 'Large', classes: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' };
+      case 'mid':
+        return { label: 'Mid', classes: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' };
+      case 'small':
+        return { label: 'Small', classes: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400' };
+      default:
+        return { label: size || '-', classes: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400' };
     }
-    return <span className="text-blue-600">{sortDirection === 'asc' ? '▲' : '▼'}</span>;
   };
 
-  // Company logo component with fallback
+  const SortIcon: React.FC<{ field: SortField }> = ({ field }) => {
+    if (sortField !== field) {
+      return <span className="text-neutral-300 dark:text-neutral-600 ml-1 text-xs">↕</span>;
+    }
+    return <span className="text-blue-600 dark:text-blue-400 ml-1 text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  };
+
   const CompanyLogo: React.FC<{ symbol: string; logoUrl: string | null; name: string }> = ({ symbol, logoUrl, name }) => {
-    if (logoUrl) {
+    const [imgError, setImgError] = useState(false);
+
+    if (logoUrl && !imgError) {
       return (
-        <div className="flex-shrink-0 relative">
-          <img 
-            src={logoUrl} 
-            alt={`${symbol} logo`} 
-            className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 object-contain"
-            onError={(e) => {
-              // Hide image on error and show fallback
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-          <div className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm hidden">
-            {symbol}
-          </div>
-        </div>
+        <img
+          src={logoUrl}
+          alt={`${symbol} logo`}
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg object-contain bg-white dark:bg-slate-100 border border-neutral-200 dark:border-slate-700"
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
       );
     }
-    
-    // Fallback: show initials in a square
+
     return (
-      <div className="flex-shrink-0 relative">
-        <div className="w-10 h-10 sm:w-12 md:w-14 lg:w-16 sm:h-12 md:h-14 lg:h-16 rounded-lg sm:rounded-xl bg-white dark:bg-slate-400 border border-gray-400 dark:border-white flex items-center justify-center text-blue-600 dark:text-blue-600 font-bold text-xs sm:text-sm shadow-sm">
-          {symbol}
+      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-sm">
+        {symbol?.slice(0, 3)}
+      </div>
+    );
+  };
+
+  const formatDate = (dateStr: string): string => {
+    const d = new Date(`${dateStr}T00:00:00.000Z`);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  };
+
+  const MobileCard: React.FC<{ item: FinalReportData }> = ({ item }) => {
+    const sizeBadge = getSizeBadge(item.size);
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-neutral-200 dark:border-slate-800 p-4 mb-3">
+        {/* Header: logo + symbol + name + size */}
+        <div className="flex items-center gap-3 mb-3">
+          <CompanyLogo symbol={item.symbol} logoUrl={item.logoUrl} name={item.name} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-neutral-900 dark:text-white">{item.symbol}</span>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${sizeBadge.classes}`}>
+                {sizeBadge.label}
+              </span>
+            </div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{item.name}</div>
+          </div>
+        </div>
+
+        {/* Data grid: 2x2 */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Price */}
+          <div className="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-3">
+            <div className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1">Price</div>
+            <div className="text-base font-bold text-neutral-900 dark:text-white">
+              {item.price != null ? `$${item.price.toFixed(2)}` : '-'}
+            </div>
+            <div className={`text-xs font-medium ${getChangeColor(item.change)}`}>
+              {item.change != null && item.change !== 0 ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : ''}
+            </div>
+          </div>
+
+          {/* Mkt Cap */}
+          <div className="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-3">
+            <div className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1">Mkt Cap</div>
+            <div className="text-base font-bold text-neutral-900 dark:text-white">{formatMarketCap(item.marketCap)}</div>
+            <div className={`text-xs font-medium ${getChangeColor(item.marketCapDiff ? Number(item.marketCapDiff) : null)}`}>
+              {item.marketCapDiff && Number(item.marketCapDiff) !== 0 ? `${Number(item.marketCapDiff) > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : ''}
+            </div>
+          </div>
+
+          {/* EPS */}
+          <div className="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-3">
+            <div className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1">EPS</div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-bold text-neutral-900 dark:text-white">
+                {item.epsActual != null ? `$${item.epsActual.toFixed(2)}` : '-'}
+              </span>
+              <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                Est {item.epsEst != null ? `$${item.epsEst.toFixed(2)}` : '-'}
+              </span>
+            </div>
+            <div className={`text-xs font-semibold ${getChangeColor(item.epsSurp)}`}>
+              {item.epsSurp != null ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(1)}%` : ''}
+            </div>
+          </div>
+
+          {/* Revenue */}
+          <div className="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-3">
+            <div className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1">Revenue</div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-bold text-neutral-900 dark:text-white">{formatRevenue(item.revActual)}</span>
+              <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                Est {formatRevenue(item.revEst)}
+              </span>
+            </div>
+            <div className={`text-xs font-semibold ${getChangeColor(item.revSurp)}`}>
+              {item.revSurp != null ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(1)}%` : ''}
+            </div>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="h-screen overflow-y-hidden bg-neutral-50 dark:bg-slate-900 transition-colors duration-300">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-800 shadow-lg border-b border-neutral-200 dark:border-transparent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center space-x-3">
-                {/* Bar chart icon */}
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-4 bg-green-500 rounded-sm"></div>
-                  <div className="w-2 h-6 bg-orange-500 rounded-sm"></div>
-                  <div className="w-2 h-3 bg-blue-500 rounded-sm"></div>
-                  <div className="w-2 h-5 bg-purple-500 rounded-sm"></div>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-sans">
-                  Earnings Table
-                </h1>
-              </div>
-              <p className="mt-2 text-base text-gray-600 dark:text-gray-400 font-normal font-sans">
-                Company earnings and financial data
-              </p>
-            </div>
-            
-            <div className="mt-4 sm:mt-0 flex items-center space-x-4">
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                {theme === 'light' ? '🌙' : '☀️'}
-              </button>
-              
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search companies..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white font-normal font-sans focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-400">🔍</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="fade-in">
+      {/* Search bar */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search companies..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-neutral-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <div className="text-sm text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+          {filteredAndSortedData.length} {filteredAndSortedData.length === 1 ? 'company' : 'companies'}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl overflow-hidden border-2 border-neutral-300 dark:border-transparent">
-          {/* Mobile scroll indicator */}
-          <div className="md:hidden bg-blue-50 dark:bg-blue-900/20 px-4 py-2 text-center">
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-              ← Swipe left/right to see more columns →
+      {/* Mobile: Card layout */}
+      <div className="md:hidden space-y-0">
+        {filteredAndSortedData.map((item) => (
+          <MobileCard key={item.symbol} item={item} />
+        ))}
+        {filteredAndSortedData.length === 0 && (
+          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-neutral-200 dark:border-slate-800">
+            <div className="text-neutral-300 dark:text-neutral-600 text-4xl mb-3">📊</div>
+            <div className="text-neutral-500 dark:text-neutral-400 text-sm font-medium">
+              {data.length === 0 ? `No earnings for ${formatDate(selectedDate)}` : 'No companies match your search'}
             </div>
           </div>
-          
-          <div className="overflow-x-auto overflow-y-hidden no-scrollbar contain-layout anchor-none gutter-stable scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 touch-pan-x will-change-transform">
-            <table className="min-w-[1200px] divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-200 dark:border-transparent">
-                <tr>
-                  <th 
-                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[200px] min-w-[200px] ${sortField === 'symbol' ? activeHeaderBg : ''}`}
-                    onClick={() => handleSort('symbol')}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>Company</span>
-                      <SortIcon field="symbol" />
-                    </div>
-                  </th>
-                  
-                  <th 
-                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[150px] min-w-[150px] ${sortField === 'marketCap' ? activeHeaderBg : ''}`}
-                    onClick={() => handleSort('marketCap')}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>MKT CAP</span>
-                      <SortIcon field="marketCap" />
-                    </div>
-                  </th>
-                  
-                  <th 
-                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[120px] min-w-[120px] ${sortField === 'price' ? activeHeaderBg : ''}`}
-                    onClick={() => handleSort('price')}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>Price</span>
-                      <SortIcon field="price" />
-                    </div>
-                  </th>
-                  
-                  <th 
-                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px] ${sortField === 'epsSurp' ? activeHeaderBg : ''}`}
-                    onClick={() => handleSort('epsSurp')}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>EPS</span>
-                      <SortIcon field="epsSurp" />
-                    </div>
-                  </th>
-                  
-                  <th 
-                    className={`px-4 py-4 text-center text-xs font-bold text-blue-900 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors font-sans w-[180px] min-w-[180px] ${sortField === 'revSurp' ? activeHeaderBg : ''}`}
-                    onClick={() => handleSort('revSurp')}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>Revenue</span>
-                      <SortIcon field="revSurp" />
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredAndSortedData.map((item, index) => (
-                  <tr 
-                    key={item.symbol}
-                    className="hover:bg-neutral-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
-                  >
-                    {/* Company */}
-                    <td className="px-4 py-4 whitespace-nowrap w-[200px] min-w-[200px]">
-                      <div className="flex items-center space-x-3">
-                        <CompanyLogo 
-                          symbol={item.symbol} 
-                          logoUrl={item.logoUrl} 
-                          name={item.name} 
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans truncate">
-                            {item.symbol}
-                          </div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium font-sans truncate">
-                            {item.name}
-                          </div>
-                        </div>
+        )}
+      </div>
+
+      {/* Desktop: Table layout */}
+      <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: '900px' }}>
+            <thead>
+              <tr className="border-b border-neutral-200 dark:border-slate-800">
+                <th
+                  className="px-4 py-3 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => handleSort('symbol')}
+                >
+                  <span className="flex items-center">Company <SortIcon field="symbol" /></span>
+                </th>
+                <th
+                  className="px-4 py-3 text-right text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => handleSort('marketCap')}
+                >
+                  <span className="flex items-center justify-end">Mkt Cap <SortIcon field="marketCap" /></span>
+                </th>
+                <th
+                  className="px-4 py-3 text-right text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => handleSort('price')}
+                >
+                  <span className="flex items-center justify-end">Price <SortIcon field="price" /></span>
+                </th>
+                <th
+                  className="px-4 py-3 text-right text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => handleSort('epsSurp')}
+                >
+                  <span className="flex items-center justify-end">EPS <SortIcon field="epsSurp" /></span>
+                </th>
+                <th
+                  className="px-4 py-3 text-right text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => handleSort('revSurp')}
+                >
+                  <span className="flex items-center justify-end">Revenue <SortIcon field="revSurp" /></span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100 dark:divide-slate-800">
+              {filteredAndSortedData.map((item) => {
+            const sizeBadge = getSizeBadge(item.size);
+            return (
+              <tr key={item.symbol} className="hover:bg-neutral-50 dark:hover:bg-slate-800/40 transition-colors">
+                {/* Company */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <CompanyLogo symbol={item.symbol} logoUrl={item.logoUrl} name={item.name} />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-neutral-900 dark:text-white">{item.symbol}</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${sizeBadge.classes}`}>
+                          {sizeBadge.label}
+                        </span>
                       </div>
-                    </td>
-                    
-                    {/* Market Cap */}
-                    <td className="px-4 py-4 whitespace-nowrap text-center w-[150px] min-w-[150px]">
-                      <div>
-                        <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans">
-                          {formatMarketCap(item.marketCap)}
-                        </div>
-                        <div className={`text-sm font-medium font-sans ${getChangeColor(item.marketCapDiff)}`}>
-                          {item.marketCapDiff ? `${item.marketCapDiff > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}` : '-'}
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Price */}
-                    <td className="px-4 py-4 whitespace-nowrap text-center w-[120px] min-w-[120px]">
-                      <div>
-                        <div className="text-sm font-bold text-neutral-900 dark:text-white font-sans">
-                          {item.price ? `$${item.price.toFixed(2)}` : '-'}
-                        </div>
-                        <div className={`text-sm font-medium font-sans ${getChangeColor(item.change)}`}>
-                          {item.change ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%` : '-'}
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* EPS */}
-                    <td className="px-4 py-4 whitespace-nowrap text-center w-[180px] min-w-[180px]">
-                      <div className="space-y-0.5 text-xs font-sans">
-                        <div className="text-sm font-bold text-neutral-900 dark:text-white">
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>{item.epsActual ? `$${item.epsActual.toFixed(2)}` : '-'}
-                        </div>
-                        <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>{item.epsEst ? `$${item.epsEst.toFixed(2)}` : '-'}
-                        </div>
-                        <div className={`text-sm font-semibold ${getChangeColor(item.epsSurp)}`}>
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>{item.epsSurp ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(2)}%` : '-'}
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Revenue */}
-                    <td className="px-4 py-4 whitespace-nowrap text-center w-[180px] min-w-[180px]">
-                      <div className="space-y-0.5 text-xs font-sans">
-                        <div className="text-sm font-bold text-neutral-900 dark:text-white">
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Act.</span>{item.revActual ? formatRevenue(item.revActual) : '-'}
-                        </div>
-                        <div className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Est.</span>{item.revEst ? formatRevenue(item.revEst) : '-'}
-                        </div>
-                        <div className={`text-sm font-semibold ${getChangeColor(item.revSurp)}`}>
-                          <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-1">Surp.</span>{item.revSurp ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(2)}%` : '-'}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredAndSortedData.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-neutral-400 text-lg font-medium font-sans">No companies found</div>
-              <div className="text-neutral-500 text-sm font-normal font-sans mt-2">
-                Try adjusting your search terms
-              </div>
+                      <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate max-w-[200px]">{item.name}</div>
+                    </div>
+                  </div>
+                </td>
+
+                {/* Market Cap */}
+                <td className="px-4 py-3 text-right">
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">{formatMarketCap(item.marketCap)}</div>
+                  <div className={`text-xs font-medium ${getChangeColor(item.marketCapDiff ? Number(item.marketCapDiff) : null)}`}>
+                    {item.marketCapDiff && Number(item.marketCapDiff) !== 0
+                      ? `${Number(item.marketCapDiff) > 0 ? '+' : ''}${formatMarketCap(item.marketCapDiff)}`
+                      : ''}
+                  </div>
+                </td>
+
+                {/* Price */}
+                <td className="px-4 py-3 text-right">
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {item.price != null ? `$${item.price.toFixed(2)}` : '-'}
+                  </div>
+                  <div className={`text-xs font-medium ${getChangeColor(item.change)}`}>
+                    {item.change != null && item.change !== 0
+                      ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%`
+                      : ''}
+                  </div>
+                </td>
+
+                {/* EPS */}
+                <td className="px-4 py-3 text-right">
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {item.epsActual != null ? `$${item.epsActual.toFixed(2)}` : '-'}
+                  </div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Est: {item.epsEst != null ? `$${item.epsEst.toFixed(2)}` : '-'}
+                  </div>
+                  <div className={`text-xs font-semibold ${getChangeColor(item.epsSurp)}`}>
+                    {item.epsSurp != null ? `${item.epsSurp > 0 ? '+' : ''}${item.epsSurp.toFixed(1)}%` : ''}
+                  </div>
+                </td>
+
+                {/* Revenue */}
+                <td className="px-4 py-3 text-right">
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {formatRevenue(item.revActual)}
+                  </div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Est: {formatRevenue(item.revEst)}
+                  </div>
+                  <div className={`text-xs font-semibold ${getChangeColor(item.revSurp)}`}>
+                    {item.revSurp != null ? `${item.revSurp > 0 ? '+' : ''}${item.revSurp.toFixed(1)}%` : ''}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredAndSortedData.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-neutral-300 dark:text-neutral-600 text-4xl mb-3">📊</div>
+            <div className="text-neutral-500 dark:text-neutral-400 text-sm font-medium">
+              {data.length === 0
+                ? `No earnings reports for ${formatDate(selectedDate)}`
+                : 'No companies match your search'}
             </div>
-          )}
-        </div>
-        
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm font-normal text-neutral-500 dark:text-neutral-400 font-sans">
-          Showing {filteredAndSortedData.length} of {data.length} companies
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

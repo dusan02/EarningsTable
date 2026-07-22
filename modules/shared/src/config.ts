@@ -5,15 +5,12 @@ export const CONFIG = {
   // API konfigurácia
   FINNHUB_TOKEN: process.env.FINNHUB_TOKEN!,
   POLYGON_API_KEY: process.env.POLYGON_API_KEY!,
-  IEX_TOKEN: process.env.IEX_TOKEN!,
   
   // Databáza
   DATABASE_URL: process.env.DATABASE_URL!,
   
   // Cron konfigurácia
   CRON_TZ: process.env.CRON_TZ || 'America/New_York',
-  CRON_EXPR: process.env.CRON_EXPR || '0 7 * * *', // Každý deň o 07:00 NY time
-  POLYGON_CRON_EXPR: process.env.POLYGON_CRON_EXPR || '0 */4 * * *', // Každé 4 hodiny
   
   // Web server
   PORT: parseInt(process.env.PORT || '3000'),

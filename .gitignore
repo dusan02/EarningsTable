@@ -44,3 +44,6 @@ coverage/
 
 # Prisma
 prisma/migrations/
+
+# Runtime cache
+.cache-last-good.json

@@ -7,7 +7,6 @@
     "scripts": {
         "start": "tsx src/main.ts start",
         "start:once": "tsx src/main.ts start --once",
-        "daily-cycle": "tsx src/main.ts daily-cycle",
         "cron": "tsx src/main.ts start",
         "finnhub_data": "tsx src/run-once.ts finnhub",
         "finnhub_data:once": "tsx src/run-once.ts finnhub",
@@ -15,12 +14,6 @@
         "polygon_data:once": "tsx src/run-once.ts polygon",
         "status": "tsx src/main.ts status",
         "list": "tsx src/main.ts list",
-        "restart": "tsx src/restart.ts",
-        "run-all": "tsx src/run-all-with-stats.ts",
-        "supervisor": "tsx src/manager.ts",
-        "supervisor:reset": "tsx src/manager.ts --reset",
-        "supervisor:finnhub": "tsx src/manager.ts --finnhub",
-        "supervisor:polygon": "tsx src/manager.ts --polygon",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate deploy"
     },
@@ -32,7 +25,6 @@
         "luxon": "^3.5.0",
         "node-cron": "3.0.3",
         "p-limit": "7.1.1",
-        "redis": "4.6.13",
         "sharp": "0.34.4",
         "tslib": "2.6.2",
         "yargs": "17.7.2"

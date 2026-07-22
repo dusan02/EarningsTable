@@ -85,7 +85,7 @@ export interface MarketCapData {
   size?: string | null;
   name?: string | null;
   priceBoolean: boolean;
-  Boolean: boolean;
+  dataReady: boolean;
   priceSource?: string | null;
 }
 
@@ -911,7 +911,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         size,
         name: companyName || (snapshot as any)?.name || null,
         priceBoolean,
-        Boolean: allConditionsMet,
+        dataReady: allConditionsMet,
         priceSource
       });
       
@@ -939,7 +939,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         size: null,
         name: null,
         priceBoolean: false,
-        Boolean: false,
+        dataReady: false,
         priceSource: null
       });
     }

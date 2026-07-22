@@ -38,7 +38,7 @@ export interface PolygonMarketData {
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean: boolean;
-  Boolean: boolean;
+  dataReady: boolean;
   priceSource?: string | null; // 'pre'|'live'|'ah'|'min'|'day' for audit/debug
   marketCapFetchedAt?: Date | null; // Cache timestamp
 }
@@ -375,7 +375,7 @@ export async function fetchMarketCapData(symbol: string, bulkSnapshotData?: any,
     size: size,
     name: companyName,
     priceBoolean: hasPrice,
-    Boolean: allConditionsMet,
+    dataReady: allConditionsMet,
     priceSource: priceSource,
     marketCapFetchedAt: new Date()
   };
@@ -413,7 +413,7 @@ export async function fetchMarketCapDataForSymbols(symbols: string[]): Promise<P
     size: result.size,
     name: result.name,
     priceBoolean: result.priceBoolean,
-    Boolean: result.Boolean,
+    dataReady: result.dataReady,
     priceSource: result.priceSource,
   }));
   

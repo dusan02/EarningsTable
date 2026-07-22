@@ -246,7 +246,7 @@ export class DatabaseManager {
               size: record.size ?? null,
               name: record.name ?? null,
               priceBoolean: record.priceBoolean ?? false,
-              Boolean: record.Boolean ?? false,
+              dataReady: record.dataReady ?? false,
               priceSource: record.priceSource ?? null,
             },
             create: {
@@ -268,7 +268,7 @@ export class DatabaseManager {
               size: record.size ?? null,
               name: record.name ?? null,
               priceBoolean: record.priceBoolean ?? false,
-              Boolean: record.Boolean ?? false,
+              dataReady: record.dataReady ?? false,
               priceSource: record.priceSource ?? null,
             },
           })
@@ -327,7 +327,7 @@ export class DatabaseManager {
   async getUniqueSymbolsFromPolygonData(onlyReady = false): Promise<string[]> {
     const symbols = await prisma.polygonData.findMany({
       select: { symbol: true },
-      ...(onlyReady ? { where: { Boolean: true } } : {}),
+      ...(onlyReady ? { where: { dataReady: true } } : {}),
     });
     return symbols.map(s => s.symbol);
   }
@@ -371,7 +371,7 @@ export class DatabaseManager {
               size: data.size,
               name: data.name,
               priceBoolean: Boolean(data.priceBoolean ?? 0),
-              Boolean: Boolean(data.Boolean ?? 0),
+              dataReady: Boolean(data.dataReady ?? 0),
               priceSource: data.priceSource,
               ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }), 
               ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
@@ -395,7 +395,7 @@ export class DatabaseManager {
               size: data.size,
               name: data.name,
               priceBoolean: Boolean(data.priceBoolean ?? 0),
-              Boolean: Boolean(data.Boolean ?? 0),
+              dataReady: Boolean(data.dataReady ?? 0),
               priceSource: data.priceSource,
               ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }), 
               ...(data.logoSource !== undefined && { logoSource: data.logoSource }),
@@ -728,6 +728,7 @@ export class DatabaseManager {
       prisma.polygonData.deleteMany(),
       prisma.finhubData.deleteMany(),
       prisma.cronStatus.deleteMany(),
+      prisma.cronExecutionLog.deleteMany(),
     ]);
 
     console.log('✅ All tables cleared successfully');

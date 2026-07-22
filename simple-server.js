@@ -61,9 +61,13 @@ const app = express();
 // Disable Express default ETag generation; we'll set a stable custom ETag
 app.set("etag", false);
 
-// Global request logger to see ALL incoming requests
+// Request logger — only log non-200 responses (errors)
 app.use((req, res, next) => {
-  console.log(`[ALL REQUESTS] ${req.method} ${req.path}`);
+  res.on('finish', () => {
+    if (res.statusCode >= 400) {
+      console.error(`[${res.statusCode}] ${req.method} ${req.path}`);
+    }
+  });
   next();
 });
 
@@ -90,12 +94,6 @@ app.get("/robots.txt", (req, res) => {
       break;
     }
   }
-
-  console.log("[robots] Requested");
-  console.log("[robots] __dirname:", __dirname);
-  console.log("[robots] process.cwd():", process.cwd());
-  console.log("[robots] Trying paths:", possiblePaths);
-  console.log("[robots] Found at:", robotsPath);
 
   if (!robotsPath) {
     console.error("[robots] File not found in any of:", possiblePaths);
@@ -131,12 +129,6 @@ app.get("/sitemap.xml", (req, res) => {
       break;
     }
   }
-
-  console.log("[sitemap] Requested");
-  console.log("[sitemap] __dirname:", __dirname);
-  console.log("[sitemap] process.cwd():", process.cwd());
-  console.log("[sitemap] Trying paths:", possiblePaths);
-  console.log("[sitemap] Found at:", sitemapPath);
 
   if (!sitemapPath) {
     console.error("[sitemap] File not found in any of:", possiblePaths);
@@ -317,28 +309,12 @@ const LOGO_DIR = (() => {
     path.join(process.cwd(), "modules", "web", "public", "logos"),
   ];
 
-  console.log("[logos] __dirname:", __dirname);
-  console.log("[logos] process.cwd():", process.cwd());
-  console.log("[logos] Checking paths:", possiblePaths);
+  console.log("[logos] Checking paths for logo directory...");
 
   for (const logoPath of possiblePaths) {
     if (fs.existsSync(logoPath)) {
-      console.log("[logos] ✅ Found logo directory:", logoPath);
-      // Verify it has files
-      try {
-        const files = fs.readdirSync(logoPath);
-        const webpFiles = files.filter((f) => f.endsWith(".webp"));
-        console.log(
-          "[logos] ✅ Directory contains",
-          webpFiles.length,
-          "webp files"
-        );
-        return logoPath;
-      } catch (err) {
-        console.warn("[logos] ⚠️ Cannot read directory:", err.message);
-      }
-    } else {
-      console.log("[logos] ❌ Path does not exist:", logoPath);
+      console.log("[logos] Found logo directory:", logoPath);
+      return logoPath;
     }
   }
 
@@ -355,9 +331,7 @@ console.log("[logos] serving from:", LOGO_DIR);
 app.use(
   "/logos",
   express.static(LOGO_DIR, {
-    setHeaders: (res, filePath) => {
-      console.log("[logos] Serving file:", filePath);
-    },
+    maxAge: "7d",
   })
 );
 
@@ -385,10 +359,6 @@ app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
 app.get("/site.webmanifest", (req, res) => {
   const manifestPath = path.resolve(__dirname, "site.webmanifest");
   const fs = require("fs");
-
-  console.log("[manifest] Requested, checking path:", manifestPath);
-  console.log("[manifest] __dirname:", __dirname);
-  console.log("[manifest] File exists:", fs.existsSync(manifestPath));
 
   if (!fs.existsSync(manifestPath)) {
     console.error("[manifest] File not found at:", manifestPath);
@@ -477,9 +447,7 @@ if (fs.existsSync(sharedPrismaRuntimePath)) {
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url:
-        process.env.DATABASE_URL ||
-        "file:D:/Projects/EarningsTable/modules/database/prisma/dev.db",
+      url: process.env.DATABASE_URL,
     },
   },
 });
@@ -492,6 +460,8 @@ function serializeFinalReport(item) {
     marketCapDiff: item.marketCapDiff ? item.marketCapDiff.toString() : null,
     revActual: item.revActual ? item.revActual.toString() : null,
     revEst: item.revEst ? item.revEst.toString() : null,
+    reportDate: item.reportDate ? item.reportDate.toISOString() : null,
+    snapshotDate: item.snapshotDate ? item.snapshotDate.toISOString() : null,
     createdAt: item.createdAt ? item.createdAt.toISOString() : null,
     updatedAt: item.updatedAt ? item.updatedAt.toISOString() : null,
     logoFetchedAt: item.logoFetchedAt ? item.logoFetchedAt.toISOString() : null,
@@ -501,24 +471,7 @@ function serializeFinalReport(item) {
 // API Routes
 app.get("/api/final-report", async (req, res) => {
   try {
-    console.log("📊 Fetching FinalReport data...");
-    console.log("[DB] DATABASE_URL:", process.env.DATABASE_URL);
-
-    // Test database connection first
-    await prisma.$connect();
-    console.log("[DB] Connection successful");
-
-    // Get all data first
     const allData = await prisma.finalReport.findMany();
-    process.stderr.write(
-      `🔍 DEBUG: Got data from DB, count: ${allData.length}\n`
-    );
-
-    // Debug: log before sorting
-    const withCap = allData.filter((d) => d.marketCap != null).length;
-    process.stderr.write(
-      `📊 Total records: ${allData.length}, with marketCap: ${withCap}\n`
-    );
 
     // Sort: non-null marketCap DESC, then null marketCap at end, then by symbol ASC
     const data = allData.sort((a, b) => {
@@ -538,15 +491,7 @@ app.get("/api/final-report", async (req, res) => {
       return a.symbol.localeCompare(b.symbol);
     });
 
-    // Debug: log first 5 symbols with their marketCap
-    process.stderr.write("📊 First 5 symbols after sorting:\n");
-    data.slice(0, 5).forEach((item, idx) => {
-      const cap =
-        item.marketCap != null ? Number(item.marketCap).toString() : "null";
-      process.stderr.write(`  ${idx + 1}. ${item.symbol}: marketCap=${cap}\n`);
-    });
-
-    console.log(`✅ Found ${data.length} records in FinalReport`);
+    console.log(`Found ${data.length} records in FinalReport`);
 
     // Convert BigInt and Date values to strings for JSON serialization
     const serializedData = data.map(serializeFinalReport);
@@ -597,11 +542,7 @@ app.get("/api/final-report", async (req, res) => {
     res.setHeader("ETag", etag);
     res.json(payload);
   } catch (error) {
-    console.error("❌ Error fetching FinalReport:", error);
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-    console.error("[DB] DATABASE_URL:", process.env.DATABASE_URL);
+    console.error("Error fetching FinalReport:", error.message);
 
     // In production, still log full error but return generic message
     const errorMessage =
@@ -702,6 +643,64 @@ app.get("/api/final-report/:symbol", async (req, res) => {
   }
 });
 
+// Get available earnings dates with counts
+app.get("/api/final-report/dates", async (req, res) => {
+  try {
+    const rows = await prisma.finalReport.findMany({
+      where: { reportDate: { not: null } },
+      select: { reportDate: true, symbol: true },
+    });
+
+    const dateMap = {};
+    for (const row of rows) {
+      if (!row.reportDate) continue;
+      const dateStr = row.reportDate.toISOString().split("T")[0];
+      dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
+    }
+
+    const dates = Object.entries(dateMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    res.json({ success: true, data: dates, timestamp: new Date().toISOString() });
+  } catch (error) {
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ success: false, error: "Failed to fetch dates" });
+  }
+});
+
+// Get earnings for a specific date (YYYY-MM-DD)
+app.get("/api/final-report/date/:date", async (req, res) => {
+  try {
+    const dateStr = String(req.params.date || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return res.status(400).json({ success: false, error: "Invalid date format. Use YYYY-MM-DD." });
+    }
+
+    const dayStart = new Date(`${dateStr}T00:00:00.000Z`);
+    const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
+
+    const data = await prisma.finalReport.findMany({
+      where: {
+        reportDate: { gte: dayStart, lte: dayEnd },
+      },
+      orderBy: { symbol: "asc" },
+    });
+
+    const serializedData = data.map(serializeFinalReport);
+    res.json({
+      success: true,
+      data: serializedData,
+      count: serializedData.length,
+      date: dateStr,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching date data:", error.message);
+    res.status(500).json({ success: false, error: "Failed to fetch data for date" });
+  }
+});
+
 // Refresh FinalReport snapshot on-demand (disabled in production to avoid ESM import issues)
 app.post("/api/final-report/refresh", async (_req, res) => {
   res.status(501).json({
@@ -711,10 +710,34 @@ app.post("/api/final-report/refresh", async (_req, res) => {
   });
 });
 
-// Last good data endpoint (24h cache)
+// Last good data endpoint (24h cache) — persisted to disk for restart resilience
+const CACHE_FILE = path.resolve(__dirname, ".cache-last-good.json");
 let lastGoodData = null;
 let lastGoodDataTimestamp = null;
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+// Load cache from disk on startup
+try {
+  const fs = require("fs");
+  if (fs.existsSync(CACHE_FILE)) {
+    const raw = fs.readFileSync(CACHE_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    lastGoodData = parsed.data;
+    lastGoodDataTimestamp = parsed.timestamp;
+    console.log(`[cache] Loaded last-good data from disk (age: ${Math.round((Date.now() - lastGoodDataTimestamp) / 60000)}min)`);
+  }
+} catch (e) {
+  console.error("[cache] Failed to load cache from disk:", e.message);
+}
+
+function saveCacheToDisk() {
+  try {
+    const fs = require("fs");
+    fs.writeFileSync(CACHE_FILE, JSON.stringify({ data: lastGoodData, timestamp: lastGoodDataTimestamp }));
+  } catch (e) {
+    console.error("[cache] Failed to save cache to disk:", e.message);
+  }
+}
 
 app.get("/api/final-report/last-good", async (req, res) => {
   try {
@@ -748,6 +771,7 @@ app.get("/api/final-report/last-good", async (req, res) => {
       // Update cache
       lastGoodData = serializedFreshData;
       lastGoodDataTimestamp = now;
+      saveCacheToDisk();
 
       res.json({
         success: true,
@@ -811,43 +835,15 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Dashboard routes - using simple-dashboard.html (nice UX)
-const DASHBOARD = path.resolve(__dirname, "simple-dashboard.html");
-app.get(["/", "/dashboard"], (req, res) => {
-  const fs = require("fs");
-  if (fs.existsSync(DASHBOARD)) {
-    res.sendFile(DASHBOARD);
-  } else {
-    res.status(404).json({ error: "Dashboard not found" });
-  }
-});
-app.get("/test-logos", (req, res) => {
-  const fs = require("fs");
-  const testLogosPath = path.join(__dirname, "test-logos.html");
-  if (fs.existsSync(testLogosPath)) {
-    res.sendFile(testLogosPath);
-  } else {
-    res.status(404).json({ error: "Test logos page not found" });
-  }
-});
-app.get("/test-logo-display", (req, res) => {
-  const fs = require("fs");
-  const testLogoDisplayPath = path.join(__dirname, "test-logo-display.html");
-  if (fs.existsSync(testLogoDisplayPath)) {
-    res.sendFile(testLogoDisplayPath);
-  } else {
-    res.status(404).json({ error: "Test logo display page not found" });
-  }
-});
-
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 API Server running on port ${PORT}`);
-  console.log(`📊 API endpoints:`);
+  console.log(`API endpoints:`);
   console.log(`   GET  /api/final-report`);
+  console.log(`   GET  /api/final-report/dates`);
+  console.log(`   GET  /api/final-report/date/:date`);
   console.log(`   GET  /api/final-report/stats`);
   console.log(`   GET  /api/final-report/:symbol`);
-  console.log(`   POST /api/final-report/refresh`);
   console.log(`   GET  /api/cron-status (alias: /api/cron/status)`);
   console.log(`   GET  /api/health`);
   console.log(`🌐 API URL: http://localhost:${PORT}`);
@@ -868,92 +864,26 @@ const keepAlive = setInterval(() => {
 
 // Log process events for debugging
 process.on("beforeExit", (code) => {
-  console.error(
-    `⚠️ Process beforeExit event: ${code} at ${new Date().toISOString()}`
-  );
-  console.error("⚠️ Stack trace:", new Error().stack);
-  console.error("⚠️ Active handles:", process._getActiveHandles().length);
-  console.error("⚠️ Active requests:", process._getActiveRequests().length);
+  console.error(`beforeExit: ${code}`);
 });
 
 process.on("exit", (code) => {
-  console.error(
-    `⚠️ Process exit event: ${code} at ${new Date().toISOString()}`
-  );
-  console.error("⚠️ Process uptime before exit:", process.uptime(), "seconds");
+  console.error(`exit: ${code}`);
 });
 
-// Graceful shutdown - with detailed logging to understand who sends SIGINT
-// WORKAROUND: Ignore SIGINT if process has been running for less than 10 minutes
-// This prevents PM2 watchdog from killing the process prematurely
+// Graceful shutdown
 process.on("SIGINT", async () => {
   const timestamp = new Date().toISOString();
-  const uptime = process.uptime();
-  const memory = process.memoryUsage();
 
-  // Get full stack trace
-  const stack = new Error().stack;
-
-  // Log to stderr (PM2 captures this)
-  console.error(`\n🛑 SIGINT received at ${timestamp}`);
-  console.error("🛑 Process uptime:", uptime, "seconds");
-  console.error("🛑 Memory usage:", JSON.stringify(memory, null, 2));
-  console.error("🛑 Full stack trace:");
-  console.error(stack);
-  console.error("🛑 Process ID:", process.pid);
-  console.error("🛑 Parent process ID:", process.ppid);
-  console.error(
-    "🛑 Environment:",
-    JSON.stringify(
-      {
-        NODE_ENV: process.env.NODE_ENV,
-        PM2_HOME: process.env.PM2_HOME,
-        PM2_INSTANCE_ID: process.env.pm_id,
-      },
-      null,
-      2
-    )
-  );
-
-  // WORKAROUND: Ignore SIGINT if process has been running for less than 10 minutes
-  // PM2 watchdog seems to send SIGINT every 5 minutes, which is too aggressive
-  // Only shutdown if process has been running for at least 10 minutes
-  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes in seconds
-
-  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
-    console.error(
-      `⚠️ Ignoring SIGINT - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required for shutdown)`
-    );
-    console.error("⚠️ This is likely PM2 watchdog sending premature SIGINT");
-    return; // Don't shutdown, just ignore the signal
-  }
-
-  console.log("\n🛑 Shutting down server...");
+  console.log(`\nSIGINT received at ${timestamp}`);
   clearInterval(keepAlive);
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  const uptime = process.uptime();
   const timestamp = new Date().toISOString();
-
-  console.error(`\n🛑 SIGTERM received at ${timestamp}`);
-  console.error("🛑 Process uptime:", uptime, "seconds");
-
-  // WORKAROUND: Ignore SIGTERM if process has been running for less than 10 minutes
-  // PM2 watchdog seems to send SIGTERM every 5 minutes, which is too aggressive
-  const MIN_UPTIME_FOR_SHUTDOWN = 600; // 10 minutes in seconds
-
-  if (uptime < MIN_UPTIME_FOR_SHUTDOWN) {
-    console.error(
-      `⚠️ Ignoring SIGTERM - process has only been running for ${uptime}s (minimum ${MIN_UPTIME_FOR_SHUTDOWN}s required for shutdown)`
-    );
-    console.error("⚠️ This is likely PM2 watchdog sending premature SIGTERM");
-    return; // Don't shutdown, just ignore the signal
-  }
-
-  console.log("\n🛑 Shutting down server...");
+  console.log(`\nSIGTERM received at ${timestamp}`);
   clearInterval(keepAlive);
   await prisma.$disconnect();
   process.exit(0);

@@ -1,10 +1,5 @@
-import axios from 'axios';
-import { CONFIG } from './config.js';
-import { db } from './core/DatabaseManager.js';
 import { prisma } from '../../shared/src/prismaClient.js';
-import { CONFIG } from './config.js';
-// import { toNumber } from '../../../shared/src/utils.js';
-import { processSymbolsInBatches, MarketCapData } from './core/priceService.js';
+import { processSymbolsInBatches } from './core/priceService.js';
 
 // Use shared Prisma client to ensure generated client is present
 
@@ -173,24 +168,9 @@ export async function runPolygonJobFast(symbols?: string[]): Promise<void> {
       );
     }
 
-    // Fetch logos for processed symbols before generating final report
-    try {
-      const { processLogosInBatches } = await import('./core/logoService.js');
-      console.log('🖼️ Processing logos before FinalReport...');
-      const batch = (CONFIG as any)?.LOGO_BATCH_SIZE ?? process.env.LOGO_BATCH_SIZE ?? 16;
-      const conc  = (CONFIG as any)?.LOGO_CONCURRENCY ?? process.env.LOGO_CONCURRENCY ?? 6;
-      await processLogosInBatches(symbolsToProcess, Number(batch), Number(conc));
-      console.log('🖼️ Logos processed');
-    } catch (e) {
-      console.warn('⚠️ Logo processing skipped/failed:', (e as any)?.message || e);
-    }
-
-    console.log('📊 OPTIMIZED: Generating final report...');
-    await db.generateFinalReport();
-
     const duration = Date.now() - startTime;
     console.log(`Fast Polygon job completed successfully in ${duration}ms`);
-    console.log(`Summary: ${symbolsToProcess.length} symbols processed, ${marketData.filter(r => r.Boolean).length} with complete data`);
+    console.log(`Summary: ${symbolsToProcess.length} symbols processed, ${marketData.filter(r => r.dataReady).length} with complete data`);
 
   } catch (error) {
     const duration = Date.now() - startTime;
