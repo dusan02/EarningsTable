@@ -764,6 +764,32 @@ export class DatabaseManager {
     console.log('✅ Earnings data tables cleared successfully (monitoring history preserved)');
   }
 
+  /**
+   * Prune records older than `keepDays` from all earnings tables.
+   * Unlike clearAllTables, this PRESERVES recent history (past earnings
+   * results) and future earnings calendar entries.
+   *
+   * Called daily at 03:00 NY instead of the old clearAllTables wipe.
+   */
+  async pruneOldRecords(keepDays = 90): Promise<void> {
+    if (process.env.ALLOW_CLEAR !== 'true') {
+      console.log('🧹 Skipping pruneOldRecords (ALLOW_CLEAR!=true)');
+      return;
+    }
+
+    const now = new Date();
+    const cutoffDate = new Date(now.getTime() - keepDays * 24 * 60 * 60 * 1000);
+    console.log(`🧹 Pruning records older than ${keepDays} days (before ${cutoffDate.toISOString()})...`);
+
+    const [finhubResult, polygonResult, finalResult] = await prisma.$transaction([
+      prisma.finhubData.deleteMany({ where: { reportDate: { lt: cutoffDate } } }),
+      prisma.polygonData.deleteMany({ where: { updatedAt: { lt: cutoffDate } } }),
+      prisma.finalReport.deleteMany({ where: { reportDate: { lt: cutoffDate } } }),
+    ]);
+
+    console.log(`✅ Pruned: FinhubData=${finhubResult.count} PolygonData=${polygonResult.count} FinalReport=${finalResult.count}`);
+  }
+
   async disconnect(): Promise<void> {
     await prisma.$disconnect();
   }

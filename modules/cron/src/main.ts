@@ -248,29 +248,29 @@ async function checkAndRunDailyResetIfNeeded() {
     const nyMinute = nowNY.getMinutes();
 
     if (nyHour === 3 && nyMinute < 30) {
-      const today = new Date(nowNY);
-      today.setHours(0, 0, 0, 0);
+      // Check for very old data (>90 days) that should have been pruned.
+      const cutoff = new Date(nowNY.getTime() - 90 * 24 * 60 * 60 * 1000);
 
       const oldRecords = await prisma.finhubData.findFirst({
         where: {
-          reportDate: { lt: today }
+          reportDate: { lt: cutoff }
         }
       });
 
       if (oldRecords) {
-        console.log('Boot guard: Detected old data, running missed daily reset');
+        console.log('Boot guard: Detected very old data (>90 days), running missed daily prune');
         try {
           process.env.ALLOW_CLEAR = 'true';
-          await db.clearAllTables();
-          console.log('Boot guard: Daily reset completed');
+          await db.pruneOldRecords(90);
+          console.log('Boot guard: Daily prune completed');
           enterQuietWindow();
         } catch (e) {
-          console.error('Boot guard: Daily reset failed', e);
+          console.error('Boot guard: Daily prune failed', e);
         } finally {
           delete process.env.ALLOW_CLEAR;
         }
       } else {
-        console.log('Boot guard: No old data found, daily reset already done');
+        console.log('Boot guard: No very old data found, daily prune already done');
       }
     }
   } catch (e) {
@@ -356,12 +356,13 @@ async function startAllCronJobs(once: boolean) {
       const scheduledTask = cron.schedule(DAILY_CLEAR_CRON, async () => {
         try {
           const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
-          console.log(`Daily clear starting @ 03:00 NY (actual: ${nowNY.toLocaleString()})`);
+          console.log(`Daily prune starting @ 03:00 NY (actual: ${nowNY.toLocaleString()})`);
           // Wait for any in-flight pipeline so we don't wipe tables mid-write.
           await waitForPipelineIdle();
           process.env.ALLOW_CLEAR = 'true';
-          await db.clearAllTables();
-          console.log('Daily clear done');
+          // Prune old records (keep 90 days history) instead of wiping everything.
+          await db.pruneOldRecords(90);
+          console.log('Daily prune done');
           enterQuietWindow();
         } catch (e) {
           console.error('Daily clear failed', e);

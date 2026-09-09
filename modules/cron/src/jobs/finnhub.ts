@@ -38,12 +38,13 @@ export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<Fi
     const isoDate = resolveFinnhubTargetDate(options.date);
     console.log(`📅 Fetching earnings for ${isoDate} (NY time)`);
     
-    // Fetch a 7-day window (±3 days) so the calendar has data for the whole week
+    // Fetch a wider window: 3 days back (for recent actuals) + 7 days forward
+    // (for upcoming earnings calendar visibility).
     const centerDate = new Date(`${isoDate}T00:00:00.000Z`);
     const fromDate = new Date(centerDate);
     fromDate.setUTCDate(centerDate.getUTCDate() - 3);
     const toDate = new Date(centerDate);
-    toDate.setUTCDate(centerDate.getUTCDate() + 3);
+    toDate.setUTCDate(centerDate.getUTCDate() + 7);
     const fromStr = fromDate.toISOString().split('T')[0];
     const toStr = toDate.toISOString().split('T')[0];
     console.log(`📅 Fetching earnings window: ${fromStr} to ${toStr}`);
