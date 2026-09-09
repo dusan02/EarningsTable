@@ -29,7 +29,7 @@
 
 ```bash
 DATABASE_URL="file:/path/to/database.db"
-FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"
 POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 PORT=5555
 NODE_ENV=production

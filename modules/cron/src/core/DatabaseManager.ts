@@ -13,6 +13,26 @@ function toDateTime(v: any): Date | null {
   return new Date(v);
 }
 
+/**
+ * Convert a revenue/market-cap value (number | string | bigint) to BigInt
+ * without losing precision. String inputs are converted directly (no float
+ * round-trip); numbers are rounded (safe for typical revenue magnitudes).
+ */
+function toBigInt(v: number | string | bigint | null | undefined): bigint | null {
+  if (v == null) return null;
+  if (typeof v === 'bigint') return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    // If the string represents an integer that is safe as a number, use it;
+    // otherwise parse the integer part directly to avoid float precision loss.
+    if (Number.isSafeInteger(n) && /^\d+$/.test(v.trim())) return BigInt(v.trim());
+    const intPart = v.trim().split('.')[0].replace(/[^0-9-]/g, '');
+    return BigInt(intPart || '0');
+  }
+  // number
+  return BigInt(Math.round(v));
+}
+
 function normalizeFinalReportDates<T extends { reportDate?: any; snapshotDate?: any }>(o: T): T {
   const normalized = {
     ...o,
@@ -96,8 +116,10 @@ export class DatabaseManager {
       snapshotDate: ctx?.snapshotDate ?? new Date(),
     });
 
+    const effectiveReportDate = ctx?.reportDate ?? new Date();
+
     await prisma.finalReport.upsert({
-      where: { symbol: incoming.symbol },
+      where: { symbol_reportDate: { symbol: incoming.symbol, reportDate: effectiveReportDate } },
       create: createData,
       update: updateData,
     });
@@ -136,8 +158,8 @@ export class DatabaseManager {
         diff(prev.hour, r.hour ?? null) ||
         diff(prev.epsActual, r.epsActual ?? null) ||
         diff(prev.epsEstimate, r.epsEstimate ?? null) ||
-        diff(prev.revenueActual, r.revenueActual != null ? BigInt(Math.round(r.revenueActual)) : null) ||
-        diff(prev.revenueEstimate, r.revenueEstimate != null ? BigInt(Math.round(r.revenueEstimate)) : null) ||
+        diff(prev.revenueActual, toBigInt(r.revenueActual)) ||
+        diff(prev.revenueEstimate, toBigInt(r.revenueEstimate)) ||
         diff(prev.quarter, r.quarter ?? null) ||
         diff(prev.year, r.year ?? null)
       ) {
@@ -163,8 +185,8 @@ export class DatabaseManager {
               hour: record.hour ?? null,
               epsActual: record.epsActual ?? null,
               epsEstimate: record.epsEstimate ?? null,
-              revenueActual: record.revenueActual ? BigInt(Math.round(record.revenueActual)) : null,
-              revenueEstimate: record.revenueEstimate ? BigInt(Math.round(record.revenueEstimate)) : null,
+              revenueActual: toBigInt(record.revenueActual),
+              revenueEstimate: toBigInt(record.revenueEstimate),
               quarter: record.quarter ?? null,
               year: record.year ?? null,
             },
@@ -174,8 +196,8 @@ export class DatabaseManager {
               hour: record.hour ?? null,
               epsActual: record.epsActual ?? null,
               epsEstimate: record.epsEstimate ?? null,
-              revenueActual: record.revenueActual ? BigInt(Math.round(record.revenueActual)) : null,
-              revenueEstimate: record.revenueEstimate ? BigInt(Math.round(record.revenueEstimate)) : null,
+              revenueActual: toBigInt(record.revenueActual),
+              revenueEstimate: toBigInt(record.revenueEstimate),
               quarter: record.quarter ?? null,
               year: record.year ?? null,
             },
@@ -453,19 +475,25 @@ export class DatabaseManager {
       where: { symbol: { in: commonSymbols } },
       orderBy: [{ symbol: 'asc' }, { reportDate: 'desc' }],
     });
-    const finMap = new Map<string, typeof finRows[number]>();
+    // Group finhub rows by symbol — keep ALL rows (not just latest) so we generate
+    // a FinalReport entry for each (symbol, reportDate) pair
+    const finBySymbol = new Map<string, typeof finRows[number][]>();
     for (const row of finRows) {
-      if (!finMap.has(row.symbol)) finMap.set(row.symbol, row);
+      if (!finBySymbol.has(row.symbol)) finBySymbol.set(row.symbol, []);
+      finBySymbol.get(row.symbol)!.push(row);
     }
     const polRows = await prisma.polygonData.findMany({ where: { symbol: { in: commonSymbols } } });
     const polMap = new Map(polRows.map(r => [r.symbol, r] as const));
 
     const upserts: Parameters<typeof prisma.finalReport.upsert>[0][] = [];
     for (const symbol of commonSymbols) {
-      const finhubData = finMap.get(symbol);
       const polygonData = polMap.get(symbol);
+      const finhubEntries = finBySymbol.get(symbol);
 
-      if (finhubData && polygonData) {
+      if (!polygonData || !finhubEntries) continue;
+
+      // Generate a FinalReport row for each (symbol, reportDate) from FinhubData
+      for (const finhubData of finhubEntries) {
         const epsSurp = (finhubData.epsActual != null && finhubData.epsEstimate != null && finhubData.epsEstimate !== 0)
           ? ((finhubData.epsActual - finhubData.epsEstimate) / Math.abs(finhubData.epsEstimate)) * 100
           : null;
@@ -516,9 +544,11 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
-          logoUrl: finhubData.logoUrl,
-          logoSource: finhubData.logoSource,
-          logoFetchedAt: finhubData.logoFetchedAt,
+          // Logos live on FinhubData (written by the logo service). PolygonData
+          // has no logo fields, so source them from finhubData with null fallback.
+          logoUrl: finhubData.logoUrl ?? null,
+          logoSource: finhubData.logoSource ?? null,
+          logoFetchedAt: finhubData.logoFetchedAt ?? null,
         });
 
         const updateData = normalizeFinalReportDates({
@@ -536,14 +566,14 @@ export class DatabaseManager {
           revSurp: roundedRevSurp,
           reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
-          logoUrl: finhubData.logoUrl,
-          logoSource: finhubData.logoSource,
-          logoFetchedAt: finhubData.logoFetchedAt,
+          logoUrl: finhubData.logoUrl ?? null,
+          logoSource: finhubData.logoSource ?? null,
+          logoFetchedAt: finhubData.logoFetchedAt ?? null,
           updatedAt: new Date(), // Explicitly set updatedAt to ensure it updates
         });
 
         upserts.push({
-          where: { symbol },
+          where: { symbol_reportDate: { symbol, reportDate: effectiveReportDate } },
           create: createData,
           update: updateData,
         });
@@ -552,7 +582,7 @@ export class DatabaseManager {
     if (upserts.length > 0) {
       await prisma.$transaction(upserts.map(d => prisma.finalReport.upsert(d)));
     }
-    console.log(`✅ FinalReport snapshot stored: ${upserts.length} symbols`);
+    console.log(`✅ FinalReport snapshot stored: ${upserts.length} records`);
   }
 
   async getFinalReport(): Promise<any[]> {
@@ -721,17 +751,17 @@ export class DatabaseManager {
       console.log('🧹 Skipping clearAllTables (ALLOW_CLEAR!=true)');
       return;
     }
-    console.log('🛑 Clearing all database tables (transaction)...');
+    console.log('🛑 Clearing earnings data tables (transaction)...');
 
+    // Only clear earnings/market data tables. Keep CronStatus and
+    // CronExecutionLog so monitoring history survives the daily reset.
     await prisma.$transaction([
       prisma.finalReport.deleteMany(),
       prisma.polygonData.deleteMany(),
       prisma.finhubData.deleteMany(),
-      prisma.cronStatus.deleteMany(),
-      prisma.cronExecutionLog.deleteMany(),
     ]);
 
-    console.log('✅ All tables cleared successfully');
+    console.log('✅ Earnings data tables cleared successfully (monitoring history preserved)');
   }
 
   async disconnect(): Promise<void> {

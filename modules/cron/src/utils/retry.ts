@@ -24,39 +24,46 @@ export async function withRetry<T>(
   } = options;
 
   let lastError: any;
-  
+
   for (let attempt = 0; attempt < maxTries; attempt++) {
     try {
       return await fn();
     } catch (error: any) {
       lastError = error;
-      
-      // Don't retry on 401 (unauthorized) or 403 (forbidden)
-      if (error.status === 401 || error.status === 403) {
+
+      // Normalize HTTP status from various error shapes (axios, fetch, custom).
+      const status = error?.response?.status ?? error?.status ?? error?.statusCode ?? 0;
+
+      // Don't retry on client errors that won't change (auth, not found, bad request).
+      // 401/403: auth issues; 404: resource missing; 400: bad request.
+      if (status === 401 || status === 403 || status === 404 || status === 400) {
         throw error;
       }
-      
+
       // Don't retry on last attempt
       if (attempt === maxTries - 1) {
         throw error;
       }
-      
-      // Calculate delay with exponential backoff
+
+      // Calculate delay with exponential backoff.
+      // For 429 (rate limit) use a longer base delay to respect the limit.
+      const isRateLimited = status === 429;
+      const effectiveBase = isRateLimited ? Math.max(baseDelay, 2000) : baseDelay;
       const delay = Math.min(
-        baseDelay * Math.pow(2, attempt),
+        effectiveBase * Math.pow(2, attempt),
         maxDelay
       );
-      
+
       // Add jitter to prevent thundering herd
-      const jitterDelay = jitter 
-        ? delay + Math.random() * 400 
+      const jitterDelay = jitter
+        ? delay + Math.random() * 400
         : delay;
-      
-      console.log(`Retry attempt ${attempt + 1}/${maxTries} after ${Math.round(jitterDelay)}ms delay`);
+
+      console.log(`Retry attempt ${attempt + 1}/${maxTries} after ${Math.round(jitterDelay)}ms delay${isRateLimited ? ' (rate-limited)' : ''}`);
       await new Promise(resolve => setTimeout(resolve, jitterDelay));
     }
   }
-  
+
   throw lastError;
 }
 
@@ -74,7 +81,10 @@ export class RateLimiter {
   
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
-      this.queue.push(async () => {
+      // Wrap fn so we count concurrency only while actually executing,
+      // not while waiting in the setTimeout delay.
+      const task = async () => {
+        this.running++;
         try {
           const result = await fn();
           resolve(result);
@@ -84,20 +94,20 @@ export class RateLimiter {
           this.running--;
           this.processQueue();
         }
-      });
-      
+      };
+      this.queue.push(task);
       this.processQueue();
     });
   }
-  
+
   private processQueue() {
     if (this.running >= this.maxConcurrent || this.queue.length === 0) {
       return;
     }
-    
+
     const next = this.queue.shift();
     if (next) {
-      this.running++;
+      // Schedule actual execution; running is incremented inside the task.
       setTimeout(next, this.minDelay);
     }
   }
@@ -113,7 +123,8 @@ export async function safeApiCall<T>(
   try {
     return await withRetry(fn, retryOptions);
   } catch (error: any) {
-    console.warn(`API call failed after retries:`, error.message);
+    const status = error?.response?.status ?? error?.status ?? error?.statusCode ?? 'n/a';
+    console.warn(`API call failed after retries (status=${status}):`, error?.message ?? error);
     return null;
   }
 }

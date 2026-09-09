@@ -19,7 +19,7 @@
 
 ### 2. **Secondary Issue: Invalid Finnhub API Key**
 
-- **Problem**: Finnhub API key `d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0` returns `{"error":"Invalid API key"}`
+- **Problem**: Finnhub API key `<FINNHUB_TOKEN_REDACTED>` returns `{"error":"Invalid API key"}`
 - **Impact**: Finnhub data not updating (stuck at `2025-10-22T04:00:10Z`)
 - **Evidence**: API test returned `{"error":"Invalid API key"}`
 
@@ -43,7 +43,7 @@ pm2 restart earnings-cron
 
 ```bash
 # Updated .env file
-sed -i 's/FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"/FINNHUB_TOKEN="YOUR_NEW_FINNHUB_KEY"/' .env
+sed -i 's/FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"/FINNHUB_TOKEN="YOUR_NEW_FINNHUB_KEY"/' .env
 pm2 restart earnings-cron --update-env
 ```
 
@@ -101,7 +101,7 @@ WHERE date(createdAt) = '2025-10-22';
 ### **Environment Variables**
 
 - `DATABASE_URL`: `file:/var/www/earnings-table/modules/database/prisma/prod.db`
-- `FINNHUB_TOKEN`: `d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0` (INVALID)
+- `FINNHUB_TOKEN`: `<FINNHUB_TOKEN_REDACTED>` (INVALID)
 - `POLYGON_API_KEY`: `Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX` (VALID)
 - `NODE_ENV`: `production`
 - `CRON_TZ`: `America/New_York`

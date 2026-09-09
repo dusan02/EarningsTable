@@ -20,13 +20,18 @@ import https from 'https';
 import sharp from "sharp";
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from 'url';
 import { CONFIG } from '../../../shared/src/config.js';
 import { db } from './DatabaseManager.js';
 import { prisma } from '../../../shared/src/prismaClient.js';
 import pLimit from 'p-limit';
 
-// Absolute path to logo directory - always points to modules/web/public/logos in the repo root
-const OUT_DIR = path.resolve(process.cwd(), "..", "web", "public", "logos");
+// Resolve the logo directory relative to this source file so it does not
+// depend on process.cwd(). This file lives at modules/cron/src/core/logoService.ts;
+// logos live at modules/web/public/logos.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const OUT_DIR = process.env.LOGO_DIR || path.resolve(__dirname, '..', '..', '..', 'web', 'public', 'logos');
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 20 });
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 20 });
 const LOGO_TTL_DAYS = 30;
@@ -65,11 +70,13 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
 }> {
   console.log(`🖼️  Fetching logo for ${symbol}...`);
   
-  // Try multiple sources in order of preference
+  // Try multiple sources in order of preference.
+  // IMPORTANT: pass API tokens via axios `params`, never embed them in the URL
+  // string, so they don't leak into logs/errors that include the request URL.
   const sources = [
-    { name: 'finnhub', url: `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${CONFIG.FINNHUB_TOKEN}` },
-    { name: 'polygon', url: `https://api.polygon.io/v3/reference/tickers/${symbol}?apiKey=${CONFIG.POLYGON_API_KEY}` },
-    { name: 'clearbit', url: null } // Will be set dynamically
+    { name: 'finnhub', url: `https://finnhub.io/api/v1/stock/profile2`, params: { symbol, token: CONFIG.FINNHUB_TOKEN } },
+    { name: 'polygon', url: `https://api.polygon.io/v3/reference/tickers/${encodeURIComponent(symbol)}`, params: { apiKey: CONFIG.POLYGON_API_KEY } },
+    { name: 'clearbit', url: null, params: null } // Will be set dynamically
   ];
 
   // Try all sources in parallel to collect candidates (URLs), but process sequentially with fallbacks
@@ -80,7 +87,7 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
 
       if (source.name === 'finnhub') {
         // Finnhub company profile
-        const { data } = await axios.get(source.url!, { timeout: 7000, httpAgent, httpsAgent });
+        const { data } = await axios.get(source.url!, { params: source.params, timeout: 7000, httpAgent, httpsAgent });
         if (data?.logo) {
           logoUrl = data.logo;
           console.log(`   → Finnhub logo: ${logoUrl}`);
@@ -88,28 +95,30 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
           console.log(`   → No Finnhub logo for ${symbol}`);
           return null;
         }
-        
+
       } else if (source.name === 'polygon') {
         // Polygon branding
-        const { data } = await axios.get(source.url!, { timeout: 7000, httpAgent, httpsAgent });
+        const { data } = await axios.get(source.url!, { params: source.params, timeout: 7000, httpAgent, httpsAgent });
         if (data?.results?.branding?.logo_url) {
+          // The logo download URL requires the apiKey as a query param. Keep it
+          // for the actual download, but never log the URL with the token.
           logoUrl = `${data.results.branding.logo_url}?apiKey=${CONFIG.POLYGON_API_KEY}`;
-          console.log(`   → Polygon logo: ${logoUrl}`);
+          console.log(`   → Polygon logo: ${data.results.branding.logo_url} (token hidden)`);
         } else {
           console.log(`   → No Polygon logo for ${symbol}`);
           return null;
         }
-        
+
       } else if (source.name === 'clearbit') {
         // Clearbit fallback - need to get homepage first
-        const polygonResponse = await axios.get(`https://api.polygon.io/v3/reference/tickers/${symbol}?apiKey=${CONFIG.POLYGON_API_KEY}`, { timeout: 7000, httpAgent, httpsAgent });
+        const polygonResponse = await axios.get(`https://api.polygon.io/v3/reference/tickers/${encodeURIComponent(symbol)}`, { params: { apiKey: CONFIG.POLYGON_API_KEY }, timeout: 7000, httpAgent, httpsAgent });
         let homepageUrl = polygonResponse.data?.results?.homepage_url;
         // Fallback: guess domain from symbol if homepage missing (best-effort)
         if (!homepageUrl && symbol) {
           homepageUrl = `https://${symbol.toLowerCase()}.com`;
         }
         const domain = fromHomepageToDomain(homepageUrl);
-        
+
         if (domain) {
           logoUrl = `https://logo.clearbit.com/${domain}`;
           console.log(`   → Clearbit logo: ${logoUrl}`);
@@ -120,8 +129,10 @@ export async function fetchAndStoreLogo(symbol: string): Promise<{
       }
 
       return logoUrl ? { logoUrl, sourceName } : null;
-    } catch (error) {
-      console.log(`   → Failed ${source.name} for ${symbol}: ${(error as Error).message}`);
+    } catch (error: any) {
+      // Log only safe fields; never the full request URL (may contain token).
+      const status = error?.response?.status ?? 'n/a';
+      console.log(`   → Failed ${source.name} for ${symbol} (status=${status}): ${error?.message ?? error}`);
       return null;
     }
   });

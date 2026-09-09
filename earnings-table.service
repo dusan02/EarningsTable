@@ -4,13 +4,16 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+# Run as a dedicated non-root user (create it: `useradd -r -s /bin/false earnings`).
+User=earnings
+Group=earnings
 WorkingDirectory=/srv/EarningsTable
+# Secrets are loaded from an env file (chmod 600, owned by root:earnings).
+# Format: KEY=value (one per line). Do NOT commit this file.
+EnvironmentFile=/etc/earnings-table/env
 Environment="NODE_ENV=production"
 Environment="PORT=5555"
 Environment="DATABASE_URL=file:/srv/EarningsTable/modules/database/prisma/prod.db"
-Environment="FINNHUB_TOKEN=d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
-Environment="POLYGON_API_KEY=Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 Environment="CRON_TZ=America/New_York"
 ExecStart=/usr/bin/node /srv/EarningsTable/simple-server.js
 Restart=always
@@ -20,4 +23,3 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-

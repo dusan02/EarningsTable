@@ -23,6 +23,10 @@ export type FinhubData = {
   hour?: string | null;
   quarter?: number | null;
   year?: number | null;
+  // Logo fields
+  logoUrl?: string | null;
+  logoSource?: string | null;
+  logoFetchedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -32,8 +36,9 @@ export type CreateFinhubData = {
   symbol: string;
   epsActual?: number | null;
   epsEstimate?: number | null;
-  revenueActual?: number | null;
-  revenueEstimate?: number | null;
+  // Accept bigint (preferred) or number/string (converted by DatabaseManager.toBigInt).
+  revenueActual?: bigint | number | string | null;
+  revenueEstimate?: bigint | number | string | null;
   hour?: string | null;
   quarter?: number | null;
   year?: number | null;
@@ -60,10 +65,7 @@ export type PolygonData = {
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
   dataReady?: boolean | null;
-  // Logo fields
-  logoUrl?: string | null;
-  logoSource?: string | null;
-  logoFetchedAt?: Date | null;
+  priceSource?: string | null; // 'pre'|'live'|'ah'|'min'|'day'|'prevDay'
   createdAt: Date;
   updatedAt: Date;
 };
@@ -82,17 +84,13 @@ export type CreatePolygonData = {
   changeFromPrevClosePct?: number | null;
   changeFromOpenPct?: number | null;
   sessionRef?: 'premarket' | 'regular' | 'afterhours' | null;
-  qualityFlags?: string[] | null; // Array of quality flags
+  qualityFlags?: string[] | null; // Array of quality flags (stored as Json)
   change?: number | null; // Keep for backward compatibility
   size?: string | null;  // Mega, Large, Mid, Small, null
   name?: string | null;  // Company name from Polygon API
   priceBoolean?: boolean | null;
   dataReady?: boolean | null;
   priceSource?: 'pre'|'live'|'ah'|'min'|'day'|'prevDay' | null;
-  // Logo fields
-  logoUrl?: string | null;
-  logoSource?: string | null;
-  logoFetchedAt?: Date | null;
 };
 
 export type FinalReport = {
@@ -106,14 +104,16 @@ export type FinalReport = {
   change?: number | null;  // From PolygonData
   epsActual?: number | null;  // From FinhubData
   epsEst?: number | null;  // From FinhubData (epsEstimate)
-  epsSurp?: number | null;  // Calculated: ((epsActual/epsEstimate) * 100) - 100
+  epsSurp?: number | null;  // Calculated: ((epsActual - epsEstimate) / |epsEstimate|) * 100
   revActual?: bigint | null;  // From FinhubData (revenueActual)
   revEst?: bigint | null;  // From FinhubData (revenueEstimate)
-  revSurp?: number | null;  // Calculated: ((revActual/revEstimate) * 100) - 100
+  revSurp?: number | null;  // Calculated: ((revActual - revEstimate) / |revEstimate|) * 100
   // Logo fields (copied from PolygonData)
   logoUrl?: string | null;
   logoSource?: string | null;
   logoFetchedAt?: Date | null;
+  reportDate?: Date | null;  // NY calendar day being reported on
+  snapshotDate?: Date | null;  // Instant the snapshot was generated
   createdAt: Date;
   updatedAt: Date;
 };
@@ -128,14 +128,16 @@ export type CreateFinalReport = {
   change?: number | null;  // From PolygonData
   epsActual?: number | null;  // From FinhubData
   epsEst?: number | null;  // From FinhubData (epsEstimate)
-  epsSurp?: number | null;  // Calculated: ((epsActual/epsEstimate) * 100) - 100
+  epsSurp?: number | null;  // Calculated: ((epsActual - epsEstimate) / |epsEstimate|) * 100
   revActual?: bigint | null;  // From FinhubData (revenueActual)
   revEst?: bigint | null;  // From FinhubData (revenueEstimate)
-  revSurp?: number | null;  // Calculated: ((revActual/revEstimate) * 100) - 100
+  revSurp?: number | null;  // Calculated: ((revActual - revEstimate) / |revEstimate|) * 100
   // Logo fields (copied from PolygonData)
   logoUrl?: string | null;
   logoSource?: string | null;
   logoFetchedAt?: Date | null;
+  reportDate: Date;       // required (part of @@unique)
+  snapshotDate: Date;     // required
 };
 
 export type ApiResponse<T> = {

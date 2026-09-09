@@ -1,52 +1,97 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Calendar from './Calendar';
 import EarningsTable from './EarningsTable';
-import { FinalReportData, DateInfo, Theme } from './types';
+import { FinalReportData, DateInfo } from './types';
+import { nyTodayISO, formatDateLong } from './utils';
+import { useTheme } from './hooks/useTheme';
+import { useEarningsData } from './hooks/useEarningsData';
+import { useCronStatus } from './hooks/useCronStatus';
+import { LoadingState, ErrorState } from './components/States';
 
-function toISODate(d: Date): string {
-  return d.toISOString().split('T')[0];
+// Simple error boundary so a render error in the table/calendar doesn't blank
+// the whole page (M3).
+export class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; message?: string }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error.message };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary] render error:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-neutral-50 dark:bg-slate-950 p-6">
+          <div className="text-center max-w-md">
+            <div className="text-3xl mb-3">⚠️</div>
+            <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Something went wrong while rendering the page.
+            </div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+              {this.state.message}
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
-function formatDateLong(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00.000Z`);
-  return d.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
+/** Format a ms epoch as a relative "X min ago" / "just now" label. */
+function relativeTime(ms: number | null): string | null {
+  if (ms == null) return null;
+  const diffSec = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (diffSec < 5) return 'just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h ago`;
 }
 
 const App: React.FC = () => {
-  const todayStr = toISODate(new Date());
+  const todayStr = nyTodayISO();
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [data, setData] = useState<FinalReportData[]>([]);
   const [availableDates, setAvailableDates] = useState<DateInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>(() => {
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  });
+  const [theme, toggleTheme] = useTheme();
+  const { data, loading, error, lastUpdated, refresh } = useEarningsData(selectedDate);
+  const { cron } = useCronStatus();
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // Fetch available dates once
+  // Fetch available dates once. If today has no data but other dates do,
+  // auto-select the latest available date so the page isn't empty on load.
+  // Guarded by a ref so a user's manual selection is never overridden.
+  const initialPickDone = useRef(false);
   useEffect(() => {
     const fetchDates = async () => {
       try {
         const res = await fetch('/api/final-report/dates');
         if (res.ok) {
           const result = await res.json();
-          setAvailableDates(result.data ?? []);
+          if (result && Array.isArray(result.data)) {
+            setAvailableDates(result.data);
+            if (!initialPickDone.current && Array.isArray(result.data) && result.data.length > 0) {
+              initialPickDone.current = true;
+              const dates = result.data.map((d: DateInfo) => d.date).sort();
+              const today = nyTodayISO();
+              if (!dates.includes(today)) {
+                // Dates are sorted ascending; pick the latest available.
+                setSelectedDate(dates[dates.length - 1]);
+              }
+            }
+          }
         }
       } catch {
         // Non-critical — calendar works without it
@@ -55,34 +100,8 @@ const App: React.FC = () => {
     fetchDates();
   }, []);
 
-  // Fetch data when selected date changes
-  const fetchData = useCallback(async (date: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch(`/api/final-report/date/${date}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = await res.json();
-      setData(result.data ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData(selectedDate);
-  }, [selectedDate, fetchData]);
-
-  // Auto-refresh every 60s
-  useEffect(() => {
-    const interval = setInterval(() => fetchData(selectedDate), 60000);
-    return () => clearInterval(interval);
-  }, [selectedDate, fetchData]);
-
-  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+  const freshnessLabel = relativeTime(lastUpdated);
+  const isFresh = cron?.isFresh ?? true; // assume fresh until cron status loads
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-slate-950 transition-colors duration-300">
@@ -103,17 +122,34 @@ const App: React.FC = () => {
                   Earnings Table
                 </h1>
                 <p className="hidden sm:block text-xs text-neutral-500 dark:text-neutral-400">
-                  Daily earnings calendar & financial data
+                  Daily earnings calendar &amp; financial data
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Live indicator */}
-              <div className="hidden sm:flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Live</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Freshness indicator (real, from cron status + last fetch) */}
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-100 dark:bg-slate-800"
+                title={cron?.lastUpdate ? `Cron last update: ${cron.lastUpdate}` : 'No cron status yet'}
+              >
+                <div className={`w-2 h-2 rounded-full ${isFresh ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                <span className={`text-xs font-medium ${isFresh ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                  {freshnessLabel ? `Updated ${freshnessLabel}` : 'Live'}
+                </span>
               </div>
+
+              {/* Manual refresh */}
+              <button
+                onClick={refresh}
+                disabled={loading}
+                aria-label="Refresh data"
+                className="p-2 rounded-lg bg-neutral-100 dark:bg-slate-800 hover:bg-neutral-200 dark:hover:bg-slate-700 transition-colors text-neutral-600 dark:text-neutral-300 disabled:opacity-50"
+              >
+                <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
 
               {/* Theme toggle */}
               <button
@@ -164,22 +200,9 @@ const App: React.FC = () => {
           {/* Right content: Table */}
           <div>
             {loading && data.length === 0 ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
-                  </div>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading earnings data...</p>
-                </div>
-              </div>
+              <LoadingState />
             ) : error && data.length === 0 ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="text-center">
-                  <div className="text-3xl text-neutral-300 dark:text-neutral-600 mb-3">⚠️</div>
-                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Failed to load data</div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400">{error}</div>
-                </div>
-              </div>
+              <ErrorState message={error} />
             ) : (
               <EarningsTable data={data} selectedDate={selectedDate} />
             )}

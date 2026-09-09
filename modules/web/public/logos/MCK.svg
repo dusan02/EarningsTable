@@ -1,7 +1,6 @@
 <svg version="1.1" id="rgb" xmlns:x="ns_extend;" xmlns:i="ns_ai;" xmlns:graph="ns_graphs;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 366.4 50" style="enable-background:new 0 0 366.4 50;" xml:space="preserve">
  <style type="text/css">
-  .st0{fill:#005A8C;}
-	.st1{fill:#EF8200;}
+  .st0{fill:#FFFFFF;}
  </style>
  <metadata>
   <sfw xmlns="ns_sfw;">
@@ -20,7 +19,7 @@
   <polygon class="st0" points="175.5,48.9 140,48.9 140,0.9 175.5,0.9 175.5,10.3 151.6,10.3 151.6,19.2 173.5,19.2 173.5,28.5 
 		151.6,28.5 151.6,39.6 175.5,39.6 	">
   </polygon>
-  <rect x="59.4" y="40.3" class="st1" width="26" height="8.7">
+  <rect x="59.4" y="40.3" class="st0" width="26" height="8.7">
   </rect>
   <path class="st0" d="M120,0.9c0,0-12.8,16.1-14.7,18.2V0.9H94.5v48h10.9V27.7c1.9,2.3,15.1,21.2,15.1,21.2h15.3
 		c0,0-20.2-24.9-21-25.7l19.7-22.3H120z">

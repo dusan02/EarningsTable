@@ -57,16 +57,19 @@ function hasMoreData(a: FinnhubEarning, b: FinnhubEarning): boolean {
   return aFields > bFields;
 }
 
-export async function fetchTodayEarnings(token: string, isoDate: string): Promise<FinnhubEarning[]> {
+export async function fetchTodayEarnings(token: string, isoDate: string, dateRange?: { from: string; to: string }): Promise<FinnhubEarning[]> {
   // Finnhub endpoint (earnings calendar):
   // GET /api/v1/calendar/earnings?from=YYYY-MM-DD&to=YYYY-MM-DD&token=...
   const url = 'https://finnhub.io/api/v1/calendar/earnings';
   
+  const from = dateRange?.from ?? isoDate;
+  const to = dateRange?.to ?? isoDate;
+  
   try {
     const { data } = await retryGet(url, {
       params: { 
-        from: isoDate, 
-        to: isoDate, 
+        from, 
+        to, 
         token 
       },
       timeout: 12000,
@@ -83,7 +86,7 @@ export async function fetchTodayEarnings(token: string, isoDate: string): Promis
 
     // Očakávaná štruktúra: { earningsCalendar: [ { symbol, date, epsActual, epsEstimate, revenueActual, revenueEstimate, hour, quarter, year } ] }
     const rows = (data?.earningsCalendar ?? []) as any[];
-    console.log(`📥 Raw API response: ${rows.length} records`);
+    console.log(`📥 Raw API response: ${rows.length} records for ${from} to ${to}`);
 
     const normalized = deduplicateAndNormalize(rows);
     console.log(`📊 After deduplication: ${normalized.length} unique records`);

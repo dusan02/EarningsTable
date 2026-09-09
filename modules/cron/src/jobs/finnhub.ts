@@ -38,12 +38,22 @@ export async function runFinnhubJob(options: FinnhubJobOptions = {}): Promise<Fi
     const isoDate = resolveFinnhubTargetDate(options.date);
     console.log(`📅 Fetching earnings for ${isoDate} (NY time)`);
     
+    // Fetch a 7-day window (±3 days) so the calendar has data for the whole week
+    const centerDate = new Date(`${isoDate}T00:00:00.000Z`);
+    const fromDate = new Date(centerDate);
+    fromDate.setUTCDate(centerDate.getUTCDate() - 3);
+    const toDate = new Date(centerDate);
+    toDate.setUTCDate(centerDate.getUTCDate() + 3);
+    const fromStr = fromDate.toISOString().split('T')[0];
+    const toStr = toDate.toISOString().split('T')[0];
+    console.log(`📅 Fetching earnings window: ${fromStr} to ${toStr}`);
+    
     if (resolveForceMode(options.force)) {
       console.log('🔄 Force mode: will overwrite existing data');
     }
     
-    const rows = await fetchTodayEarnings(CONFIG.FINNHUB_TOKEN, isoDate);
-    console.log(`📊 Found ${rows.length} earnings reports for ${isoDate}`);
+    const rows = await fetchTodayEarnings(CONFIG.FINNHUB_TOKEN, isoDate, { from: fromStr, to: toStr });
+    console.log(`📊 Found ${rows.length} earnings reports for ${fromStr} to ${toStr}`);
 
     if (rows.length === 0) {
       console.log('⚠️ No earnings reports found for the specified date');

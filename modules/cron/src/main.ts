@@ -17,14 +17,6 @@ function isoNY(d = nowNY()) {
   return TimezoneManager.getNYDateString(d);
 }
 
-function getNYMidnight(): Date {
-  const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
-  const yyyy = nowNY.getFullYear();
-  const mm = String(nowNY.getMonth() + 1).padStart(2, '0');
-  const dd = String(nowNY.getDate()).padStart(2, '0');
-  return new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`);
-}
-
 function applyCliOverrides(args: string[]) {
   const dateArg = args.find((arg) => arg.startsWith('--date='));
   if (dateArg) {
@@ -141,6 +133,7 @@ Examples:
 
 
 let __pipelineRunning = false;
+let __currentPipeline: Promise<void> | null = null;
 const PIPELINE_TIMEOUT_MS = 4 * 60 * 1000;
 const QUIET_WINDOW_MS = 5 * 60 * 1000;
 let __quietWindowUntil = 0;
@@ -184,44 +177,66 @@ async function runPipeline(label = "scheduled") {
     console.error('Failed to log pipeline start:', logError);
   }
 
-  const timeoutId = setTimeout(() => {
-    console.log("Pipeline timeout -- resetting flag");
-    __pipelineRunning = false;
+  // Soft watchdog: only warn on long runs. We intentionally do NOT reset the
+  // flag here, because doing so would allow a second concurrent pipeline to
+  // start while the first is still running (data corruption / double API calls).
+  const watchdogId = setTimeout(() => {
+    console.warn(`Pipeline running longer than ${Math.round(PIPELINE_TIMEOUT_MS / 1000)}s [${label}] -- will keep blocking new ticks until it finishes`);
   }, PIPELINE_TIMEOUT_MS);
 
+  const work = (async () => {
+    try {
+      const metrics = await optimizedPipeline.runPipeline(label);
+
+      performanceMonitor.recordSnapshot({
+        pipelineDuration: metrics.duration,
+        finnhubDuration: metrics.finnhubDuration,
+        polygonDuration: metrics.polygonDuration,
+        logoDuration: metrics.logoDuration,
+        dbDuration: metrics.dbDuration,
+        totalRecords: metrics.totalRecords,
+        symbolsChanged: metrics.symbolsChanged
+      });
+
+      await performanceMonitor.saveToDatabase();
+
+      const duration = Date.now() - startTime.getTime();
+      try {
+        await db.updateCronStatus('pipeline', 'success', metrics.totalRecords, undefined, startTime, duration);
+      } catch (logError) {
+        console.error('Failed to log pipeline success:', logError);
+      }
+
+    } catch (e) {
+      console.error('Pipeline failed:', e);
+      const duration = Date.now() - startTime.getTime();
+      try {
+        await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e), startTime, duration);
+      } catch (logError) {
+        console.error('Failed to log pipeline error:', logError);
+      }
+    } finally {
+      clearTimeout(watchdogId);
+      __pipelineRunning = false;
+      __currentPipeline = null;
+    }
+  })();
+
+  __currentPipeline = work;
+  await work;
+}
+
+// Wait for any in-flight pipeline to finish (used by daily clear + shutdown).
+async function waitForPipelineIdle(timeoutMs = 90 * 1000): Promise<void> {
+  if (!__pipelineRunning || !__currentPipeline) return;
+  console.log('Waiting for in-flight pipeline to finish before proceeding...');
   try {
-    const metrics = await optimizedPipeline.runPipeline(label);
-
-    performanceMonitor.recordSnapshot({
-      pipelineDuration: metrics.duration,
-      finnhubDuration: metrics.finnhubDuration,
-      polygonDuration: metrics.polygonDuration,
-      logoDuration: metrics.logoDuration,
-      dbDuration: metrics.dbDuration,
-      totalRecords: metrics.totalRecords,
-      symbolsChanged: metrics.symbolsChanged
-    });
-
-    await performanceMonitor.saveToDatabase();
-
-    const duration = Date.now() - startTime.getTime();
-    try {
-      await db.updateCronStatus('pipeline', 'success', metrics.totalRecords, undefined, startTime, duration);
-    } catch (logError) {
-      console.error('Failed to log pipeline success:', logError);
-    }
-
+    await Promise.race([
+      __currentPipeline,
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error('waitForPipelineIdle timeout')), timeoutMs)),
+    ]);
   } catch (e) {
-    console.error('Pipeline failed:', e);
-    const duration = Date.now() - startTime.getTime();
-    try {
-      await db.updateCronStatus('pipeline', 'error', 0, (e as any)?.message || String(e), startTime, duration);
-    } catch (logError) {
-      console.error('Failed to log pipeline error:', logError);
-    }
-  } finally {
-    clearTimeout(timeoutId);
-    __pipelineRunning = false;
+    console.error('waitForPipelineIdle:', e);
   }
 }
 
@@ -342,6 +357,8 @@ async function startAllCronJobs(once: boolean) {
         try {
           const nowNY = new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
           console.log(`Daily clear starting @ 03:00 NY (actual: ${nowNY.toLocaleString()})`);
+          // Wait for any in-flight pipeline so we don't wipe tables mid-write.
+          await waitForPipelineIdle();
           process.env.ALLOW_CLEAR = 'true';
           await db.clearAllTables();
           console.log('Daily clear done');
@@ -368,9 +385,8 @@ async function startAllCronJobs(once: boolean) {
     checkAndRunDailyResetIfNeeded();
 
     console.log('Press Ctrl+C to stop all cron jobs');
-    process.stdin.resume();
-
-    setInterval(() => {}, 60000);
+    // node-cron scheduled tasks hold timers that keep the process alive;
+    // no need for stdin.resume() or an empty setInterval keep-alive.
   }
 
   if (once) {
@@ -399,17 +415,16 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+async function gracefulShutdown(signal: string) {
+  console.log(`${signal} received, shutting down gracefully`);
+  // Let any in-flight pipeline finish (bounded) so we don't leave partial DB writes.
+  await waitForPipelineIdle(60 * 1000);
   await db.disconnect().catch(() => {});
   process.exit(0);
-});
+}
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  await db.disconnect().catch(() => {});
-  process.exit(0);
-});
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 // Start the application
 bootstrap().catch((error) => {

@@ -38,10 +38,15 @@ export function formatNumber(num: number): string {
 }
 
 /**
- * Formátuje BigInt s čiarkami
+ * Formátuje BigInt s čiarkami (bez straty presnosti pre veľké hodnoty).
+ * Konvertuje cez string, nie cez Number (které by stratilo presnosť > 2^53).
  */
 export function formatBigInt(num: bigint): string {
-  return new Intl.NumberFormat('en-US').format(Number(num));
+  const sign = num < 0n ? '-' : '';
+  const absStr = (num < 0n ? -num : num).toString();
+  // Insert thousands separators manually to avoid Number conversion.
+  const withSep = absStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${sign}${withSep}`;
 }
 
 /**

@@ -32,10 +32,10 @@ The `token` parameter is `undefined`, confirming the environment variable is not
 
 ```bash
 # Changed from:
-FINNHUB_API_KEY="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+FINNHUB_API_KEY="<FINNHUB_TOKEN_REDACTED>"
 
 # To:
-FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"
 ```
 
 ### ❌ **Result**: Still failing with 401 Unauthorized
@@ -70,7 +70,7 @@ node -e "require('dotenv').config(); console.log('FINNHUB_TOKEN:', process.env.F
 ### **Step 2: Test API Key Manually**
 
 ```bash
-curl "https://finnhub.io/api/v1/calendar/earnings?from=2025-10-17&to=2025-10-17&token=d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+curl "https://finnhub.io/api/v1/calendar/earnings?from=2025-10-17&to=2025-10-17&token=<FINNHUB_TOKEN_REDACTED>"
 ```
 
 ### **Step 3: Check API Key Status**

@@ -22,7 +22,10 @@ export class SyntheticTestRunner {
   private baseUrl: string;
   private timeout: number;
 
-  constructor(baseUrl: string = 'http://localhost:5555', timeout: number = 10000) {
+  constructor(
+    baseUrl: string = process.env.BASE_URL || `http://localhost:${process.env.PORT || '3001'}`,
+    timeout: number = 10000
+  ) {
     this.baseUrl = baseUrl;
     this.timeout = timeout;
   }
@@ -96,9 +99,9 @@ export class SyntheticTestRunner {
       if (response.status === 200) {
         // API returns { success: true, data: [...], count: ... }
         const responseData = response.data;
-        const dataArray = Array.isArray(responseData) 
-          ? responseData 
-          : (responseData?.data || []);
+        const dataArray: any[] = Array.isArray(responseData)
+          ? responseData
+          : (Array.isArray(responseData?.data) ? responseData.data : []);
         const symbolCount = dataArray.length;
         
         if (symbolCount >= 20) {
@@ -348,9 +351,14 @@ export class SyntheticTestRunner {
       const nyNow = TimezoneManager.nowNY();
       const nyDateString = TimezoneManager.getNYDateString();
       const isDSTWeek = TimezoneManager.isDSTTransitionWeek();
-      
-      // Check if we're in a reasonable timezone
-      const nyHour = nyNow.getHours();
+
+      // Determine the NY hour explicitly (getHours() would return server-local hour).
+      const nyHourStr = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        hour: '2-digit',
+        hour12: false,
+      }).format(nyNow);
+      const nyHour = parseInt(nyHourStr, 10);
       const isBusinessHours = nyHour >= 6 && nyHour <= 20;
       
       return {

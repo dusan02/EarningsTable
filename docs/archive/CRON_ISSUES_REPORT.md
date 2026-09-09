@@ -47,7 +47,7 @@
 
 ```bash
 # This worked:
-DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db" FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0" POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX" npm run run-all
+DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db" FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>" POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX" npm run run-all
 
 # Output: ✅ 18 symbols processed successfully
 ```

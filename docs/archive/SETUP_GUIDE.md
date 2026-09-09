@@ -80,7 +80,7 @@ cd modules/cron
 npm run restart
 
 # 2. Finnhub cron (jednorazovo)
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 npm run finnhub_data:once
 
 # 3. Polygon cron (jednorazovo)
@@ -91,7 +91,7 @@ npm run polygon_data:once
 npx tsx src/generate-final-report.ts
 
 # 5. Všetky crony s štatistikami
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm run run-all
 
@@ -157,7 +157,7 @@ npx tsx src/clear-db-cron.ts
 ```bash
 cd modules/web
 $env:DATABASE_URL = "file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm start
 ```
@@ -175,7 +175,7 @@ npm start
 ```powershell
 cd D:\Projects\EarningsTable\modules\web
 $env:DATABASE_URL = "file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm start
 ```
@@ -192,7 +192,7 @@ npx prisma studio --port 5556
 
 ```powershell
 cd D:\Projects\EarningsTable\modules\cron
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 npm run run-all
 ```

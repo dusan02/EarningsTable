@@ -10,7 +10,7 @@ Kompletná audit aplikácie pred nasadením na GitHub. Identifikované a vyrieš
 
 ### ✅ **1. Hardcoded API Keys - KRITICKÉ**
 **Problém**: API kľúče boli hardcoded v súboroch
-- `env-vars.ps1`: `FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"`
+- `env-vars.ps1`: `FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"`
 - `SETUP_GUIDE.md`: Exposed API keys v dokumentácii
 - `ecosystem.config.js`: API keys v PM2 konfigurácii
 

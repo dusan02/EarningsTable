@@ -29,7 +29,7 @@ Create `.env` file in your project root:
 DATABASE_URL="file:D:/Projects/EarningsTable/modules/database/prisma/dev.db"
 
 # API Keys
-FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"
 POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 
 # Server

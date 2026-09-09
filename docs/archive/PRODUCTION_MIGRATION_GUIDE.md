@@ -310,7 +310,7 @@ SKIP_RESET_CHECK=false
 
 ### Current API Keys (Development):
 
-- **Finnhub**: `d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0`
+- **Finnhub**: `<FINNHUB_TOKEN_REDACTED>`
 - **Polygon**: `Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX`
 
 ## 📦 Dependencies
@@ -421,7 +421,7 @@ cd ../..
 # Create .env file
 cat > .env << EOF
 DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db"
-FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"
 POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 PORT=5555
 NODE_ENV=production

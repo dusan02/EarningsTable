@@ -1,17 +1,18 @@
 // modules/shared/src/idempotency.ts
 import { prisma } from './prismaClient.js';
+import { TimezoneManager } from './timezone.js';
 
 /**
  * Idempotency utilities to ensure safe re-runs
  */
 export class IdempotencyManager {
   /**
-   * Check if pipeline was already processed today
+   * Check if pipeline was already processed today (NY calendar day)
    */
   static async wasProcessedToday(jobType: string): Promise<boolean> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
+    // Compare NY calendar dates, not server-local dates.
+    const todayNYStr = TimezoneManager.getNYDateString(new Date());
+
     const lastRun = await prisma.cronStatus.findUnique({
       where: { jobType },
       select: { lastRunAt: true, status: true }
@@ -21,10 +22,9 @@ export class IdempotencyManager {
       return false;
     }
 
-    const lastRunDate = new Date(lastRun.lastRunAt);
-    lastRunDate.setHours(0, 0, 0, 0);
-    
-    return lastRunDate.getTime() === today.getTime();
+    const lastRunNYStr = TimezoneManager.getNYDateString(new Date(lastRun.lastRunAt));
+
+    return lastRunNYStr === todayNYStr;
   }
 
   /**

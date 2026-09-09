@@ -112,7 +112,7 @@
 ### Environment Variables
 
 ```bash
-FINNHUB_TOKEN=d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0
+FINNHUB_TOKEN=<FINNHUB_TOKEN_REDACTED>
 POLYGON_API_KEY=Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX
 ```
 

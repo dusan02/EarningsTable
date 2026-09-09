@@ -25,7 +25,7 @@ WorkingDirectory=/srv/EarningsTable/modules/cron
 Environment="NODE_ENV=production"
 Environment="CRON_TZ=America/New_York"
 Environment="DATABASE_URL=file:/srv/EarningsTable/modules/database/prisma/prod.db"
-Environment="FINNHUB_TOKEN=d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+Environment="FINNHUB_TOKEN=<FINNHUB_TOKEN_REDACTED>"
 Environment="POLYGON_API_KEY=Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 ExecStart=/usr/bin/node node_modules/.bin/tsx src/main.ts start
 Restart=always

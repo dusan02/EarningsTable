@@ -19,7 +19,7 @@
 
 #### ✅ **Issue 2: Invalid Finnhub API Key (RESOLVED)**
 
-- **Problem**: `FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"` returns `{"error":"Invalid API key"}`
+- **Problem**: `FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"` returns `{"error":"Invalid API key"}`
 - **Impact**: Finnhub data not updating (stuck at `2025-10-22T04:00:10Z`)
 - **Solution**: Updated to placeholder `FINNHUB_TOKEN="YOUR_NEW_FINNHUB_KEY"`
 - **Status**: ✅ **FIXED** (needs valid key)

@@ -906,7 +906,7 @@ export async function processSymbolsWithPriceService(symbols: string[]): Promise
         changeFromPrevClosePct,
         changeFromOpenPct,
         sessionRef,
-        qualityFlags: qualityFlags ? JSON.stringify(qualityFlags) : null as any,
+        qualityFlags: qualityFlags && qualityFlags.length > 0 ? qualityFlags : null,
         change: changePctForDb, // Keep for backward compatibility
         size,
         name: companyName || (snapshot as any)?.name || null,

@@ -84,7 +84,7 @@ module.exports = {
         PORT: "5555",
         DATABASE_URL:
           "file:/var/www/earnings-table/modules/database/prisma/prod.db",
-        FINNHUB_TOKEN: "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0",
+        FINNHUB_TOKEN: "<FINNHUB_TOKEN_REDACTED>",
         POLYGON_API_KEY: "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX",
         CRON_TZ: "America/New_York",
       },

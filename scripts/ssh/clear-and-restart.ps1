@@ -4,7 +4,7 @@ Write-Host "=========================================================" -Foregrou
 
 # Set environment variables
 $env:DATABASE_URL = "file:D:\Projects\EarningsTable\modules\database\prisma\dev.db"
-$env:FINNHUB_TOKEN = "d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+$env:FINNHUB_TOKEN = "<FINNHUB_TOKEN_REDACTED>"
 $env:POLYGON_API_KEY = "Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 $env:CRON_TZ = "America/New_York"
 $env:ALLOW_CLEAR = "true"
@@ -63,7 +63,7 @@ Write-Host "✅ Cache cleared" -ForegroundColor Green
 Write-Host "`n🌐 Step 4: Starting application on localhost:3000..." -ForegroundColor Yellow
 Set-Location "D:\Projects\EarningsTable"
 $env:PORT = "3000"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd D:\Projects\EarningsTable; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = 'd28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:PORT = '3000'; node simple-server.js"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd D:\Projects\EarningsTable; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = '<FINNHUB_TOKEN_REDACTED>'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:PORT = '3000'; node simple-server.js"
 
 # Wait a bit for server to start
 Start-Sleep -Seconds 5
@@ -71,7 +71,7 @@ Start-Sleep -Seconds 5
 # Step 5: Start cron jobs
 Write-Host "`n⏰ Step 5: Starting cron jobs..." -ForegroundColor Yellow
 Set-Location "D:\Projects\EarningsTable\modules\cron"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd D:\Projects\EarningsTable\modules\cron; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = 'd28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:CRON_TZ = 'America/New_York'; npx tsx src/main.ts start"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd D:\Projects\EarningsTable\modules\cron; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = '<FINNHUB_TOKEN_REDACTED>'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:CRON_TZ = 'America/New_York'; npx tsx src/main.ts start"
 
 # Wait a bit for cron to start
 Start-Sleep -Seconds 3
@@ -83,7 +83,7 @@ Start-Sleep -Seconds 2
 # Test by running a single job
 Write-Host "  Running test job (finnhub --once)..." -ForegroundColor Cyan
 Set-Location "D:\Projects\EarningsTable\modules\cron"
-Start-Process powershell -ArgumentList "-Command", "cd D:\Projects\EarningsTable\modules\cron; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = 'd28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:CRON_TZ = 'America/New_York'; npx tsx src/main.ts run-finnhub --once; Read-Host 'Press Enter to close'"
+Start-Process powershell -ArgumentList "-Command", "cd D:\Projects\EarningsTable\modules\cron; `$env:DATABASE_URL = 'file:D:\Projects\EarningsTable\modules\database\prisma\dev.db'; `$env:FINNHUB_TOKEN = '<FINNHUB_TOKEN_REDACTED>'; `$env:POLYGON_API_KEY = 'Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX'; `$env:CRON_TZ = 'America/New_York'; npx tsx src/main.ts run-finnhub --once; Read-Host 'Press Enter to close'"
 
 # Return to root
 Set-Location "D:\Projects\EarningsTable"

@@ -55,7 +55,7 @@
   # .env file exists with:
   PORT=5555
   DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db"
-  FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0"
+  FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>"
   POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX"
 
   # But server still runs on port 3001
@@ -85,7 +85,7 @@
 
 ```bash
 # Current working command (manual):
-PORT=5555 DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db" FINNHUB_TOKEN="d28f1dhr01qjsuf342ogd28f1dhr01qjsuf342p0" POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX" node simple-server.js
+PORT=5555 DATABASE_URL="file:/var/www/earnings-table/modules/database/prisma/dev.db" FINNHUB_TOKEN="<FINNHUB_TOKEN_REDACTED>" POLYGON_API_KEY="Vi_pMLcusE8RA_SUvkPAmiyziVzlmOoX" node simple-server.js
 
 # Result: ✅ Server runs on port 5555
 ```

@@ -1,7 +1,7 @@
 export interface FinalReportData {
   symbol: string;
-  name: string;
-  size: string;
+  name: string | null;
+  size: string | null;
   marketCap: number | string | null;
   marketCapDiff: number | string | null;
   price: number | null;

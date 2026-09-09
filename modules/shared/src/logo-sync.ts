@@ -1,13 +1,22 @@
 // modules/shared/src/logo-sync.ts
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { prisma } from './prismaClient.js';
+
+// Resolve the logo directory relative to this source file so it does not
+// depend on process.cwd() (which varies by launch directory).
+// This file lives at modules/shared/src/logo-sync.ts; logos live at
+// modules/web/public/logosos.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DEFAULT_LOGO_DIR = path.resolve(__dirname, '..', '..', 'web', 'public', 'logos');
 
 export class LogoSyncManager {
   private logoDir: string;
 
   constructor(logoDir?: string) {
-    this.logoDir = logoDir || path.resolve(process.cwd(), '..', 'web', 'public', 'logos');
+    this.logoDir = logoDir || process.env.LOGO_DIR || DEFAULT_LOGO_DIR;
   }
 
   /**
@@ -46,12 +55,14 @@ export class LogoSyncManager {
       for (const logoFile of logoFiles) {
         const symbol = logoFile.symbol;
         const logoUrl = `/logos/${logoFile.filename}`;
-        
+
         try {
-          // Check if logo already exists in database
-          if (dbLogoMap.has(symbol)) {
+          // Skip only if the DB already has the *same* logo URL for this symbol.
+          // (Previously skipped whenever any logoUrl existed, even if it pointed
+          //  to a different/missing file.)
+          if (dbLogoMap.get(symbol) === logoUrl) {
             result.skipped++;
-            result.details.push({ symbol, action: 'skipped (already exists)' });
+            result.details.push({ symbol, action: 'skipped (already in sync)' });
             continue;
           }
 
@@ -139,8 +150,8 @@ export class LogoSyncManager {
    * Full logo sync (both directions)
    */
   async fullSync(): Promise<{
-    fsToDb: Awaited<ReturnType<typeof this.syncLogosFromFS>>;
-    orphanedCleanup: Awaited<ReturnType<typeof this.cleanupOrphanedLogos>>;
+    fsToDb: { synced: number; skipped: number; errors: number; details: Array<{ symbol: string; action: string; error?: string }> };
+    orphanedCleanup: { cleaned: number; details: Array<{ symbol: string; action: string }> };
   }> {
     console.log('🔄 Starting full logo synchronization...');
     
