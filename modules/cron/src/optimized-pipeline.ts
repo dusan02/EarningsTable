@@ -115,13 +115,15 @@ export class OptimizedPipeline {
     // earnings calendar entries). Also merge in existing PolygonData symbols so
     // we keep refreshing current price data for symbols that may have been removed
     // from the earnings calendar.
-    const [finhubSymbols, polygonSymbols] = await Promise.all([
-      prisma.finhubData.findMany({ select: { symbol: true }, distinct: ['symbol'] }),
-      db.getUniqueSymbolsFromPolygonData(),
-    ]);
-    const finhubSet = new Set(finnhubSymbols.map(s => s.symbol));
-    for (const s of polygonSymbols) finhubSet.add(s);
-    return Array.from(finhubSet);
+    const finhubRows = await prisma.finhubData.findMany({
+      select: { symbol: true },
+      distinct: ['symbol'],
+    });
+    const polygonSyms = await db.getUniqueSymbolsFromPolygonData();
+    const symbolSet = new Set<string>();
+    for (const r of finhubRows) symbolSet.add(r.symbol);
+    for (const s of polygonSyms) symbolSet.add(s);
+    return Array.from(symbolSet);
   }
 
   private async runPolygonOptimized(symbols: string[]): Promise<{ processed: number; duration: number }> {
