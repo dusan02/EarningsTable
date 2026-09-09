@@ -117,9 +117,9 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, availab
   const isOtherMonth = (d: Date) => view === 'month' && d.getUTCMonth() !== anchor.getUTCMonth();
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 p-4 sm:p-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 gap-2">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
         <div className="min-w-0">
           <h2 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white truncate">
             {currentMonth} {currentYear}
@@ -214,9 +214,9 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, availab
               aria-pressed={isSelected}
               className={`
                 relative flex flex-col items-center justify-center
-                rounded-xl py-2 sm:py-3 px-1 sm:px-2
+                rounded-lg sm:rounded-xl py-1.5 sm:py-3 px-0.5 sm:px-2
                 transition-all duration-200
-                min-h-[56px] sm:min-h-[72px]
+                min-h-[40px] sm:min-h-[72px]
                 ${isSelected
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-105'
                   : isTodayCell
