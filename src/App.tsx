@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
 import Calendar from './Calendar';
 import EarningsTable from './EarningsTable';
-import { FinalReportData, DateInfo } from './types';
+import { DateInfo } from './types';
 import { nyTodayISO, formatDateLong } from './utils';
 import { useTheme } from './hooks/useTheme';
 import { useEarningsData } from './hooks/useEarningsData';
@@ -52,18 +52,6 @@ export class ErrorBoundary extends React.Component<
   }
 }
 
-/** Format a ms epoch as a relative "X min ago" / "just now" label. */
-function relativeTime(ms: number | null): string | null {
-  if (ms == null) return null;
-  const diffSec = Math.max(0, Math.round((Date.now() - ms) / 1000));
-  if (diffSec < 5) return 'just now';
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const min = Math.floor(diffSec / 60);
-  if (min < 60) return `${min} min ago`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ago`;
-}
-
 const AppShell: React.FC = () => {
   const navigate = useNavigate();
   const [availableDates, setAvailableDates] = useState<DateInfo[]>([]);
@@ -93,7 +81,6 @@ const AppShell: React.FC = () => {
     navigate(`/date/${date}`);
   }, [navigate]);
 
-  const freshnessLabel = relativeTime(cron ? Date.now() - (cron.diffMin ?? 0) * 60000 : null);
   const isFresh = cron?.isFresh ?? true;
 
   return (
@@ -183,7 +170,7 @@ const DateView: React.FC<{ availableDates: DateInfo[]; onDateSelect: (d: string)
   const selectedDate = params.date || todayStr;
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  const { data, loading, error, lastUpdated, refresh } = useEarningsData(selectedDate);
+  const { data, loading, error } = useEarningsData(selectedDate);
 
   // If today has no data but other dates do, redirect to the latest available.
   // Guarded by a ref so a user's manual selection is never overridden.

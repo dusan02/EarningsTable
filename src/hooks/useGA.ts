@@ -8,8 +8,6 @@ import { useLocation } from 'react-router-dom';
  *
  * Requires the gtag() global and GA measurement ID to be set up in index.html.
  */
-const GA_MEASUREMENT_ID = 'G-E6DJ7N6W1L';
-
 export function useGA(): void {
   const location = useLocation();
 
