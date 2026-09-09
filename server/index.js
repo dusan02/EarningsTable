@@ -38,7 +38,7 @@ registerCronStatusRoutes(app);
 const path = require("path");
 const fs = require("fs");
 const BUILD_DIR = path.resolve(process.cwd(), "public");
-app.get("*", (req, res, next) => {
+app.use((req, res, next) => {
   // Skip API and static asset paths.
   if (req.path.startsWith("/api") || req.path.startsWith("/logos")) return next();
   // Skip requests for files with extensions (e.g. .js, .css, .png).
