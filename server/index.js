@@ -32,6 +32,25 @@ registerStaticRoutes(app);
 registerFinalReportRoutes(app);
 registerCronStatusRoutes(app);
 
+// SPA fallback — serve index.html for any non-API, non-static route.
+// This makes /date/:date and other client-side routes work when Express
+// serves the build directly (without nginx).
+const path = require("path");
+const fs = require("fs");
+const BUILD_DIR = path.resolve(process.cwd(), "public");
+app.get("*", (req, res, next) => {
+  // Skip API and static asset paths.
+  if (req.path.startsWith("/api") || req.path.startsWith("/logos")) return next();
+  // Skip requests for files with extensions (e.g. .js, .css, .png).
+  if (path.extname(req.path)) return next();
+  const indexFile = path.join(BUILD_DIR, "index.html");
+  if (fs.existsSync(indexFile)) {
+    res.sendFile(indexFile);
+  } else {
+    next();
+  }
+});
+
 // 404 + error middleware (after all routes).
 applyErrorMiddleware(app);
 
