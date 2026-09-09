@@ -13,18 +13,19 @@ const BUILD_DIR = path.resolve(__dirname, '..', 'build');
 const app = express();
 
 // Proxy API + logos to the API server so the SPA's relative URLs resolve.
-app.use(
-  ['/api', '/logos'],
-  createProxyMiddleware({
-    target: API_TARGET,
-    changeOrigin: true,
-    secure: false,
-    onError(err, _req, res) {
-      console.error('[serve-build] proxy error:', err.message);
-      if (res && !res.headersSent) res.status(502).json({ success: false, error: 'Bad gateway' });
-    },
-  })
-);
+const proxyMiddleware = createProxyMiddleware({
+  target: API_TARGET,
+  changeOrigin: true,
+  secure: false,
+  onError(err, _req, res) {
+    console.error('[serve-build] proxy error:', err.message);
+    if (res && !res.headersSent) res.status(502).json({ success: false, error: 'Bad gateway' });
+  },
+});
+app.use(['/api', '/logos'], proxyMiddleware);
+// SEO routes — proxy to API for dynamic sitemap/robots.
+app.get('/sitemap.xml', proxyMiddleware);
+app.get('/robots.txt', proxyMiddleware);
 
 // Static assets from the build.
 app.use(express.static(BUILD_DIR));

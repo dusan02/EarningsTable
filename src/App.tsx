@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
 import Calendar from './Calendar';
 import EarningsTable from './EarningsTable';
 import { FinalReportData, DateInfo } from './types';
@@ -62,18 +63,13 @@ function relativeTime(ms: number | null): string | null {
   return `${hr}h ago`;
 }
 
-const App: React.FC = () => {
-  const todayStr = nyTodayISO();
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+const AppShell: React.FC = () => {
+  const navigate = useNavigate();
   const [availableDates, setAvailableDates] = useState<DateInfo[]>([]);
   const [theme, toggleTheme] = useTheme();
-  const { data, loading, error, lastUpdated, refresh } = useEarningsData(selectedDate);
   const { cron } = useCronStatus();
 
-  // Fetch available dates once. If today has no data but other dates do,
-  // auto-select the latest available date so the page isn't empty on load.
-  // Guarded by a ref so a user's manual selection is never overridden.
-  const initialPickDone = useRef(false);
+  // Fetch available dates once.
   useEffect(() => {
     const fetchDates = async () => {
       try {
@@ -82,15 +78,6 @@ const App: React.FC = () => {
           const result = await res.json();
           if (result && Array.isArray(result.data)) {
             setAvailableDates(result.data);
-            if (!initialPickDone.current && Array.isArray(result.data) && result.data.length > 0) {
-              initialPickDone.current = true;
-              const dates = result.data.map((d: DateInfo) => d.date).sort();
-              const today = nyTodayISO();
-              if (!dates.includes(today)) {
-                // Dates are sorted ascending; pick the latest available.
-                setSelectedDate(dates[dates.length - 1]);
-              }
-            }
           }
         }
       } catch {
@@ -100,8 +87,12 @@ const App: React.FC = () => {
     fetchDates();
   }, []);
 
-  const freshnessLabel = relativeTime(lastUpdated);
-  const isFresh = cron?.isFresh ?? true; // assume fresh until cron status loads
+  const handleDateSelect = useCallback((date: string) => {
+    navigate(`/date/${date}`);
+  }, [navigate]);
+
+  const freshnessLabel = relativeTime(cron ? Date.now() - (cron.diffMin ?? 0) * 60000 : null);
+  const isFresh = cron?.isFresh ?? true;
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-slate-950 transition-colors duration-300">
@@ -122,34 +113,22 @@ const App: React.FC = () => {
                   Earnings Table
                 </h1>
                 <p className="hidden sm:block text-xs text-neutral-500 dark:text-neutral-400">
-                  Daily earnings calendar &amp; financial data
+                  Daily earnings calendar & financial data
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Freshness indicator (real, from cron status + last fetch) */}
+              {/* Freshness indicator */}
               <div
                 className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-100 dark:bg-slate-800"
                 title={cron?.lastUpdate ? `Cron last update: ${cron.lastUpdate}` : 'No cron status yet'}
               >
                 <div className={`w-2 h-2 rounded-full ${isFresh ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                 <span className={`text-xs font-medium ${isFresh ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                  {freshnessLabel ? `Updated ${freshnessLabel}` : 'Live'}
+                  {cron?.diffMin != null ? `Updated ${cron.diffMin} min ago` : 'Live'}
                 </span>
               </div>
-
-              {/* Manual refresh */}
-              <button
-                onClick={refresh}
-                disabled={loading}
-                aria-label="Refresh data"
-                className="p-2 rounded-lg bg-neutral-100 dark:bg-slate-800 hover:bg-neutral-200 dark:hover:bg-slate-700 transition-colors text-neutral-600 dark:text-neutral-300 disabled:opacity-50"
-              >
-                <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
 
               {/* Theme toggle */}
               <button
@@ -173,42 +152,11 @@ const App: React.FC = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 sm:gap-6">
-          {/* Left sidebar: Calendar */}
-          <div className="lg:sticky lg:top-20 lg:self-start">
-            <Calendar
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              availableDates={availableDates}
-            />
-
-            {/* Selected date info */}
-            <div className="mt-4 bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 p-4">
-              <div className="text-xs text-neutral-400 dark:text-neutral-500 uppercase tracking-wider font-semibold mb-1">
-                Selected Date
-              </div>
-              <div className="text-sm font-bold text-neutral-900 dark:text-white">
-                {formatDateLong(selectedDate)}
-              </div>
-              <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-                {loading ? 'Loading...' : `${data.length} ${data.length === 1 ? 'company reporting' : 'companies reporting'}`}
-              </div>
-            </div>
-          </div>
-
-          {/* Right content: Table */}
-          <div>
-            {loading && data.length === 0 ? (
-              <LoadingState />
-            ) : error && data.length === 0 ? (
-              <ErrorState message={error} />
-            ) : (
-              <EarningsTable data={data} selectedDate={selectedDate} />
-            )}
-          </div>
-        </div>
-      </main>
+      <Routes>
+        <Route path="/" element={<DateView availableDates={availableDates} onDateSelect={handleDateSelect} />} />
+        <Route path="/date/:date" element={<DateView availableDates={availableDates} onDateSelect={handleDateSelect} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* Footer */}
       <footer className="mt-12 border-t border-neutral-200 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -224,5 +172,79 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+/** Date view — reads :date from URL or defaults to today. */
+const DateView: React.FC<{ availableDates: DateInfo[]; onDateSelect: (d: string) => void }> = ({ availableDates, onDateSelect }) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const todayStr = nyTodayISO();
+  const selectedDate = params.date || todayStr;
+
+  const { data, loading, error, lastUpdated, refresh } = useEarningsData(selectedDate);
+
+  // If today has no data but other dates do, redirect to the latest available.
+  // Guarded by a ref so a user's manual selection is never overridden.
+  const initialPickDone = useRef(false);
+  useEffect(() => {
+    if (initialPickDone.current) return;
+    if (availableDates.length === 0) return;
+    initialPickDone.current = true;
+    const dates = availableDates.map(d => d.date).sort();
+    const today = nyTodayISO();
+    if (!dates.includes(today) && !params.date) {
+      navigate(`/date/${dates[dates.length - 1]}`, { replace: true });
+    }
+  }, [availableDates, params.date, navigate]);
+
+  return (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      {/* Semantic H1 for SEO/GEO — visible to crawlers even without JS rendering */}
+      <h1 className="sr-only">
+        Earnings reports for {formatDateLong(selectedDate)} — {loading ? 'loading' : `${data.length} companies reporting`}
+      </h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 sm:gap-6">
+        {/* Left sidebar: Calendar */}
+        <div className="lg:sticky lg:top-20 lg:self-start">
+          <Calendar
+            selectedDate={selectedDate}
+            onDateSelect={onDateSelect}
+            availableDates={availableDates}
+          />
+
+          {/* Selected date info */}
+          <div className="mt-4 bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 p-4">
+            <div className="text-xs text-neutral-400 dark:text-neutral-500 uppercase tracking-wider font-semibold mb-1">
+              Selected Date
+            </div>
+            <div className="text-sm font-bold text-neutral-900 dark:text-white">
+              {formatDateLong(selectedDate)}
+            </div>
+            <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+              {loading ? 'Loading...' : `${data.length} ${data.length === 1 ? 'company reporting' : 'companies reporting'}`}
+            </div>
+          </div>
+        </div>
+
+        {/* Right content: Table */}
+        <div>
+          {loading && data.length === 0 ? (
+            <LoadingState />
+          ) : error && data.length === 0 ? (
+            <ErrorState message={error} />
+          ) : (
+            <EarningsTable data={data} selectedDate={selectedDate} />
+          )}
+        </div>
+      </div>
+    </main>
+  );
+};
+
+const App: React.FC = () => (
+  <BrowserRouter>
+    <AppShell />
+  </BrowserRouter>
+);
 
 export default App;

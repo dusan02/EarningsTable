@@ -4,6 +4,7 @@
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
+const { prisma } = require("../prisma");
 
 function registerStaticRoutes(app) {
   // Serve /public as static files (fallback if Nginx doesn't handle it).
@@ -28,21 +29,53 @@ function registerStaticRoutes(app) {
     });
   });
 
-  // sitemap.xml
-  app.get("/sitemap.xml", (req, res) => {
-    const possiblePaths = [
-      path.resolve(__dirname, "..", "..", "public", "sitemap.xml"),
-      path.resolve(process.cwd(), "public", "sitemap.xml"),
-    ];
-    const sitemapPath = possiblePaths.find((p) => fs.existsSync(p));
-    if (!sitemapPath) {
-      console.error("[sitemap] File not found in any of:", possiblePaths);
-      return res.status(404).json({ error: "sitemap.xml not found" });
+  // sitemap.xml — dynamically generated from DB with per-date URLs.
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const rows = await prisma.finalReport.findMany({
+        select: { reportDate: true, symbol: true },
+      });
+      // Group by date to get counts and unique dates.
+      const dateMap = new Map();
+      for (const r of rows) {
+        if (!r.reportDate) continue;
+        const dateStr = r.reportDate.toISOString().split("T")[0];
+        dateMap.set(dateStr, (dateMap.get(dateStr) || 0) + 1);
+      }
+      const dates = Array.from(dateMap.keys()).sort();
+      const today = new Date().toISOString().split("T")[0];
+      const baseUrl = "https://earningstable.com";
+
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+      // Root URL
+      xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+      // Per-date URLs
+      for (const d of dates) {
+        xml += `  <url>\n    <loc>${baseUrl}/date/${d}</loc>\n    <lastmod>${d}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+      }
+      xml += "</urlset>";
+
+      res.setHeader("Content-Type", "application/xml");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.send(xml);
+    } catch (err) {
+      console.error("[sitemap] Dynamic generation failed:", err.message);
+      // Fallback to static file if available.
+      const possiblePaths = [
+        path.resolve(__dirname, "..", "..", "public", "sitemap.xml"),
+        path.resolve(process.cwd(), "public", "sitemap.xml"),
+      ];
+      const sitemapPath = possiblePaths.find((p) => fs.existsSync(p));
+      if (sitemapPath) {
+        res.setHeader("Content-Type", "application/xml");
+        res.sendFile(sitemapPath, (e) => {
+          if (e && !res.headersSent) res.status(500).json({ error: "Error serving sitemap.xml" });
+        });
+      } else {
+        res.status(500).json({ error: "sitemap.xml not available" });
+      }
     }
-    res.setHeader("Content-Type", "application/xml");
-    res.sendFile(sitemapPath, (err) => {
-      if (err && !res.headersSent) res.status(500).json({ error: "Error serving sitemap.xml" });
-    });
   });
 
   // Logos — robust to working dir (production + dev paths).
@@ -50,7 +83,7 @@ function registerStaticRoutes(app) {
     const possiblePaths = [
       "/var/www/earnings-table/modules/web/public/logos",
       "/srv/EarningsTable/modules/web/public/logos",
-      path.resolve(__dirname, "..", "modules", "web", "public", "logos"),
+      path.resolve(__dirname, "..", "..", "modules", "web", "public", "logos"),
       path.resolve(process.cwd(), "modules", "web", "public", "logos"),
     ];
     console.log("[logos] Checking paths for logo directory...");

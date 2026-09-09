@@ -163,6 +163,9 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data, selectedDate }) => 
       <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-slate-800 overflow-hidden">
         <div className="overflow-auto max-h-[calc(100vh-220px)]">
           <table className="w-full" style={{ minWidth: '900px' }}>
+            <caption className="sr-only">
+              Earnings reports for {formatDate(selectedDate)} — {filteredAndSortedData.length} companies
+            </caption>
             <thead>
               <tr className="border-b border-neutral-200 dark:border-slate-800">
                 {sortableTh('symbol', 'Company', 'left')}
@@ -174,10 +177,10 @@ const EarningsTable: React.FC<EarningsTableProps> = ({ data, selectedDate }) => 
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-slate-800">
               {filteredAndSortedData.map((item) => (
-                <tr key={item.symbol} className="hover:bg-neutral-50 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-3">
+                <tr key={item.symbol} className="hover:bg-neutral-50 dark:hover:bg-slate-800/40 transition-colors" aria-label={`${item.symbol} ${item.name || ''}`}>
+                  <th scope="row" className="px-4 py-3 text-left font-normal">
                     <CompanyCell item={item} nameMaxWidth="200px" />
-                  </td>
+                  </th>
                   <MetricCell
                     variant="cell"
                     label="Mkt Cap"

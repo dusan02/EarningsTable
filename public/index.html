@@ -85,11 +85,61 @@
         "logo": { "@type": "ImageObject", "url": "https://earningstable.com/logo.png" }
       },
       "datePublished": "2024-01-01",
-      "dateModified": "2025-07-22",
+      "dateModified": "2026-09-09",
       "inLanguage": "en-US",
       "isAccessibleForFree": true,
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
       "softwareVersion": "2.0.0"
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage (GEO — AI engines prefer FAQ schema for question answering) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What companies are reporting earnings today?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Earnings Table provides a daily earnings calendar showing all companies reporting earnings each trading day. Visit earningstable.com to see today's earnings reports with market cap, EPS surprises, revenue surprises, and stock price changes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I track earnings reports?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use the Earnings Table calendar to browse earnings by date. Select any day to see all companies reporting that day, with financial data including EPS actual vs estimate, revenue actual vs estimate, market cap, and price changes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is an EPS surprise?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "EPS surprise is the percentage difference between a company's actual earnings per share and the analyst consensus estimate. A positive surprise means the company beat expectations; a negative surprise means it missed."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is a revenue surprise?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Revenue surprise is the percentage difference between actual revenue and the analyst consensus revenue estimate. It indicates whether a company's top-line performance exceeded or fell short of market expectations."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where does the earnings data come from?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Earnings data is sourced from Finnhub (earnings calendar) and Polygon (prices, fundamentals, logos). The dashboard is independent and not affiliated with any financial institution."
+          }
+        }
+      ]
     }
     </script>
 
@@ -119,29 +169,10 @@
     }
     </script>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ["Inter", "system-ui", "sans-serif"],
-                        mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
-                    }
-                }
-            }
-        }
-    </script>
-
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
         * {
@@ -156,5 +187,13 @@
 </head>
 <body class="h-full bg-neutral-50 dark:bg-slate-950">
     <div id="root"></div>
+    <noscript>
+        <div style="font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
+            <h1>Earnings Table — Daily Earnings Calendar</h1>
+            <p>Track daily company earnings with a calendar view. Real-time financial data including market cap, EPS surprises, revenue surprises, and stock price changes.</p>
+            <p>This application requires JavaScript to display the interactive earnings calendar. Please enable JavaScript to view today's earnings reports.</p>
+            <p>Data sources: Finnhub (earnings calendar) and Polygon (prices, fundamentals). Independent financial data dashboard, not affiliated with any financial institution.</p>
+        </div>
+    </noscript>
 </body>
 </html>
