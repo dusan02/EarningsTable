@@ -111,15 +111,17 @@ export class OptimizedPipeline {
   }
 
   private async getAllSymbols(): Promise<string[]> {
-    let symbols = await db.getUniqueSymbolsFromPolygonData();
-    if (symbols.length === 0) {
-      const finhubSymbols = await prisma.finhubData.findMany({
-        select: { symbol: true },
-        distinct: ['symbol'],
-      });
-      symbols = finhubSymbols.map(s => s.symbol);
-    }
-    return symbols;
+    // Always include ALL symbols from FinhubData (covers past, today, and future
+    // earnings calendar entries). Also merge in existing PolygonData symbols so
+    // we keep refreshing current price data for symbols that may have been removed
+    // from the earnings calendar.
+    const [finhubSymbols, polygonSymbols] = await Promise.all([
+      prisma.finhubData.findMany({ select: { symbol: true }, distinct: ['symbol'] }),
+      db.getUniqueSymbolsFromPolygonData(),
+    ]);
+    const finhubSet = new Set(finnhubSymbols.map(s => s.symbol));
+    for (const s of polygonSymbols) finhubSet.add(s);
+    return Array.from(finhubSet);
   }
 
   private async runPolygonOptimized(symbols: string[]): Promise<{ processed: number; duration: number }> {
