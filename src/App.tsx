@@ -7,6 +7,7 @@ import { nyTodayISO, formatDateLong } from './utils';
 import { useTheme } from './hooks/useTheme';
 import { useEarningsData } from './hooks/useEarningsData';
 import { useCronStatus } from './hooks/useCronStatus';
+import { useGA } from './hooks/useGA';
 import { LoadingState, ErrorState } from './components/States';
 
 // Simple error boundary so a render error in the table/calendar doesn't blank
@@ -68,6 +69,7 @@ const AppShell: React.FC = () => {
   const [availableDates, setAvailableDates] = useState<DateInfo[]>([]);
   const [theme, toggleTheme] = useTheme();
   const { cron } = useCronStatus();
+  useGA(); // Track SPA route changes in Google Analytics
 
   // Fetch available dates once.
   useEffect(() => {
