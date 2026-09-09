@@ -7,13 +7,14 @@ const express = require("express");
 
 function registerStaticRoutes(app) {
   // Serve /public as static files (fallback if Nginx doesn't handle it).
-  const PUBLIC_DIR = path.resolve(__dirname, "..", "public");
+  // static.js lives in server/routes/, so go up TWO levels to reach the project root.
+  const PUBLIC_DIR = path.resolve(__dirname, "..", "..", "public");
   app.use(express.static(PUBLIC_DIR, { fallthrough: true }));
 
   // robots.txt
   app.get("/robots.txt", (req, res) => {
     const possiblePaths = [
-      path.resolve(__dirname, "..", "public", "robots.txt"),
+      path.resolve(__dirname, "..", "..", "public", "robots.txt"),
       path.resolve(process.cwd(), "public", "robots.txt"),
     ];
     const robotsPath = possiblePaths.find((p) => fs.existsSync(p));
@@ -30,7 +31,7 @@ function registerStaticRoutes(app) {
   // sitemap.xml
   app.get("/sitemap.xml", (req, res) => {
     const possiblePaths = [
-      path.resolve(__dirname, "..", "public", "sitemap.xml"),
+      path.resolve(__dirname, "..", "..", "public", "sitemap.xml"),
       path.resolve(process.cwd(), "public", "sitemap.xml"),
     ];
     const sitemapPath = possiblePaths.find((p) => fs.existsSync(p));
@@ -69,9 +70,9 @@ function registerStaticRoutes(app) {
   // Favicon (.ico and .svg) with fallbacks.
   app.get(["/favicon.ico", "/favicon.svg"], (req, res) => {
     const candidates = [
-      path.join(__dirname, "..", "favicon.svg"),
+      path.join(__dirname, "..", "..", "favicon.svg"),
       path.resolve(process.cwd(), "modules", "web", "public", "logos", "favicon.svg"),
-      path.join(__dirname, "..", "favicon.ico"),
+      path.join(__dirname, "..", "..", "favicon.ico"),
     ];
     const candidate = candidates.find((p) => fs.existsSync(p));
     if (!candidate) return res.status(404).end();
@@ -80,7 +81,7 @@ function registerStaticRoutes(app) {
 
   // site.webmanifest
   app.get("/site.webmanifest", (req, res) => {
-    const manifestPath = path.resolve(__dirname, "..", "site.webmanifest");
+    const manifestPath = path.resolve(__dirname, "..", "..", "site.webmanifest");
     if (!fs.existsSync(manifestPath)) {
       console.error("[manifest] File not found at:", manifestPath);
       return res.status(404).json({ error: "Manifest not found" });
