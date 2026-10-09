@@ -12,6 +12,7 @@ export interface FinalReportData {
   revActual: number | string | null;
   revEst: number | string | null;
   revSurp: number | null;
+  time: string | null; // "bmo" | "amc" | "dmh" | null
   logoUrl: string | null;
   logoSource: string | null;
   logoFetchedAt: string | null;

@@ -542,6 +542,7 @@ export class DatabaseManager {
           revActual: safeRevActual,
           revEst: safeRevEst,
           revSurp: roundedRevSurp,
+          time: finhubData.hour ?? null,
           reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
           // Logos live on FinhubData (written by the logo service). PolygonData
@@ -564,6 +565,7 @@ export class DatabaseManager {
           revActual: safeRevActual,
           revEst: safeRevEst,
           revSurp: roundedRevSurp,
+          time: finhubData.hour ?? null,
           reportDate: effectiveReportDate, // Use reportDate from finhubData or current timestamp
           snapshotDate: snapshotDateISO,
           logoUrl: finhubData.logoUrl ?? null,

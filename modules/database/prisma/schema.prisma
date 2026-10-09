@@ -84,6 +84,7 @@ model FinalReport {
   revActual     BigInt?
   revEst        BigInt?
   revSurp       Float?
+  time          String?   // "bmo" | "amc" | "dmh" | null — copied from FinhubData.hour
   
   // LOGO fields (copied from FinhubData)
   logoUrl       String?   // e.g. "/logos/AAPL.webp"

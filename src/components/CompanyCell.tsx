@@ -26,15 +26,30 @@ function getSizeBadge(size: string | null, marketCap?: number | string | null): 
   }
 }
 
+/** Earnings timing chip — bmo/amc/dmh stored on FinalReport.time (FinhubData.hour). */
+function getTimeChip(time: string | null): { label: string; classes: string } | null {
+  switch (time) {
+    case 'bmo':
+      return { label: 'Pre', classes: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' };
+    case 'amc':
+      return { label: 'After', classes: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' };
+    case 'dmh':
+      return { label: 'During', classes: 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300' };
+    default:
+      return null;
+  }
+}
+
 interface CompanyCellProps {
   item: FinalReportData;
   /** Truncate the company name to this max width (desktop only). */
   nameMaxWidth?: string;
 }
 
-/** Logo + symbol + size badge + company name. Shared by mobile card and desktop row. */
+/** Logo + symbol + size badge + time chip + company name. Shared by mobile card and desktop row. */
 const CompanyCell: React.FC<CompanyCellProps> = ({ item, nameMaxWidth }) => {
   const sizeBadge = getSizeBadge(item.size, item.marketCap);
+  const timeChip = getTimeChip(item.time);
   return (
     <div className="flex items-center gap-3">
       <CompanyLogo symbol={item.symbol} logoUrl={item.logoUrl} name={item.name} />
@@ -44,6 +59,11 @@ const CompanyCell: React.FC<CompanyCellProps> = ({ item, nameMaxWidth }) => {
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${sizeBadge.classes}`}>
             {sizeBadge.label}
           </span>
+          {timeChip && (
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${timeChip.classes}`}>
+              {timeChip.label}
+            </span>
+          )}
         </div>
         <div
           className="text-xs text-neutral-500 dark:text-neutral-400 truncate"
