@@ -53,6 +53,11 @@ Open http://localhost:3000.
 
 ## Smoke tests
 
+- `npm test` — jest unit tests (`src/utils.test.ts`); run with `CI=true` for a
+  single non-watch pass.
+- `npm run test:api` — boots the API on an ephemeral port and asserts the
+  endpoints below (uses `modules/database/prisma/dev.db` when `DATABASE_URL`
+  is unset; needs `npx prisma generate` first).
 - `GET /api/health` → `{ status: "healthy", ... }`
 - `GET /api/cron-status` → `{ lastUpdate, isFresh, diffMin, recordsProcessed }`
 - `GET /api/final-report/dates` → `{ data: [{ date, count }, ...] }`
@@ -75,6 +80,6 @@ Open http://localhost:3000.
 
 - Never commit `.env`, API keys, or `dev.db` (all gitignored).
 - The Finnhub token was historically committed in `docs/archive/*` and
-  `scripts/ssh/*`; it has been redacted from the working tree but remains in
-  git history. **Rotate the token on the Finnhub dashboard** and avoid
-  re-adding it.
+  `scripts/ssh/*` (the latter was removed in the Oct 2026 cleanup); it has been
+  redacted from the working tree but remains in git history. **Rotate the token
+  on the Finnhub dashboard** and avoid re-adding it.

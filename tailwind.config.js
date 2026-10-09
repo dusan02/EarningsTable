@@ -3,8 +3,6 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     "./public/index.html",
-    "./simple-dashboard.html",
-    "./modules/web/src/**/*.{js,jsx,ts,tsx}",
   ],
   darkMode: "class",
   theme: {

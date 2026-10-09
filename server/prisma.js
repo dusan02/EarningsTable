@@ -16,11 +16,26 @@ try {
     "@prisma",
     "client"
   );
+  const generatedClientPath = path.resolve(
+    __dirname,
+    "..",
+    "modules",
+    "shared",
+    "node_modules",
+    ".prisma",
+    "client"
+  );
 
   if (fs.existsSync(sharedPrismaPath)) {
     PrismaClient = require(sharedPrismaPath).PrismaClient;
     console.log("[Prisma] ✅ Using client from modules/shared");
     console.log("[Prisma] Path:", sharedPrismaPath);
+  } else if (fs.existsSync(path.join(generatedClientPath, "index.js"))) {
+    // Local dev: prisma generate emits the ready client to .prisma/client even
+    // when @prisma/client is only installed at the repo root.
+    PrismaClient = require(generatedClientPath).PrismaClient;
+    console.log("[Prisma] ⚠️ Shared Prisma client missing, using generated client");
+    console.log("[Prisma] Path:", generatedClientPath);
   } else {
     // Fallback to root node_modules (so we can start locally even when the
     // shared client hasn't been generated yet).
@@ -54,7 +69,9 @@ if (fs.existsSync(sharedPrismaRuntimePath)) {
   const queryEngine = files.find(
     (f) =>
       f.includes("query_engine") &&
-      (f.endsWith(".so.node") || f.endsWith(".dll.node"))
+      (f.endsWith(".so.node") ||
+        f.endsWith(".dll.node") ||
+        f.endsWith(".dylib.node"))
   );
   const schemaEngine = files.find((f) => {
     return (
